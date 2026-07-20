@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DashMacro — 유저스크립트 매크로 매니저</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      color: #1f2937;
+      line-height: 1.7;
+    }
+    .hero {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      text-align: center;
+      padding: 72px 20px 64px;
+    }
+    .hero h1 { margin: 0 0 12px; font-size: 40px; }
+    .hero p { margin: 0; font-size: 17px; opacity: 0.92; }
+    section {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h2 {
+      font-size: 22px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 8px;
+    }
+    .features { display: grid; gap: 14px; }
+    .features div {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+    .features b { color: #4f46e5; }
+    .apps a {
+      display: block;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .apps a:hover { border-color: #4f46e5; }
+    .picks { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 18px; }
+    .disclosure { font-size: 12px; color: #92400e; margin-top: 12px; }
+    footer {
+      text-align: center;
+      padding: 28px 20px 40px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    footer a { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>DashMacro</h1>
+    <p>유저스크립트를 등록해 원하는 사이트에서 자동 실행하는 크롬 확장 프로그램</p>
+  </div>
+
+  <section>
+    <h2>기능</h2>
+    <div class="features">
+      <div><b>유저스크립트 관리</b> — Tampermonkey 스타일의 <code>==UserScript==</code> 메타데이터를 그대로 사용합니다.</div>
+      <div><b>사이트별 자동 실행</b> — <code>@match</code> 패턴으로 실행할 사이트를 지정하세요.</div>
+      <div><b>내장 편집기</b> — 확장 프로그램 안에서 바로 스크립트를 작성하고 수정합니다.</div>
+      <div><b>완전 로컬</b> — 모든 스크립트는 브라우저 안에만 저장되고, 어떤 데이터도 외부로 전송하지 않습니다.</div>
+    </div>
+  </section>
+
+  <section class="apps">
+    <h2>개발자의 다른 프로그램</h2>
+    <a href="#"><b>준비 중</b> — 새로운 프로그램이 나오면 여기에 소개할게요.</a>
+  </section>
+
+  <section>
+    <h2>추천 아이템</h2>
+    <div class="picks">
+      <p>개발하면서 실제로 쓰고 있는 장비/도구를 소개하는 공간입니다. (준비 중)</p>
+      <p class="disclosure">
+        이 페이지의 일부 링크는 쿠팡 파트너스 활동의 일환으로, 구매 시 일정액의 수수료를 제공받을 수 있습니다.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <a href="privacy.html">개인정보처리방침</a> · © 2026 DashMacro
+  </footer>
+</body>
+</html>
