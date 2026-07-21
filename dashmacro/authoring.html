@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DashMacro — 스크립트 작성 가이드</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+      font-family: system-ui, sans-serif;
+      color: #1f2937;
+      line-height: 1.75;
+    }
+    h1 { font-size: 28px; margin-bottom: 4px; }
+    h2 { font-size: 20px; margin-top: 36px; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px; }
+    h3 { font-size: 16px; margin-top: 22px; }
+    code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 90%; }
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 10px;
+      overflow-x: auto; font-size: 13px; line-height: 1.6;
+    }
+    pre code { background: none; padding: 0; color: inherit; }
+    a { color: #4f46e5; }
+    .cta {
+      display: block; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff;
+      border-radius: 12px; padding: 18px 22px; text-decoration: none; margin: 20px 0;
+    }
+    .cta b { font-size: 16px; }
+    .cta span { display: block; opacity: .9; font-size: 13px; margin-top: 4px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; font-size: 14px; }
+    th { background: #f9fafb; }
+    .warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; }
+    .muted { color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <p class="muted"><a href="./">← DashMacro</a> · <a href="../">LabDasarada 홈</a></p>
+  <h1>DashMacro 스크립트 작성 가이드</h1>
+  <p class="muted">DashMacro에서 동작하는 유저스크립트를 직접, 또는 AI 도구로 만들 때 참고하세요.</p>
+
+  <a class="cta" href="llms.txt">
+    <b>🤖 Claude Code / AI로 만드시나요?</b>
+    <span>이 스펙 파일(llms.txt)을 통째로 붙여넣으면 DashMacro에 맞는 스크립트를 정확히 생성합니다.</span>
+  </a>
+
+  <h2>메타데이터</h2>
+  <p>스크립트 맨 위에 메타 블록을 넣습니다. DashMacro가 지원하는 키만 동작합니다.</p>
+  <pre><code>// ==UserScript==
+// @name         내 스크립트
+// @version      1.0
+// @match        https://example.com/*
+// @exclude      https://example.com/logout*
+// @run-at       document-idle
+// ==/UserScript==</code></pre>
+
+  <table>
+    <tr><th>키</th><th>설명</th></tr>
+    <tr><td><code>@name</code></td><td>DashMacro 목록에 표시되는 이름</td></tr>
+    <tr><td><code>@version</code></td><td>선택. URL로 설치한 경우 업데이트 확인에 사용</td></tr>
+    <tr><td><code>@match</code> / <code>@include</code></td><td>Chrome 매치 패턴(정규식 아님). 여러 개 가능. <b>없으면 모든 사이트에서 실행</b></td></tr>
+    <tr><td><code>@exclude</code> / <code>@exclude-match</code></td><td>제외할 매치 패턴</td></tr>
+    <tr><td><code>@run-at</code></td><td><code>document-start</code> / <code>document-end</code> / <code>document-idle</code>(기본)</td></tr>
+  </table>
+  <p class="muted"><code>@grant</code>, <code>@require</code>, <code>@resource</code>, <code>@namespace</code> 등은 무시됩니다(넣어도 무해).</p>
+
+  <h2>실행 모델 (꼭 알아둘 것)</h2>
+  <ul>
+    <li><b>격리된 월드</b>에서 실행됩니다. DOM은 읽고 바꿀 수 있지만, <b>페이지 자체의 JS 전역변수는 볼 수 없습니다.</b> <code>unsafeWindow</code>도 격리 월드의 window라 페이지 전역엔 접근 못 합니다.</li>
+    <li><b>외부 라이브러리 불가.</b> <code>@require</code> 미지원 — jQuery 등은 인라인으로 넣어야 합니다.</li>
+    <li>스크립트는 <b>전체 페이지 로드당 한 번</b> 주입됩니다. SPA(React/Vue 등)의 화면 전환에는 다시 실행되지 않으므로 직접 감지해야 합니다.</li>
+  </ul>
+
+  <h2>GM_ 함수</h2>
+  <p>소스에 <code>GM_</code> 또는 <code>unsafeWindow</code>가 있으면 자동 주입됩니다.</p>
+  <ul>
+    <li><code>GM_getValue</code> / <code>GM_setValue</code> / <code>GM_deleteValue</code> / <code>GM_listValues</code> — localStorage 기반.
+        <b>사이트별로 격리</b>됩니다(다른 유저스크립트 매니저의 크로스사이트 저장과 다름).</li>
+    <li><code>GM_addStyle(css)</code>, <code>GM_log(...)</code></li>
+  </ul>
+  <div class="warn"><code>GM_xmlhttpRequest</code>는 미지원입니다(크로스오리진 차단). 같은 출처면 <code>fetch</code>를 쓰세요.</div>
+
+  <h2>자주 필요한 패턴</h2>
+  <h3>1. 요소가 나타날 때까지 대기</h3>
+  <pre><code>async function waitFor(sel, timeout = 8000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const el = document.querySelector(sel);
+    if (el) return el;
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return null;
+}</code></pre>
+
+  <h3>2. SPA 화면 전환 감지</h3>
+  <pre><code>function onRouteChange(fn) {
+  const wrap = (t) => { const o = history[t];
+    history[t] = function () { const r = o.apply(this, arguments);
+      window.dispatchEvent(new Event('dm:nav')); return r; }; };
+  wrap('pushState'); wrap('replaceState');
+  addEventListener('popstate', () => dispatchEvent(new Event('dm:nav')));
+  addEventListener('dm:nav', () => setTimeout(fn, 500));
+}</code></pre>
+
+  <h3>3. React 입력창에 값 넣기</h3>
+  <pre><code>function setNativeValue(input, value) {
+  const setter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, 'value').set;
+  setter.call(input, value);
+  input.dispatchEvent(new Event('input',  { bubbles: true }));
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}</code></pre>
+
+  <h2>최소 템플릿</h2>
+  <pre><code>// ==UserScript==
+// @name         Example
+// @version      1.0
+// @match        https://example.com/*
+// @run-at       document-idle
+// ==/UserScript==
+(function () {
+  'use strict';
+  console.log('DashMacro: Example running on', location.href);
+})();</code></pre>
+
+  <p class="muted" style="margin-top:40px"><a href="./">← DashMacro로 돌아가기</a></p>
+</body>
+</html>

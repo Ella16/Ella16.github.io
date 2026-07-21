@@ -1,0 +1,121 @@
+# DashMacro Userscript Authoring Spec (for LLMs)
+
+You are writing a userscript for **DashMacro**, a Manifest V3 Chrome extension that runs
+user scripts via the `chrome.userScripts` API. Paste this whole file as context when asked
+to write a DashMacro script. Follow it exactly — DashMacro is NOT Tampermonkey and several
+common assumptions are different.
+
+## Metadata block (required-ish)
+
+Start the script with a metadata block. Supported keys ONLY:
+
+    // ==UserScript==
+    // @name         My Script
+    // @version      1.0
+    // @match        https://example.com/*
+    // @match        https://other.com/*
+    // @exclude      https://example.com/logout*
+    // @run-at       document-idle
+    // ==/UserScript==
+
+- `@name`     : shown in the DashMacro UI. First one wins.
+- `@version`  : optional; used by "check for updates" when installed from a URL.
+- `@match`    : Chrome match patterns. Multiple allowed. If NONE given, the script runs on
+                EVERY site (`*://*/*`) — always add `@match` unless that is truly intended.
+- `@include`  : treated as an alias of `@match` (same match-pattern syntax — NOT regex/glob).
+- `@exclude` / `@exclude-match` : match patterns to exclude.
+- `@run-at`   : one of `document-start`, `document-end`, `document-idle` (default `idle`).
+
+IGNORED / UNSUPPORTED keys (do not rely on them): `@grant`, `@namespace`, `@require`,
+`@resource`, `@connect`, `@icon`, `@downloadURL`, menu commands. Including them is harmless
+(they're ignored) but they do nothing.
+
+## Execution model — read carefully
+
+- Scripts run in an **isolated world** (`USER_SCRIPT`), separate from the page's own JS.
+  You CAN read/modify the DOM. You CANNOT read the page's own JS variables/globals
+  (e.g. `window.somePageGlobal` set by the site is not visible). `unsafeWindow` is provided
+  but equals the isolated `window`, so it does NOT give access to the page's real globals.
+- **No external libraries.** `@require` is unsupported. Inline everything (no jQuery/CDN).
+- Scripts inject **once per full page load** at `@run-at`. They do NOT re-run on SPA
+  route changes. For single-page apps (React/Vue/Next), you MUST detect navigation yourself
+  (see pattern below).
+- `chrome.*` APIs are not available to script authors (only DashMacro's internal tracker
+  uses messaging). Persist data with `GM_setValue`/`localStorage`.
+
+## GM_* functions available
+
+Auto-injected only if the source text contains `GM_` or `unsafeWindow`:
+
+- `GM_getValue(key, default)` / `GM_setValue(key, value)` / `GM_deleteValue(key)` /
+  `GM_listValues()` — JSON-serialized, backed by `localStorage`.
+  IMPORTANT: storage is **per-site (per-origin)**, unlike Tampermonkey's cross-site store.
+- `GM_addStyle(css)` — inject a <style>.
+- `GM_log(...args)` — console.log with a `[GM]` prefix.
+
+NOT available: `GM_xmlhttpRequest` (cross-origin blocked — use `fetch` for same-origin only),
+`GM_registerMenuCommand`, `GM_notification`, `GM_setClipboard`, `GM_getResourceText`.
+
+## Required patterns (LLMs get these wrong)
+
+### 1. SPA navigation detection
+If the target is a single-page app, hook history and re-run your logic on route change:
+
+    function onRouteChange(fn) {
+      const wrap = (type) => {
+        const orig = history[type];
+        history[type] = function () { const r = orig.apply(this, arguments);
+          window.dispatchEvent(new Event('dm:nav')); return r; };
+      };
+      wrap('pushState'); wrap('replaceState');
+      window.addEventListener('popstate', () => window.dispatchEvent(new Event('dm:nav')));
+      window.addEventListener('dm:nav', () => setTimeout(fn, 500));
+    }
+
+### 2. Wait for an element (content loads async)
+
+    async function waitFor(selector, timeoutMs = 8000) {
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        const el = document.querySelector(selector);
+        if (el) return el;
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      return null;
+    }
+
+### 3. Setting value on a React/controlled input
+Assigning `input.value = x` alone won't update React state. Use the native setter + events:
+
+    function setNativeValue(input, value) {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype, 'value').set;
+      setter.call(input, value);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+### 4. Persisting state across full page navigations
+Use `localStorage` (or `GM_setValue`). Anything in normal variables is lost on navigation.
+
+## Minimal template
+
+    // ==UserScript==
+    // @name         Example
+    // @version      1.0
+    // @match        https://example.com/*
+    // @run-at       document-idle
+    // ==/UserScript==
+    (function () {
+      'use strict';
+      // your code here
+      console.log('DashMacro: Example running on', location.href);
+    })();
+
+## Checklist before returning a script
+- [ ] Wrapped in an IIFE with `'use strict'`.
+- [ ] Has `@match` scoped to the intended site(s) — not left blank.
+- [ ] No `@require` / external scripts / CDN — everything inlined.
+- [ ] For SPA sites: navigation is detected, elements are awaited, not assumed present.
+- [ ] For controlled inputs: uses the native-setter + dispatch-event pattern.
+- [ ] Does not assume access to the page's own JS globals.
