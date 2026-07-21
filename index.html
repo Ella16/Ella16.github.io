@@ -74,15 +74,10 @@
       padding: 18px 22px;
     }
     .picks .slot {
-      /* 쿠팡 파트너스 배너/링크가 들어갈 자리 */
-      min-height: 60px;
+      /* 쿠팡 파트너스 캐러셀 위젯(680px 고정)이 좁은 화면에서 넘치지 않도록 가로 스크롤 처리 */
+      overflow-x: auto;
       display: flex;
-      align-items: center;
       justify-content: center;
-      border: 1px dashed #fbbf24;
-      border-radius: 8px;
-      color: #b45309;
-      font-size: 13px;
     }
     .disclosure { font-size: 12px; color: #92400e; margin: 12px 0 0; }
     footer {
@@ -126,7 +121,12 @@
   <section>
     <h2>추천 아이템</h2>
     <div class="picks">
-      <div class="slot">쿠팡 파트너스 배너 자리 — 파트너스 가입 후 배너/상품 링크 삽입</div>
+      <div class="slot">
+        <script src="https://ads-partners.coupang.com/g.js"></script>
+        <script>
+          new PartnersCoupang.G({"id":1008876,"template":"carousel","trackingCode":"AF3789214","width":"680","height":"140","tsource":""});
+        </script>
+      </div>
       <p class="disclosure">
         이 페이지의 일부 링크는 쿠팡 파트너스 활동의 일환으로, 구매 시 일정액의 수수료를 제공받을 수 있습니다.
       </p>
