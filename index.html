@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LabDasarada — 쓸모있는 작은 프로그램들</title>
+  <title>LabDasarada</title>
   <!-- AdSense: 커스텀 도메인 연결 후 여기에 애드센스 코드 삽입 -->
   <style>
     * { box-sizing: border-box; }
@@ -14,6 +14,7 @@
       line-height: 1.7;
     }
     .hero {
+      position: relative;
       background: linear-gradient(135deg, #0f172a, #312e81);
       color: #fff;
       text-align: center;
@@ -32,6 +33,28 @@
       font-size: 13px;
     }
     .hero .channels a:hover { background: rgba(255,255,255,.12); }
+    /* 언어 세그먼트 — 익스텐션과 동일 형식 [EN | 한국어] */
+    .lang-seg {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: inline-flex;
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .lang-seg button {
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .lang-seg button + button { border-left: 1px solid rgba(255,255,255,.4); }
+    .lang-seg button.active { background: #fff; color: #312e81; }
     section {
       max-width: 760px;
       margin: 0 auto;
@@ -95,25 +118,26 @@
 </head>
 <body>
   <div class="hero">
+    <span id="lang-seg" class="lang-seg"></span>
     <h1>LabDasarada</h1>
-    <p>일상과 업무를 편하게 만드는 작은 프로그램들을 만듭니다</p>
+    <p data-i18n="tagline">일상과 업무를 편하게 만드는 작은 프로그램들을 만듭니다</p>
     <div class="channels">
       <a href="https://link.inpock.co.kr/kimdasarada" rel="noopener">Links</a>
     </div>
   </div>
 
   <section>
-    <h2>프로그램</h2>
+    <h2 data-i18n="h_programs">프로그램</h2>
     <div class="programs">
       <!-- 웹스토어 등록 후 <a class="program-card" href="크롬웹스토어 URL">로 교체 -->
       <div class="program-card">
-        <h3>DashMacro<span class="tag">Chrome 확장 · 스토어 등록 예정</span></h3>
-        <p>유저스크립트를 등록해 원하는 사이트에서 자동 실행하는 매크로 매니저.
+        <h3>DashMacro<span class="tag" data-i18n="dash_tag">Chrome 확장 · 스토어 등록 예정</span></h3>
+        <p data-i18n="dash_desc">유저스크립트를 등록해 원하는 사이트에서 자동 실행하는 매크로 매니저.
            표준 유저스크립트 메타데이터(==UserScript==)를 그대로 지원합니다.</p>
       </div>
       <div class="program-card soon">
-        <h3>다음 프로그램</h3>
-        <p>준비 중입니다. 새 프로그램이 나오면 여기에 추가됩니다.</p>
+        <h3 data-i18n="next_title">다음 프로그램</h3>
+        <p data-i18n="next_desc">준비 중입니다. 새 프로그램이 나오면 여기에 추가됩니다.</p>
       </div>
     </div>
   </section>
@@ -121,7 +145,7 @@
   <!-- AdSense: 본문 중간 슬롯 자리 (커스텀 도메인 + 승인 후) -->
 
   <section>
-    <h2>추천 아이템</h2>
+    <h2 data-i18n="h_picks">추천 아이템</h2>
     <div class="picks">
       <div class="slot">
         <script src="https://ads-partners.coupang.com/g.js"></script>
@@ -129,7 +153,7 @@
           new PartnersCoupang.G({"id":1008876,"template":"carousel","trackingCode":"AF3789214","width":"660","height":"140","tsource":""});
         </script>
       </div>
-      <p class="disclosure">
+      <p class="disclosure" data-i18n="disclosure">
         이 페이지의 일부 링크는 쿠팡 파트너스 활동의 일환으로, 구매 시 일정액의 수수료를 제공받을 수 있습니다.
       </p>
     </div>
@@ -139,5 +163,54 @@
     <a href="https://link.inpock.co.kr/kimdasarada" rel="noopener">Links</a>
     · © 2026 LabDasarada
   </footer>
+
+  <script>
+    // 허브 EN/KO — 익스텐션과 동일한 [EN | 한국어] 세그먼트. 선택은 localStorage에 저장.
+    var HUB_I18N = {
+      title:     { en: 'LabDasarada — handy little programs', ko: 'LabDasarada — 쓸모있는 작은 프로그램들' },
+      tagline:   { en: 'I build small programs that make everyday work easier', ko: '일상과 업무를 편하게 만드는 작은 프로그램들을 만듭니다' },
+      h_programs:{ en: 'Programs', ko: '프로그램' },
+      dash_tag:  { en: 'Chrome extension · coming to the store', ko: 'Chrome 확장 · 스토어 등록 예정' },
+      dash_desc: { en: 'A macro manager that automatically runs the userscripts you register on the sites you choose. Supports standard userscript metadata (==UserScript==).',
+                   ko: '유저스크립트를 등록해 원하는 사이트에서 자동 실행하는 매크로 매니저. 표준 유저스크립트 메타데이터(==UserScript==)를 그대로 지원합니다.' },
+      next_title:{ en: 'Next program', ko: '다음 프로그램' },
+      next_desc: { en: 'In the works. New programs will show up here.', ko: '준비 중입니다. 새 프로그램이 나오면 여기에 추가됩니다.' },
+      h_picks:   { en: 'Recommended', ko: '추천 아이템' },
+      disclosure:{ en: 'As a Coupang Partners participant, I may earn a commission from qualifying purchases through some links on this page.',
+                   ko: '이 페이지의 일부 링크는 쿠팡 파트너스 활동의 일환으로, 구매 시 일정액의 수수료를 제공받을 수 있습니다.' },
+    };
+    var hubLang = localStorage.getItem('hub_lang') || (navigator.language && navigator.language.indexOf('ko') === 0 ? 'ko' : 'en');
+
+    function applyHubLang() {
+      document.documentElement.lang = hubLang;
+      document.title = HUB_I18N.title[hubLang];
+      document.querySelectorAll('[data-i18n]').forEach(function (el) {
+        var e = HUB_I18N[el.dataset.i18n];
+        if (e) el.textContent = e[hubLang] || e.en;
+      });
+      document.querySelectorAll('#lang-seg button').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.lang === hubLang);
+      });
+    }
+
+    (function buildSeg() {
+      var host = document.getElementById('lang-seg');
+      [['en', 'EN'], ['ko', '한국어']].forEach(function (p) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.lang = p[0];
+        b.textContent = p[1];
+        b.addEventListener('click', function () {
+          if (hubLang === p[0]) return;
+          hubLang = p[0];
+          localStorage.setItem('hub_lang', hubLang);
+          applyHubLang();
+        });
+        host.appendChild(b);
+      });
+    })();
+
+    applyHubLang();
+  </script>
 </body>
 </html>
