@@ -74,10 +74,12 @@
       padding: 18px 22px;
     }
     .picks .slot {
-      /* 쿠팡 파트너스 캐러셀 위젯(680px 고정)이 좁은 화면에서 넘치지 않도록 가로 스크롤 처리 */
+      /* 쿠팡 캐러셀 위젯은 inline <ins>로 주입됨 → text-align으로 중앙 정렬.
+         고정폭(660px)이 좁은 화면에서 넘치지 않도록 가로 스크롤, min-height로 로딩 중 레이아웃 점프 방지 */
+      width: 100%;
       overflow-x: auto;
-      display: flex;
-      justify-content: center;
+      text-align: center;
+      min-height: 140px;
     }
     .disclosure { font-size: 12px; color: #92400e; margin: 12px 0 0; }
     footer {
