@@ -2,8 +2,8 @@
 
 You are writing a userscript for **DashMacro**, a Manifest V3 Chrome extension that runs
 user scripts via the `chrome.userScripts` API. Paste this whole file as context when asked
-to write a DashMacro script. Follow it exactly — DashMacro is NOT Tampermonkey and several
-common assumptions are different.
+to write a DashMacro script. Follow it exactly — DashMacro has its own execution rules and
+several common userscript assumptions do NOT hold here.
 
 ## Metadata block (required-ish)
 
@@ -49,7 +49,7 @@ Auto-injected only if the source text contains `GM_` or `unsafeWindow`:
 
 - `GM_getValue(key, default)` / `GM_setValue(key, value)` / `GM_deleteValue(key)` /
   `GM_listValues()` — JSON-serialized, backed by `localStorage`.
-  IMPORTANT: storage is **per-site (per-origin)**, unlike Tampermonkey's cross-site store.
+  IMPORTANT: storage is **per-site (per-origin)** — it is NOT shared across different sites.
 - `GM_addStyle(css)` — inject a <style>.
 - `GM_log(...args)` — console.log with a `[GM]` prefix.
 
