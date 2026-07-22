@@ -136,6 +136,7 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .resume-banner .rb-tx b{font-size:14px}
 .resume-banner .rb-tx span{font-size:12px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .resume-banner .rb-go{font-size:13px;flex:none;opacity:.85}
+.mode-cap{font-size:11px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:6px;letter-spacing:.03em}
 .hintbar{display:flex;gap:7px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
 .hint{font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
 .hint.on{background:var(--accent);color:#fff;border-color:transparent}
@@ -457,26 +458,26 @@ function renderMemorize(root){
   if(state.mzIdx>=state.mzList.length) state.mzIdx=0;
   const v=state.mzList[state.mzIdx];
 
-  // 보기 모드: 무엇을 보이고 나머지는 가려서 떠올리기 (탭하면 확인)
-  if(!state.mzMode) state.mzMode='all';
-  const modes=[['all','전체'],['ref','참조만'],['title','제목만'],['verse','구절만'],['first','첫글자'],['blank','빈칸']];
+  // 가릴 것(맞추기 대상) 선택 → 나머지는 보임, 카드 탭하면 정답 확인
+  if(!state.mzMode) state.mzMode='verse';
+  const modes=[['all','전체'],['verse','구절'],['title','제목'],['ref','참조'],['first','첫글자'],['blank','빈칸']];
+  root.appendChild(el('div','mode-cap','가리고 맞추기'));
   const hb=el('div','hintbar');
   modes.forEach(([k,label])=>{const b=el('button','hint'+(state.mzMode===k?' on':''),label);b.onclick=()=>{state.mzMode=k;state.mzReveal=false;saveResume();render();};hb.appendChild(b);});
   root.appendChild(hb);
 
   const m=state.mzMode, rev=!!state.mzReveal;
-  const showRef=rev||m==='all'||m==='ref'||m==='first'||m==='blank';
-  const showTitle=rev||m==='all'||m==='title'||m==='first'||m==='blank';
+  const showRef=rev||m!=='ref';
+  const showTitle=rev||m!=='title';
   const title=[...v.sub].filter(Boolean).join(' › ')||v.coll;
   let verseHtml;
-  if(rev||m==='all'||m==='verse') verseHtml=esc(T(v));
+  if(rev||!(m==='verse'||m==='first'||m==='blank')) verseHtml=esc(T(v));
   else if(m==='first') verseHtml=renderHintText(T(v),1);
   else if(m==='blank') verseHtml=renderHintText(T(v),2);
   else verseHtml='<span class="fl">✧ 구절을 떠올려 보세요 ✧</span>';
   const card=el('div','flash');
   card.style.touchAction='pan-y';
-  card.innerHTML=`<div class="swipe-hint left">‹</div><div class="swipe-hint right">›</div>`+
-    `<div class="fref${showRef?'':' hide'}">${showRef?esc(v.ref):'참조 ?'}</div>`+
+  card.innerHTML=`<div class="fref${showRef?'':' hide'}">${showRef?esc(v.ref):'참조 ?'}</div>`+
     `<div class="fpath${showTitle?'':' hide'}">${showTitle?esc(title):'제목 ?'}</div>`+
     `<div class="ftext">${verseHtml}</div>`;
   let _sx=0,_sy=0,_st=0;
@@ -501,7 +502,7 @@ function renderMemorize(root){
   const sh=el('button','iconbtn','🔀');sh.onclick=()=>{shuffle(state.mzList);state.mzIdx=0;state.mzReveal=false;saveResume();render();};
   nav2.appendChild(sh);
   root.appendChild(nav2);
-  root.appendChild(el('div','pinfo','← → 스와이프로 다음 구절 · 탭하면 가린 부분 확인'));
+  root.appendChild(el('div','pinfo','카드 탭 = 정답 확인 · 스와이프 = 다음 구절'));
 }
 function mzScopeList(){
   const verses=collVerses();
