@@ -1,7 +1,7 @@
 {
-  "name": "말씀 암송",
+  "name": "네비게이토 성경 암송 · 말씀 암송",
   "short_name": "말씀암송",
-  "description": "주제별 성경 암송 카드 · 테스트",
+  "description": "네비게이토 주제별 성경 암송(5·8·60·100·180·900·DEP242구절) 카드 · 테스트, 개역한글",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
