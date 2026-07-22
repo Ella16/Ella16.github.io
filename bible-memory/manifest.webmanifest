@@ -1,0 +1,15 @@
+{
+  "name": "말씀 암송",
+  "short_name": "말씀암송",
+  "description": "주제별 성경 암송 카드 · 테스트",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f4ef",
+  "theme_color": "#1f6f6b",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

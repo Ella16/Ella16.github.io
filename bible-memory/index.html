@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f6b">
+<title>말씀 암송</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#f6f4ef; --surface:#fffdf9; --surface-2:#f0ece3; --line:#e3ddd0;
+  --ink:#2b2925; --muted:#7d766a; --brand:#1f6f6b; --brand-ink:#fff;
+  --accent:#c9822f; --good:#2e7d59; --bad:#c0523f; --shadow:0 1px 3px rgba(50,40,20,.08),0 6px 20px rgba(50,40,20,.05);
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#16181a;--surface:#20242a;--surface-2:#2a2f36;--line:#333a42;
+  --ink:#e9e6df;--muted:#9aa0a8;--brand:#3fb0a8;--brand-ink:#0c1112;--accent:#e0a760;
+  --good:#4cc38a;--bad:#e0715c;--shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  line-height:1.6;-webkit-text-size-adjust:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.app{max-width:640px;margin:0 auto;min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;background:var(--bg)}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
+.hrow{display:flex;align-items:center;gap:10px}
+.brand{font-weight:800;font-size:18px;letter-spacing:-.02em;display:flex;align-items:center;gap:7px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--brand)}
+.collbtn{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--surface);
+  border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;
+  color:var(--ink);box-shadow:var(--shadow);max-width:58%}
+.collbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.collbtn .chev{color:var(--muted);flex:none}
+
+/* main */
+main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
+.hidden{display:none!important}
+
+/* cards / tree */
+.section-title{font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--muted);
+  text-transform:uppercase;margin:6px 4px 10px}
+.progress-band{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;box-shadow:var(--shadow);margin-bottom:14px}
+.progress-band .pb-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.pb-top b{font-size:15px}.pb-top .pct{font-weight:800;color:var(--brand)}
+.bar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--accent));border-radius:99px;transition:width .4s}
+
+.group{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow)}
+.g-head{display:flex;align-items:center;gap:10px;width:100%;padding:14px 15px;text-align:left;font-weight:700}
+.g-head .caret{transition:transform .2s;color:var(--muted);flex:none}
+.g-head.open .caret{transform:rotate(90deg)}
+.g-head .gt{flex:1;min-width:0}
+.g-head .gc{font-size:12px;color:var(--muted);font-weight:700;background:var(--surface-2);
+  padding:2px 9px;border-radius:99px;flex:none}
+.g-body{border-top:1px solid var(--line)}
+.subgroup{padding:4px 0}
+.sub-label{font-size:12px;font-weight:800;color:var(--accent);padding:10px 16px 4px;letter-spacing:.02em}
+.vrow{display:flex;align-items:center;gap:11px;width:100%;padding:11px 16px;text-align:left;border-top:1px solid var(--line)}
+.subgroup .vrow:first-child{border-top:none}
+.vrow .vref{font-weight:700;font-size:14px;flex:none;min-width:104px;color:var(--brand)}
+.vrow .vsnip{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.vrow .vchk{width:20px;height:20px;border-radius:6px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:transparent;font-size:12px}
+.vrow.done .vchk{background:var(--good);border-color:var(--good);color:#fff}
+.vrow.done .vref{color:var(--muted)}
+
+/* verse detail modal */
+.sheet-back{position:fixed;inset:0;background:rgba(20,16,8,.5);z-index:40;display:flex;
+  align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.sheet-back.show{opacity:1;pointer-events:auto}
+.sheet{background:var(--surface);width:100%;max-width:640px;border-radius:20px 20px 0 0;
+  padding:8px 20px calc(env(safe-area-inset-bottom) + 20px);transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow:auto}
+.sheet-back.show .sheet{transform:translateY(0)}
+.grip{width:40px;height:5px;background:var(--line);border-radius:9px;margin:8px auto 14px}
+.sheet .sref{font-size:20px;font-weight:800;color:var(--brand);letter-spacing:-.01em}
+.sheet .spath{font-size:12px;color:var(--muted);margin:4px 0 16px}
+.sheet .stext{font-size:19px;line-height:1.85;letter-spacing:-.01em}
+.sheet .sactions{display:flex;gap:9px;margin-top:20px}
+.btn{border-radius:11px;padding:12px;font-weight:700;font-size:14px;flex:1;text-align:center;
+  background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.btn.ghost{background:transparent}
+
+/* memorize */
+.mz-scope{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px;
+  font-size:13px;font-weight:700;box-shadow:var(--shadow);white-space:nowrap}
+.chip.on{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.flash{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);
+  min-height:60vh;display:flex;flex-direction:column;padding:22px;position:relative}
+.flash .fref{font-size:22px;font-weight:800;color:var(--brand);text-align:center;letter-spacing:-.01em}
+.flash .fpath{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
+.flash .ftext{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:21px;line-height:1.9;padding:18px 4px;letter-spacing:-.01em;word-break:keep-all}
+.flash .ftext .blank{display:inline-block;min-width:2.4em;border-bottom:2px solid var(--accent);color:transparent;margin:0 1px}
+.flash .ftext .fl{color:var(--muted)}
+.tapzone{position:absolute;inset:64px 0 120px;cursor:pointer}
+.hintbar{display:flex;gap:7px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+.hint{font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
+.hint.on{background:var(--accent);color:#fff;border-color:transparent}
+.mz-nav{display:flex;gap:9px;align-items:center;margin-top:14px}
+.mz-nav .cnt{font-size:13px;color:var(--muted);font-weight:700;min-width:64px;text-align:center}
+.iconbtn{width:52px;height:48px;border-radius:12px;background:var(--surface);border:1px solid var(--line);
+  font-size:20px;font-weight:800;box-shadow:var(--shadow);display:grid;place-items:center}
+.learnbtn{flex:1;height:48px;border-radius:12px;font-weight:800;font-size:14px;
+  background:var(--surface);border:2px solid var(--good);color:var(--good)}
+.learnbtn.on{background:var(--good);color:#fff}
+
+/* test */
+.mode-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:8px}
+.mode-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+  box-shadow:var(--shadow);display:flex;gap:14px;align-items:center;text-align:left;width:100%}
+.mode-card .mi{width:44px;height:44px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;font-size:22px;flex:none}
+.mode-card .mt{font-weight:800;font-size:15px}
+.mode-card .md{font-size:12.5px;color:var(--muted);margin-top:2px}
+.quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.quiz-head .qx{font-size:13px;font-weight:800;color:var(--muted)}
+.quiz-head .score{font-size:13px;font-weight:800;color:var(--brand)}
+.qbar{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-bottom:16px}
+.qbar>i{display:block;height:100%;background:var(--brand);transition:width .3s}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px;margin-bottom:14px}
+.qprompt{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.03em;margin-bottom:10px}
+.qref{font-size:22px;font-weight:800;color:var(--brand)}
+.qtext{font-size:19px;line-height:1.85;letter-spacing:-.01em;word-break:keep-all}
+.opt{width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;
+  padding:14px 16px;margin-bottom:9px;font-size:15px;font-weight:600;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center}
+.opt .ol{width:26px;height:26px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.opt.correct{border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--surface))}
+.opt.correct .ol{background:var(--good);color:#fff}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.opt.wrong .ol{background:var(--bad);color:#fff}
+.reveal-box{background:var(--surface-2);border-radius:12px;padding:16px;margin:12px 0;font-size:18px;line-height:1.8;word-break:keep-all}
+.selfrow{display:flex;gap:9px;margin-top:6px}
+.result{text-align:center;padding:40px 20px}
+.result .big{font-size:52px;font-weight:800;color:var(--brand);letter-spacing:-.02em}
+.result .rl{color:var(--muted);margin:4px 0 24px;font-weight:700}
+
+/* collection picker sheet */
+.coll-opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 12px;
+  border-radius:12px;border:1px solid transparent}
+.coll-opt.on{background:var(--surface-2);border-color:var(--line)}
+.coll-opt .cn{font-weight:800;font-size:15px}
+.coll-opt .cc{font-size:12px;color:var(--muted);margin-top:1px}
+.coll-opt .cbadge{margin-left:auto;font-size:12px;font-weight:800;color:var(--brand);background:var(--surface-2);padding:3px 10px;border-radius:99px}
+.coll-opt.on .cbadge{background:var(--brand);color:var(--brand-ink)}
+
+/* bottom nav */
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;background:color-mix(in srgb,var(--bg) 90%,transparent);
+  backdrop-filter:blur(12px) saturate(1.4);border-top:1px solid var(--line);
+  padding:6px 8px calc(env(safe-area-inset-bottom) + 6px);display:flex;max-width:640px;margin:0 auto}
+nav.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;
+  font-size:11px;font-weight:700;color:var(--muted);border-radius:12px}
+nav.tabs button.on{color:var(--brand)}
+nav.tabs .ti{font-size:20px;line-height:1}
+.empty{text-align:center;color:var(--muted);padding:60px 20px;font-weight:600}
+.mini{font-size:12px;color:var(--muted)}
+.pinfo{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+.pill-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+.pill-row::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="hrow">
+      <div class="brand"><span class="dot"></span>말씀 암송</div>
+      <button class="collbtn" id="collBtn">
+        <span id="collLabel">컬렉션</span>
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="browse" class="on"><span class="ti">📖</span>둘러보기</button>
+    <button data-tab="memorize"><span class="ti">🎯</span>암송</button>
+    <button data-tab="test"><span class="ti">✅</span>테스트</button>
+    <button data-tab="progress"><span class="ti">📊</span>진도</button>
+  </nav>
+</div>
+
+<div class="sheet-back" id="sheetBack"><div class="sheet" id="sheet"></div></div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+"use strict";
+const D = window.BIBLE_DATA;
+const V = D.verses, COLLS = D.collections;
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const esc = s => s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+
+// ---- state / storage ----
+const LS = {
+  get l(){try{return new Set(JSON.parse(localStorage.bm_learned||'[]'))}catch(e){return new Set()}},
+  set l(s){localStorage.bm_learned=JSON.stringify([...s])},
+  get coll(){return localStorage.bm_coll||COLLS[0].name},
+  set coll(v){localStorage.bm_coll=v},
+  get tests(){try{return JSON.parse(localStorage.bm_tests||'[]')}catch(e){return []}},
+  set tests(v){localStorage.bm_tests=JSON.stringify(v.slice(-60))}
+};
+let learned = LS.l;
+let curColl = COLLS.find(c=>c.name===LS.coll) ? LS.coll : COLLS[0].name;
+let tab = 'browse';
+const state = { openGroups:new Set(), mzScope:null, mzList:[], mzIdx:0, mzHint:0 };
+
+let curVersion = localStorage.bm_version || D.defaultVersion || (D.versions&&D.versions[0]&&D.versions[0].id) || 'krv';
+const T = v => (v.texts && (v.texts[curVersion]||v.texts[D.defaultVersion]||Object.values(v.texts)[0])) || v.text || '';
+const collVerses = () => V.filter(v=>v.coll===curColl);
+const learnedCount = coll => collVerses().filter(v=>learned.has(v.id)).length;
+
+// group a collection's verses into { catName: { subName|'' : [verses] } } preserving order
+function buildTree(verses){
+  const tree=new Map();
+  for(const v of verses){
+    const cat = v.sub[0]||'전체';
+    const sub = v.sub.length>1 ? v.sub.slice(1).join(' · ') : '';
+    if(!tree.has(cat)) tree.set(cat,new Map());
+    const m=tree.get(cat);
+    if(!m.has(sub)) m.set(sub,[]);
+    m.get(sub).push(v);
+  }
+  return tree;
+}
+
+// ================= VIEWS =================
+function render(){
+  $('#collLabel').textContent = (COLLS.find(c=>c.name===curColl)||{}).short || curColl;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  const v=$('#view'); v.innerHTML='';
+  if(tab==='browse') renderBrowse(v);
+  else if(tab==='memorize') renderMemorize(v);
+  else if(tab==='test') renderTest(v);
+  else renderProgress(v);
+  window.scrollTo(0,0);
+}
+
+// ---------- BROWSE ----------
+function renderBrowse(root){
+  const verses=collVerses();
+  const done=verses.filter(v=>learned.has(v.id)).length;
+  const pct=Math.round(done/verses.length*100);
+  const band=el('div','progress-band',
+    `<div class="pb-top"><b>${esc((COLLS.find(c=>c.name===curColl)||{}).short||'')}</b>`+
+    `<span class="pct">${pct}%</span></div>`+
+    `<div class="bar"><i style="width:${pct}%"></i></div>`+
+    `<div class="pinfo">${done} / ${verses.length} 구절 외움</div>`);
+  root.appendChild(band);
+
+  const tree=buildTree(verses);
+  tree.forEach((subs,cat)=>{
+    const total=[...subs.values()].reduce((a,b)=>a+b.length,0);
+    const doneC=[...subs.values()].flat().filter(v=>learned.has(v.id)).length;
+    const g=el('div','group');
+    const isOpen=state.openGroups.has(cat);
+    const head=el('button','g-head'+(isOpen?' open':''),
+      `<svg class="caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>`+
+      `<span class="gt">${esc(cat)}</span><span class="gc">${doneC}/${total}</span>`);
+    const body=el('div','g-body'+(isOpen?'':' hidden'));
+    subs.forEach((list,sub)=>{
+      const sg=el('div','subgroup');
+      if(sub) sg.appendChild(el('div','sub-label',esc(sub)));
+      list.forEach(v=>{
+        const row=el('button','vrow'+(learned.has(v.id)?' done':''),
+          `<span class="vref">${esc(v.ref)}</span>`+
+          `<span class="vsnip">${esc(T(v).slice(0,40))}</span>`+
+          `<span class="vchk">✓</span>`);
+        row.onclick=()=>openVerse(v);
+        sg.appendChild(row);
+      });
+      body.appendChild(sg);
+    });
+    head.onclick=()=>{isOpen?state.openGroups.delete(cat):state.openGroups.add(cat);render();};
+    g.appendChild(head);g.appendChild(body);
+    root.appendChild(g);
+  });
+}
+
+// ---------- verse sheet ----------
+function openVerse(v){
+  const s=$('#sheet');
+  const isL=learned.has(v.id);
+  s.innerHTML=`<div class="grip"></div>`+
+    `<div class="sref">${esc(v.ref)}</div>`+
+    `<div class="spath">${esc([v.coll.replace(/^\S+구절\s*/,''),...v.sub].filter(Boolean).join(' › '))}</div>`+
+    `<div class="stext">${esc(T(v))}</div>`+
+    `<div class="sactions">`+
+      `<button class="btn ${isL?'primary':''}" id="shL">${isL?'✓ 외움':'외웠어요'}</button>`+
+      `<button class="btn ghost" id="shC">닫기</button>`+
+    `</div>`;
+  $('#shL').onclick=()=>{toggleLearn(v.id);openVerse(v);renderIfVisible();};
+  $('#shC').onclick=closeSheet;
+  $('#sheetBack').classList.add('show');
+}
+function closeSheet(){$('#sheetBack').classList.remove('show');}
+$('#sheetBack').addEventListener('click',e=>{if(e.target===$('#sheetBack'))closeSheet();});
+
+function toggleLearn(id){
+  learned.has(id)?learned.delete(id):learned.add(id);
+  LS.l=learned;
+}
+function renderIfVisible(){ if(tab==='browse'||tab==='progress') render(); }
+
+// ---------- MEMORIZE ----------
+function renderMemorize(root){
+  const verses=collVerses();
+  // scope chips: 전체 + categories
+  const cats=[...buildTree(verses).keys()];
+  if(!state.mzScope||(state.mzScope!=='__all'&&!cats.includes(state.mzScope))) state.mzScope='__all';
+  const row=el('div','pill-row');
+  const allChip=el('button','chip'+(state.mzScope==='__all'?' on':''),'전체 '+verses.length);
+  allChip.onclick=()=>{state.mzScope='__all';startMz();};
+  row.appendChild(allChip);
+  cats.forEach(c=>{
+    const n=verses.filter(v=>(v.sub[0]||'전체')===c).length;
+    const ch=el('button','chip'+(state.mzScope===c?' on':''),esc(c)+' '+n);
+    ch.onclick=()=>{state.mzScope=c;startMz();};
+    row.appendChild(ch);
+  });
+  root.appendChild(row);
+
+  buildMzList();
+  if(!state.mzList.length){root.appendChild(el('div','empty','구절이 없습니다.'));return;}
+  const v=state.mzList[state.mzIdx];
+
+  // hint bar
+  const hints=['전체','첫글자','빈칸','참조만'];
+  const hb=el('div','hintbar');
+  hints.forEach((h,i)=>{const b=el('button','hint'+(state.mzHint===i?' on':''),h);b.onclick=()=>{state.mzHint=i;render();};hb.appendChild(b);});
+  root.appendChild(hb);
+
+  const card=el('div','flash');
+  card.innerHTML=`<div class="fref">${esc(v.ref)}</div>`+
+    `<div class="fpath">${esc([...v.sub].filter(Boolean).join(' › ')||v.coll)}</div>`+
+    `<div class="ftext">${renderHintText(T(v),state.mzHint)}</div>`;
+  const tap=el('div','tapzone');
+  tap.onclick=()=>{state.mzHint=state.mzHint===0?3:0;render();};
+  card.appendChild(tap);
+  root.appendChild(card);
+
+  const nav=el('div','mz-nav');
+  const prev=el('button','iconbtn','‹');prev.onclick=()=>{state.mzIdx=(state.mzIdx-1+state.mzList.length)%state.mzList.length;state.mzHint=3;render();};
+  const next=el('button','iconbtn','›');next.onclick=()=>{state.mzIdx=(state.mzIdx+1)%state.mzList.length;state.mzHint=3;render();};
+  const cnt=el('div','cnt',(state.mzIdx+1)+' / '+state.mzList.length);
+  const isL=learned.has(v.id);
+  const lb=el('button','learnbtn'+(isL?' on':''),isL?'✓ 외움':'외웠어요');
+  lb.onclick=()=>{toggleLearn(v.id);render();};
+  nav.append(prev,cnt,next);
+  root.appendChild(nav);
+  const nav2=el('div','mz-nav');nav2.appendChild(lb);
+  const sh=el('button','iconbtn','🔀');sh.onclick=()=>{shuffle(state.mzList);state.mzIdx=0;state.mzHint=3;render();};
+  nav2.appendChild(sh);
+  root.appendChild(nav2);
+  root.appendChild(el('div','pinfo','카드를 탭하면 참조만/전체가 전환됩니다'));
+}
+function buildMzList(){
+  const verses=collVerses();
+  const list = state.mzScope==='__all'?verses:verses.filter(v=>(v.sub[0]||'전체')===state.mzScope);
+  // keep existing shuffled order if same length & scope unchanged
+  if(!state.mzList.length||state.mzList.some(v=>!list.includes(v))||state.mzList.length!==list.length){
+    state.mzList=list.slice(); state.mzIdx=0;
+  }
+}
+function startMz(){state.mzList=[];state.mzIdx=0;state.mzHint=0;render();}
+function renderHintText(text,mode){
+  if(mode===0) return esc(text);
+  if(mode===3) return '<span class="fl">✧ 참조를 보고 암송해 보세요 ✧</span>';
+  const words=text.split(' ');
+  if(mode===1){ // first letter
+    return words.map(w=>{const c=[...w];return esc(c[0]||'')+'<span class="fl">'+'·'.repeat(Math.max(c.length-1,0))+'</span>';}).join(' ');
+  }
+  // blanks: hide ~40%
+  return words.map((w,i)=>{return ((i*7+3)%5<2)?'<span class="blank">'+esc(w)+'</span>':esc(w);}).join(' ');
+}
+
+// ---------- TEST ----------
+const TState={mode:null,scope:'__all',list:[],idx:0,score:0,answered:false};
+function renderTest(root){
+  if(!TState.mode){ renderTestMenu(root); return; }
+  renderQuiz(root);
+}
+function renderTestMenu(root){
+  const verses=collVerses();
+  const cats=[...buildTree(verses).keys()];
+  // scope selector
+  root.appendChild(el('div','section-title','시험 범위'));
+  const row=el('div','pill-row');
+  const mk=(key,label)=>{const c=el('button','chip'+(TState.scope===key?' on':''),label);c.onclick=()=>{TState.scope=key;render();};return c;};
+  row.appendChild(mk('__all','전체 '+verses.length));
+  cats.forEach(c=>row.appendChild(mk(c,esc(c))));
+  root.appendChild(row);
+
+  root.appendChild(el('div','section-title','유형 선택'));
+  const modes=[
+    ['ref2text','📝','참조 → 구절','장절을 보고 구절을 암송, 스스로 채점'],
+    ['text2ref','🔍','구절 → 참조','구절을 보고 어디 말씀인지 4지선다'],
+    ['blank','✏️','빈칸 채우기','가려진 구절을 떠올린 뒤 확인']
+  ];
+  const grid=el('div','mode-grid');
+  modes.forEach(([k,ic,t,d])=>{
+    const c=el('button','mode-card',`<div class="mi">${ic}</div><div><div class="mt">${t}</div><div class="md">${d}</div></div>`);
+    c.onclick=()=>startTest(k);
+    grid.appendChild(c);
+  });
+  root.appendChild(grid);
+
+  const hist=LS.tests.filter(t=>t.coll===curColl).slice(-5).reverse();
+  if(hist.length){
+    root.appendChild(el('div','section-title','최근 기록'));
+    hist.forEach(h=>{
+      root.appendChild(el('div','group',
+        `<div style="padding:13px 16px;display:flex;justify-content:space-between;align-items:center">`+
+        `<span style="font-weight:700;font-size:14px">${({ref2text:'참조→구절',text2ref:'구절→참조',blank:'빈칸'})[h.mode]} · ${esc(h.scope)}</span>`+
+        `<span style="font-weight:800;color:var(--brand)">${h.score}/${h.total}</span></div>`));
+    });
+  }
+}
+function startTest(mode){
+  const verses=collVerses();
+  let list=TState.scope==='__all'?verses.slice():verses.filter(v=>(v.sub[0]||'전체')===TState.scope);
+  shuffle(list);
+  list=list.slice(0,Math.min(10,list.length));
+  Object.assign(TState,{mode,list,idx:0,score:0,answered:false});
+  render();
+}
+function endTest(){
+  const t=LS.tests;t.push({coll:curColl,mode:TState.mode,scope:TState.scope==='__all'?'전체':TState.scope,score:TState.score,total:TState.list.length,at:Date.now()});LS.tests=t;
+}
+function renderQuiz(root){
+  const {list,idx,mode}=TState;
+  if(idx>=list.length){ // result
+    const pct=Math.round(TState.score/list.length*100);
+    const box=el('div','result',
+      `<div class="big">${TState.score}/${list.length}</div>`+
+      `<div class="rl">${pct}점 · ${pct>=80?'훌륭해요! 🎉':pct>=50?'좋아요, 조금 더! 💪':'다시 도전해봐요 🙏'}</div>`);
+    const b1=el('button','btn primary','다시 풀기');b1.style.maxWidth='240px';b1.style.margin='0 auto 10px';b1.onclick=()=>startTest(mode);
+    const b2=el('button','btn ghost','유형 선택으로');b2.style.maxWidth='240px';b2.style.margin='0 auto';b2.onclick=()=>{TState.mode=null;render();};
+    box.append(b1,b2);root.appendChild(box);return;
+  }
+  const v=list[idx];
+  const head=el('div','quiz-head',`<span class="qx">${idx+1} / ${list.length}</span><span class="score">점수 ${TState.score}</span>`);
+  root.appendChild(head);
+  root.appendChild(el('div','qbar',`<i style="width:${idx/list.length*100}%"></i>`));
+
+  if(mode==='text2ref') return quizText2Ref(root,v);
+  if(mode==='blank') return quizBlank(root,v);
+  return quizRef2Text(root,v);
+}
+function nextQ(correct){ if(correct)TState.score++; TState.idx++; TState.answered=false;
+  if(TState.idx>=TState.list.length) endTest(); render(); }
+
+function quizRef2Text(root,v){
+  const card=el('div','qcard',`<div class="qprompt">이 장절의 구절을 암송하세요</div><div class="qref">${esc(v.ref)}</div>`);
+  root.appendChild(card);
+  if(!TState.answered){
+    const b=el('button','btn primary','정답 보기');b.onclick=()=>{TState.answered=true;render();};
+    root.appendChild(b);
+  }else{
+    root.appendChild(el('div','reveal-box',esc(T(v))));
+    const wrap=el('div');wrap.innerHTML='<div class="section-title" style="text-align:center">얼마나 맞혔나요?</div>';
+    const sr=el('div','selfrow');
+    const ok=el('button','btn primary','✓ 맞음');ok.onclick=()=>nextQ(true);
+    const no=el('button','btn','✗ 틀림');no.onclick=()=>nextQ(false);
+    sr.append(no,ok);wrap.appendChild(sr);root.appendChild(wrap);
+  }
+}
+function quizText2Ref(root,v){
+  const card=el('div','qcard',`<div class="qprompt">이 구절은 어디 말씀일까요?</div><div class="qtext">${esc(T(v))}</div>`);
+  root.appendChild(card);
+  if(!TState._opts||TState._optsFor!==v.id){
+    const pool=collVerses().filter(x=>x.id!==v.id);shuffle(pool);
+    const opts=[v,...pool.slice(0,3)];shuffle(opts);
+    TState._opts=opts;TState._optsFor=v.id;
+  }
+  const letters='ABCD';
+  TState._opts.forEach((o,i)=>{
+    const b=el('button','opt',`<span class="ol">${letters[i]}</span><span>${esc(o.ref)}</span>`);
+    if(TState.answered){
+      if(o.id===v.id)b.classList.add('correct');
+      else if(TState._pick===o.id)b.classList.add('wrong');
+      b.disabled=true;
+    }else{
+      b.onclick=()=>{TState.answered=true;TState._pick=o.id;setTimeout(()=>nextQ(o.id===v.id),750);render();};
+    }
+    root.appendChild(b);
+  });
+}
+function quizBlank(root,v){
+  const card=el('div','qcard');
+  card.innerHTML=`<div class="qprompt">${esc(v.ref)}</div>`+
+    `<div class="qtext">${TState.answered?esc(T(v)):blankOut(T(v))}</div>`;
+  root.appendChild(card);
+  if(!TState.answered){
+    const b=el('button','btn primary','정답 확인');b.onclick=()=>{TState.answered=true;render();};root.appendChild(b);
+  }else{
+    const sr=el('div','selfrow');
+    const ok=el('button','btn primary','✓ 맞음');ok.onclick=()=>nextQ(true);
+    const no=el('button','btn','✗ 틀림');no.onclick=()=>nextQ(false);
+    sr.append(no,ok);root.appendChild(sr);
+  }
+}
+function blankOut(text){
+  return text.split(' ').map((w,i)=>((i*7+3)%5<2)?'<span class="blank" style="border-color:var(--accent)">'+esc(w)+'</span>':esc(w)).join(' ');
+}
+
+// ---------- PROGRESS ----------
+function renderProgress(root){
+  root.appendChild(el('div','section-title','전체 진도'));
+  COLLS.forEach(c=>{
+    const vs=V.filter(v=>v.coll===c.name);
+    const done=vs.filter(v=>learned.has(v.id)).length;
+    const pct=Math.round(done/vs.length*100);
+    const g=el('div','progress-band');
+    g.style.cursor='pointer';
+    g.innerHTML=`<div class="pb-top"><b>${esc(c.short)}</b><span class="pct">${done}/${vs.length}</span></div>`+
+      `<div class="bar"><i style="width:${pct}%"></i></div>`;
+    g.onclick=()=>{curColl=c.name;LS.coll=c.name;tab='browse';render();};
+    root.appendChild(g);
+  });
+  const total=V.length, done=V.filter(v=>learned.has(v.id)).length;
+  root.appendChild(el('div','pinfo',`합계 ${done} / ${total} 구절`));
+  const reset=el('button','btn ghost','진도 초기화');
+  reset.style.cssText='max-width:200px;margin:22px auto 0;color:var(--bad)';
+  reset.onclick=()=>{if(confirm('모든 진도를 지울까요?')){learned=new Set();LS.l=learned;render();}};
+  root.appendChild(reset);
+}
+
+// ---------- collection picker ----------
+$('#collBtn').onclick=()=>{
+  const s=$('#sheet');
+  s.innerHTML=`<div class="grip"></div><div class="sref" style="font-size:18px;margin-bottom:14px">암송 과정 선택</div>`;
+  COLLS.forEach(c=>{
+    const done=V.filter(v=>v.coll===c.name&&learned.has(v.id)).length;
+    const b=el('button','coll-opt'+(c.name===curColl?' on':''),
+      `<div><div class="cn">${esc(c.short)}</div><div class="cc">${esc(c.name)}</div></div>`+
+      `<span class="cbadge">${done}/${c.count}</span>`);
+    b.onclick=()=>{curColl=c.name;LS.coll=c.name;state.openGroups.clear();state.mzScope=null;TState.scope='__all';TState.mode=null;closeSheet();render();};
+    s.appendChild(b);
+  });
+  const vers=D.versions||[{id:curVersion,name:'개역한글'}];
+  s.appendChild(el('div','sref','번역본'));
+  s.lastChild.style.cssText='font-size:14px;margin:20px 0 8px;color:var(--muted)';
+  vers.forEach(ver=>{
+    const b=el('button','coll-opt'+(ver.id===curVersion?' on':''),
+      `<div><div class="cn">${esc(ver.name)}</div>${ver.year?`<div class="cc">${ver.year}</div>`:''}</div>`+
+      `${ver.id===curVersion?'<span class="cbadge">사용중</span>':''}`);
+    b.onclick=()=>{curVersion=ver.id;localStorage.bm_version=ver.id;closeSheet();render();};
+    s.appendChild(b);
+  });
+  if(vers.length===1) s.appendChild(el('div','pinfo','다른 번역본은 추후 추가 예정'));
+  $('#sheetBack').classList.add('show');
+};
+
+// ---------- utils ----------
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ---------- tabs ----------
+document.querySelectorAll('#tabs button').forEach(b=>{
+  b.onclick=()=>{tab=b.dataset.tab; if(tab==='memorize'&&!state.mzList.length)state.mzHint=0; render();};
+});
+
+render();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+})();
+</script>
+</body>
+</html>
