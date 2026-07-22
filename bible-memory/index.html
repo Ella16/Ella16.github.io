@@ -115,14 +115,15 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
   font-size:13px;font-weight:700;box-shadow:var(--shadow);white-space:nowrap}
 .chip.on{background:var(--brand);color:var(--brand-ink);border-color:transparent}
 .flash{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);
-  min-height:60vh;display:flex;flex-direction:column;padding:22px;position:relative}
+  min-height:60vh;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:22px;position:relative}
 .flash .fref{font-size:22px;font-weight:800;color:var(--brand);text-align:center;letter-spacing:-.01em}
-.flash .fpath{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
+.flash .fpath{font-size:12px;color:var(--muted);text-align:center}
 .flash .fref.hide{color:var(--muted);background:var(--surface-2);border-radius:8px;padding:3px 14px;align-self:center;letter-spacing:.15em;opacity:.7}
 .flash .fpath.hide{color:var(--muted);background:var(--surface-2);border-radius:6px;padding:2px 10px;align-self:center;letter-spacing:.12em;opacity:.7}
-.flash .ftext{flex:1;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;
-  font-size:21px;line-height:1.9;padding:18px 4px;letter-spacing:-.01em;word-break:keep-all}
-.flash .ftext .blank{display:inline-block;min-width:2.4em;border-bottom:2px solid var(--accent);color:transparent;margin:0 1px}
+.flash .ftext{display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;
+  font-size:21px;line-height:1.9;padding:12px 4px;letter-spacing:-.01em;word-break:keep-all;width:100%}
+.flash .ftext .ftmain{max-width:100%}
+.flash .ftext .blank{display:inline-block;min-width:1.6em;max-width:100%;border-bottom:2px solid var(--accent);color:transparent;margin:0 2px;vertical-align:bottom;line-height:1.3}
 .flash .ftext .fl{color:var(--muted)}
 .flash .ftext2{font-size:16px;line-height:1.75;color:var(--muted);opacity:.85;padding-top:12px;border-top:1px dashed var(--line);width:100%;word-break:normal}
 .sheet .stext2{font-size:16px;line-height:1.75;color:var(--muted);opacity:.85;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);word-break:normal}
@@ -484,8 +485,8 @@ function renderMemorize(root){
   const v=state.mzList[state.mzIdx];
 
   // 가릴 것(맞추기 대상) 선택 → 나머지는 보임, 카드 탭하면 정답 확인
-  if(!state.mzMode) state.mzMode='verse';
-  const modes=[['all','전체'],['verse','구절'],['title','제목'],['ref','참조'],['first','첫글자'],['blank','빈칸']];
+  if(!state.mzMode) state.mzMode='vt';
+  const modes=[['vt','구절＋제목'],['verse','구절'],['title','제목'],['ref','참조'],['first','첫글자'],['blank','빈칸'],['all','전체']];
   root.appendChild(el('div','mode-cap','가리고 맞추기'));
   const hb=el('div','hintbar');
   modes.forEach(([k,label])=>{const b=el('button','hint'+(state.mzMode===k?' on':''),label);b.onclick=()=>{state.mzMode=k;state.mzReveal=false;saveResume();render();};hb.appendChild(b);});
@@ -493,8 +494,8 @@ function renderMemorize(root){
 
   const m=state.mzMode, rev=!!state.mzReveal;
   const showRef=rev||m!=='ref';
-  const showTitle=rev||m!=='title';
-  const showVerseFull=rev||!(m==='verse'||m==='first'||m==='blank');
+  const showTitle=rev||!(m==='title'||m==='vt');
+  const showVerseFull=rev||!(m==='verse'||m==='first'||m==='blank'||m==='vt');
   const title=[...v.sub].filter(Boolean).join(' › ')||v.coll;
   let verseHtml;
   if(showVerseFull) verseHtml=esc(T(v));
@@ -809,7 +810,7 @@ document.addEventListener('keydown',e=>{
 });
 
 render();
-if('serviceWorker' in navigator){
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   let _swReloaded=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(_swReloaded)return; _swReloaded=true; location.reload(); });
   navigator.serviceWorker.register('sw.js').then(reg=>{ reg.update(); setInterval(()=>reg.update(),60000); }).catch(()=>{});
