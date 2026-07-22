@@ -115,7 +115,7 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
   font-size:13px;font-weight:700;box-shadow:var(--shadow);white-space:nowrap}
 .chip.on{background:var(--brand);color:var(--brand-ink);border-color:transparent}
 .flash{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);
-  min-height:60vh;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:22px;position:relative}
+  min-height:38vh;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:18px;position:relative}
 .flash .fref{font-size:22px;font-weight:800;color:var(--brand);text-align:center;letter-spacing:-.01em}
 .flash .fpath{font-size:12px;color:var(--muted);text-align:center}
 .flash .fref.hide{color:var(--muted);background:var(--surface-2);border-radius:8px;padding:3px 14px;align-self:center;letter-spacing:.15em;opacity:.7}
@@ -133,7 +133,7 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .browse-tools{display:flex;gap:8px;margin:0 0 12px}
 .tool-btn{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px;font-size:13px;font-weight:700;color:var(--muted);box-shadow:var(--shadow)}
 .tool-btn:active{color:var(--brand);border-color:var(--brand)}
-.filter-row{display:flex;margin:0 0 12px}
+.filter-row{display:flex;margin:0 0 8px}
 .tool-btn.ut{flex:0 1 auto;padding:9px 14px}
 .tool-btn.ut.on{color:var(--brand-ink);background:var(--brand);border-color:transparent}
 .acc-head .acc-go{flex:none;color:var(--brand);font-size:11px;padding:5px 7px;border-radius:7px;opacity:.75;background:var(--surface-2)}
@@ -158,11 +158,14 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .resume-banner .rb-tx span{font-size:12px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .resume-banner .rb-go{font-size:13px;flex:none;opacity:.85}
 .mode-cap{font-size:11px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:6px;letter-spacing:.03em}
-.hintbar{display:flex;gap:7px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+.hintbar{display:flex;gap:7px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
 .hint{font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
 .hint.on{background:var(--accent);color:#fff;border-color:transparent}
-.mz-nav{display:flex;gap:9px;align-items:center;margin-top:14px}
-.mz-nav .cnt{font-size:13px;color:var(--muted);font-weight:700;min-width:64px;text-align:center}
+.mz-nav{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px}
+.mz-info{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:10px;font-size:12px;color:var(--muted);font-weight:700;flex-wrap:wrap}
+.mz-info .shufbtn{color:var(--muted);font-weight:700;font-size:12px}
+.mz-info .shufbtn:active{color:var(--brand)}
+.mz-info .sep{opacity:.4}
 .iconbtn{width:52px;height:48px;border-radius:12px;background:var(--surface);border:1px solid var(--line);
   font-size:20px;font-weight:800;box-shadow:var(--shadow);display:grid;place-items:center}
 .learnbtn{flex:1;height:48px;border-radius:12px;font-weight:800;font-size:14px;
@@ -218,8 +221,17 @@ nav.tabs .ti{font-size:20px;line-height:1}
 .empty{text-align:center;color:var(--muted);padding:60px 20px;font-weight:600}
 .mini{font-size:12px;color:var(--muted)}
 .pinfo{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
-.pill-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+.pill-wrap{position:relative;margin-bottom:8px}
+.pill-wrap::after{content:'';position:absolute;top:0;right:0;bottom:6px;width:30px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--bg));border-radius:0 12px 12px 0}
+.pill-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;scroll-snap-type:x proximity}
+.pill-row .chip{scroll-snap-align:start}
 .pill-row::-webkit-scrollbar{display:none}
+.collbar{display:flex;align-items:center;gap:9px;width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:11px 14px;font-size:14px;font-weight:800;color:var(--ink);box-shadow:var(--shadow);margin-bottom:10px}
+.collbar .cbl{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.collbar .cbi{flex:none;font-size:15px}
+.collbar .chev{color:var(--muted);flex:none}
 </style>
 </head>
 <body>
@@ -228,9 +240,9 @@ nav.tabs .ti{font-size:20px;line-height:1}
   <header>
     <div class="hrow">
       <div class="brand"><span class="dot"></span>말씀 암송</div>
-      <button class="collbtn" id="collBtn">
-        <span id="collLabel">컬렉션</span>
-        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      <button class="collbtn" id="dlBtn" hidden>
+        <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+        <span id="dlLabel">다운로드</span>
       </button>
     </div>
   </header>
@@ -299,8 +311,15 @@ function buildTree(verses){
 }
 
 // ================= VIEWS =================
+function collLabelText(){ return (COLLS.find(c=>c.name===curColl)||{}).short || curColl; }
+function collectionBar(){
+  const b=el('button','collbar',
+    `<span class="cbi">📚</span><span class="cbl">${esc(collLabelText())}</span>`+
+    `<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>`);
+  b.onclick=openCollSheet;
+  return b;
+}
 function render(){
-  $('#collLabel').textContent = (COLLS.find(c=>c.name===curColl)||{}).short || curColl;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   const v=$('#view'); v.innerHTML='';
   if(tab==='browse') renderBrowse(v);
@@ -341,6 +360,7 @@ function renderBrowse(root){
   const verses=collVerses();
   const done=verses.filter(v=>learned.has(v.id)).length;
   const pct=Math.round(done/verses.length*100);
+  root.appendChild(collectionBar());
   root.appendChild(el('div','progress-band',
     `<div class="pb-top"><b>${esc((COLLS.find(c=>c.name===curColl)||{}).short||'')}</b>`+
     `<span class="pct">${pct}%</span></div>`+
@@ -445,6 +465,7 @@ function renderMemorize(root){
   // scope chips: 전체 + categories
   const cats=[...buildTree(verses).keys()];
   if(!state.mzScope) state.mzScope='__all';
+  root.appendChild(collectionBar());
 
   // resume banner: shown when saved position differs from current view
   const rz=getResume();
@@ -466,6 +487,7 @@ function renderMemorize(root){
     bc.querySelector('.crumb-x').onclick=()=>{state.mzScope='__all';startMz();};
     root.appendChild(bc);
   }
+  const pwrap=el('div','pill-wrap');
   const row=el('div','pill-row');
   const allChip=el('button','chip'+(state.mzScope==='__all'?' on':''),'전체 '+verses.length);
   allChip.onclick=()=>{state.mzScope='__all';startMz();};
@@ -476,7 +498,8 @@ function renderMemorize(root){
     ch.onclick=()=>{state.mzScope=[c];startMz();};
     row.appendChild(ch);
   });
-  root.appendChild(row);
+  pwrap.appendChild(row);
+  root.appendChild(pwrap);
   root.appendChild(el('div','filter-row')).appendChild(unlearnedToggle());
 
   buildMzList();
@@ -520,17 +543,18 @@ function renderMemorize(root){
   const nav=el('div','mz-nav');
   const prev=el('button','iconbtn','‹');prev.onclick=()=>mzGo(-1);
   const next=el('button','iconbtn','›');next.onclick=()=>mzGo(1);
-  const cnt=el('div','cnt',(state.mzIdx+1)+' / '+state.mzList.length);
   const isL=learned.has(v.id);
   const lb=el('button','learnbtn'+(isL?' on':''),isL?'✓ 외움':'외웠어요');
   lb.onclick=()=>{toggleLearn(v.id);saveResume();render();};
-  nav.append(prev,cnt,next);
+  nav.append(prev,lb,next);
   root.appendChild(nav);
-  const nav2=el('div','mz-nav');nav2.appendChild(lb);
-  const sh=el('button','iconbtn','🔀');sh.onclick=()=>{shuffle(state.mzList);state.mzIdx=0;state.mzReveal=false;saveResume();render();};
-  nav2.appendChild(sh);
-  root.appendChild(nav2);
-  root.appendChild(el('div','pinfo','카드 탭 = 정답 확인 · 스와이프 = 다음 구절'));
+
+  const info=el('div','mz-info');
+  const cnt=el('span','cnt',(state.mzIdx+1)+' / '+state.mzList.length);
+  const sh=el('button','shufbtn','🔀 섞기');
+  sh.onclick=()=>{shuffle(state.mzList);state.mzIdx=0;state.mzReveal=false;saveResume();render();};
+  info.append(cnt,el('span','sep','·'),sh,el('span','sep','·'),el('span',null,'카드 탭=정답'));
+  root.appendChild(info);
 }
 function mzScopeList(){
   const verses=collVerses();
@@ -564,8 +588,10 @@ function renderHintText(text,mode){
   if(mode===0) return esc(text);
   if(mode===3) return '<span class="fl">✧ 참조를 보고 암송해 보세요 ✧</span>';
   const words=text.split(' ');
-  if(mode===1){ // first letter
-    return words.map(w=>{const c=[...w];return esc(c[0]||'')+'<span class="fl">'+'·'.repeat(Math.max(c.length-1,0))+'</span>';}).join(' ');
+  if(mode===1){ // 앞 3단어만 첫글자 힌트, 나머지는 생략
+    const n=3;
+    const head=words.slice(0,n).map(w=>{const c=[...w];return esc(c[0]||'')+'<span class="fl">'+'·'.repeat(Math.max(c.length-1,0))+'</span>';}).join(' ');
+    return head+(words.length>n?' <span class="fl">…</span>':'');
   }
   // blanks: hide ~40%
   return words.map((w,i)=>{return ((i*7+3)%5<2)?'<span class="blank">'+esc(w)+'</span>':esc(w);}).join(' ');
@@ -580,6 +606,7 @@ function renderTest(root){
 function renderTestMenu(root){
   const verses=collVerses();
   const cats=[...buildTree(verses).keys()];
+  root.appendChild(collectionBar());
   // scope selector
   root.appendChild(el('div','section-title','시험 범위'));
   const scopeArr=Array.isArray(TState.scope)?TState.scope:null;
@@ -588,6 +615,7 @@ function renderTestMenu(root){
     bc.querySelector('.crumb-x').onclick=()=>{TState.scope='__all';render();};
     root.appendChild(bc);
   }
+  const twrap=el('div','pill-wrap');
   const row=el('div','pill-row');
   const allC=el('button','chip'+(TState.scope==='__all'?' on':''),'전체 '+verses.length);
   allC.onclick=()=>{TState.scope='__all';render();};
@@ -597,7 +625,8 @@ function renderTestMenu(root){
     ch.onclick=()=>{TState.scope=[c];render();};
     row.appendChild(ch);
   });
-  root.appendChild(row);
+  twrap.appendChild(row);
+  root.appendChild(twrap);
 
   root.appendChild(el('div','section-title','유형 선택'));
   const modes=[
@@ -756,7 +785,7 @@ function renderProgress(root){
 }
 
 // ---------- collection picker ----------
-$('#collBtn').onclick=()=>{
+function openCollSheet(){
   const s=$('#sheet');
   s.innerHTML=`<div class="grip"></div><div class="sref" style="font-size:18px;margin-bottom:14px">암송 과정 선택</div>`;
   COLLS.forEach(c=>{
@@ -790,8 +819,35 @@ $('#collBtn').onclick=()=>{
     s.appendChild(b);
   });
   $('#sheetBack').classList.add('show');
+}
+function refreshSheet(){ openCollSheet(); }
+
+// ---------- 다운로드 / 업데이트 (PWA 설치) ----------
+let deferredPrompt=null;
+const dlBtn=$('#dlBtn');
+function isStandalone(){ try{return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;} }
+function updateDlBtn(){
+  if(location.protocol.indexOf('http')!==0){ dlBtn.hidden=true; return; }  // file://에선 숨김(서버 불필요)
+  const installed = isStandalone() || localStorage.bm_installed==='1';
+  dlBtn.hidden=false;
+  $('#dlLabel').textContent = installed ? '업데이트' : '다운로드';
+  dlBtn.dataset.mode = installed ? 'update' : 'install';
+}
+dlBtn.onclick=async()=>{
+  if(dlBtn.dataset.mode==='install' && deferredPrompt){
+    deferredPrompt.prompt();
+    try{ const {outcome}=await deferredPrompt.userChoice; if(outcome==='accepted') localStorage.bm_installed='1'; }catch(e){}
+    deferredPrompt=null; updateDlBtn();
+  } else if(dlBtn.dataset.mode==='install'){
+    alert('브라우저 메뉴에서 “홈 화면에 추가”를 누르면 앱처럼 설치돼요.');
+  } else {  // 업데이트: 최신 파일 받아 새로고침
+    try{ if('serviceWorker' in navigator){ const r=await navigator.serviceWorker.getRegistration(); if(r) await r.update(); } }catch(e){}
+    location.reload();
+  }
 };
-function refreshSheet(){ $('#collBtn').onclick(); }
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; updateDlBtn(); });
+window.addEventListener('appinstalled',()=>{ localStorage.bm_installed='1'; deferredPrompt=null; updateDlBtn(); });
+updateDlBtn();
 
 // ---------- utils ----------
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -809,7 +865,12 @@ document.addEventListener('keydown',e=>{
   else if(e.key===' '||e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();mzReveal();}
 });
 
-render();
+// 열 때 마지막 암송 위치로 바로 복원
+(function initView(){
+  const rz=getResume();
+  if(rz && rz.ids && rz.ids.length){ try{ applyResume(rz); return; }catch(e){} }
+  render();
+})();
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   let _swReloaded=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(_swReloaded)return; _swReloaded=true; location.reload(); });
