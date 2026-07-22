@@ -243,6 +243,11 @@ nav.tabs .ti{font-size:20px;line-height:1}
 .ad-slot{width:100%;display:flex;justify-content:center}
 .ad-frame{width:320px;max-width:100%;height:140px;border:0;display:block;overflow:hidden}
 .ad-disc{font-size:11px;color:var(--muted);text-align:center;margin:8px 4px 0;line-height:1.5}
+.install-stat{display:flex;align-items:center;justify-content:center;gap:6px;margin:22px auto 0;padding:9px 16px;
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);
+  font-size:12.5px;font-weight:700;color:var(--muted);width:max-content;max-width:100%}
+.install-stat .ic{font-size:14px}
+.install-stat b{color:var(--brand);font-weight:800}
 .seo-footer{margin-top:26px;padding:18px 4px 6px;border-top:1px solid var(--line);color:var(--muted)}
 .seo-footer h2{font-size:14px;color:var(--ink);margin:0 0 8px}
 .seo-footer h3{font-size:12.5px;color:var(--ink);margin:14px 0 6px}
@@ -271,6 +276,7 @@ nav.tabs .ti{font-size:20px;line-height:1}
 
   <main id="view">
     <div id="viewInner"></div>
+    <div id="installStat" class="install-stat" hidden></div>
     <div id="adFooter" class="adzone" hidden>
       <div class="ad-slot" id="adSlot"></div>
       <p class="ad-disc">쿠팡 파트너스 활동의 일환으로, 이를 통해 일정액의 수수료를 제공받을 수 있습니다.</p>
@@ -888,8 +894,31 @@ dlBtn.onclick=async()=>{
   }
 };
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; updateDlBtn(); });
-window.addEventListener('appinstalled',()=>{ localStorage.bm_installed='1'; deferredPrompt=null; updateDlBtn(); });
+window.addEventListener('appinstalled',()=>{ localStorage.bm_installed='1'; deferredPrompt=null; updateDlBtn(); countInstall(); });
 updateDlBtn();
+
+// ---------- 설치 카운터 (백엔드 없이 전역 집계: Abacus) ----------
+const CNT_NS='ella16-bible-memory';
+function cntToday(){ const d=new Date(); return 'installs-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+async function cntCall(kind,key){ try{
+  const r=await fetch('https://abacus.jasoncameron.dev/'+kind+'/'+CNT_NS+'/'+key,{cache:'no-store'});
+  const j=await r.json(); return (j && typeof j.value==='number') ? j.value : 0;
+}catch(e){ return null; } }
+function paintStat(today,all){ const b=$('#installStat'); if(!b) return;
+  b.innerHTML='<span class="ic">📥</span>앱 설치 <b>오늘 '+(today||0)+'</b> · <b>전체 '+(all||0)+'</b>'; b.hidden=false; }
+async function showInstallStat(){
+  if(location.protocol.indexOf('http')!==0) return;            // file://은 스킵
+  const [all,today]=await Promise.all([cntCall('get','installs'), cntCall('get',cntToday())]);
+  if(all===null && today===null) return;                       // 서비스 실패 → 숨김 유지
+  paintStat(today,all);
+}
+async function countInstall(){
+  if(localStorage.bm_dlcounted==='1'||location.protocol.indexOf('http')!==0) return;
+  localStorage.bm_dlcounted='1';
+  const [all,today]=await Promise.all([cntCall('hit','installs'), cntCall('hit',cntToday())]);
+  paintStat(today,all);
+}
+showInstallStat();
 
 // ---------- utils ----------
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
