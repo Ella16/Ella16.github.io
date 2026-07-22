@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f6f6b">
+<script>try{var _t=localStorage.bm_theme;if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <title>네비게이토 성경 암송 · 말씀 암송 | 주제별 5·8·60·100·180·900·DEP242구절</title>
 <meta name="description" content="네비게이토 주제별 성경 암송(TMS) 웹앱. 그리스도와의 새출발·동행, 확립, 무장, DEP까지 5·8·60·100·180·900·242구절을 개역한글로 암송하고 테스트합니다. 설치 없이 폰에서 바로.">
 <meta name="keywords" content="네비게이토 성경 암송, 성경 암송, 주제별 성경 암송, 말씀 암송, TMS, 개역한글, 암송 카드, 확립, 무장, DEP, 네비게이토">
@@ -47,6 +48,19 @@
   --ink:#e9e6df;--muted:#9aa0a8;--brand:#3fb0a8;--brand-ink:#0c1112;--accent:#e0a760;
   --good:#4cc38a;--bad:#e0715c;--shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);}
 }
+/* 선택형 다크 테마 (data-theme) */
+:root[data-theme="forest"]{--bg:#0f1a14;--surface:#16241c;--surface-2:#1e3128;--line:#294034;
+  --ink:#e6efe8;--muted:#93a99b;--brand:#4fbf8b;--brand-ink:#08130d;--accent:#d3a15f;
+  --good:#4cc38a;--bad:#e0715c;--shadow:0 1px 3px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.4);}
+:root[data-theme="night"]{--bg:#14121f;--surface:#1e1b2e;--surface-2:#2a2540;--line:#37324f;
+  --ink:#eae7f3;--muted:#a49ec2;--brand:#a78bfa;--brand-ink:#130f22;--accent:#eaa2ce;
+  --good:#7bd88f;--bad:#f0808a;--shadow:0 1px 3px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.45);}
+:root[data-theme="sea"]{--bg:#0d1a1e;--surface:#14262b;--surface-2:#1c343b;--line:#274850;
+  --ink:#e3eef0;--muted:#8fa9af;--brand:#3fc7c2;--brand-ink:#05191b;--accent:#6bb6e0;
+  --good:#4cc3a0;--bad:#e0715c;--shadow:0 1px 3px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.4);}
+:root[data-theme="home"]{--bg:#f7f3ec;--surface:#fffdf8;--surface-2:#efe7d9;--line:#e5dcc9;
+  --ink:#3a2e25;--muted:#8a7d6d;--brand:#d17454;--brand-ink:#fff;--accent:#c07a2e;
+  --good:#2e7d59;--bad:#c0523f;--shadow:0 1px 3px rgba(80,55,25,.1),0 6px 20px rgba(80,55,25,.06);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);
@@ -221,6 +235,11 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .coll-opt .cc{font-size:12px;color:var(--muted);margin-top:1px}
 .coll-opt .cbadge{margin-left:auto;font-size:12px;font-weight:800;color:var(--brand);background:var(--surface-2);padding:3px 10px;border-radius:99px}
 .coll-opt.on .cbadge{background:var(--brand);color:var(--brand-ink)}
+.theme-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.theme-opt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:12px;
+  border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:12.5px;color:var(--ink)}
+.theme-opt.on{border-color:var(--brand);background:var(--surface-2)}
+.theme-opt .tic{font-size:22px;line-height:1}
 
 /* bottom nav */
 nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;background:color-mix(in srgb,var(--bg) 90%,transparent);
@@ -243,9 +262,10 @@ nav.tabs .ti{font-size:20px;line-height:1}
 .ad-slot{width:100%;display:flex;justify-content:center}
 .ad-frame{width:320px;max-width:100%;height:140px;border:0;display:block;overflow:hidden}
 .ad-disc{font-size:11px;color:var(--muted);text-align:center;margin:8px 4px 0;line-height:1.5}
-.install-stat{display:flex;align-items:center;justify-content:center;gap:6px;margin:22px auto 0;padding:9px 16px;
-  background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);
+.install-stat{display:flex;flex-direction:column;align-items:center;gap:5px;margin:22px auto 0;padding:11px 18px;
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
   font-size:12.5px;font-weight:700;color:var(--muted);width:max-content;max-width:100%}
+.install-stat .stat-row{display:flex;align-items:center;gap:6px;white-space:nowrap}
 .install-stat .ic{font-size:14px}
 .install-stat b{color:var(--brand);font-weight:800}
 .seo-footer{margin-top:26px;padding:18px 4px 6px;border-top:1px solid var(--line);color:var(--muted)}
@@ -338,6 +358,7 @@ function unlearnedToggle(){
 
 let curVersion = localStorage.bm_version || D.defaultVersion || (D.versions&&D.versions[0]&&D.versions[0].id) || 'krv';
 let curParallel = localStorage.bm_parallel || '';   // 대역(없으면 '')
+let curTheme = localStorage.bm_theme || '';          // 테마(''=자동)
 const T = v => (v.texts && (v.texts[curVersion]||v.texts[D.defaultVersion]||Object.values(v.texts)[0])) || v.text || '';
 const T2 = v => (curParallel && curParallel!==curVersion && v.texts && v.texts[curParallel]) ? v.texts[curParallel] : '';
 const verName = id => { const x=(D.versions||[]).find(vv=>vv.id===id); return x?x.name:id; };
@@ -866,9 +887,27 @@ function openCollSheet(){
     b.onclick=()=>{ curParallel=ver.id; localStorage.bm_parallel=ver.id; refreshSheet(); render(); };
     s.appendChild(b);
   });
+  // 테마
+  const hT=el('div','sref','테마'); hT.style.cssText='font-size:14px;margin:22px 0 8px;color:var(--muted)'; s.appendChild(hT);
+  const trow=el('div','theme-row');
+  [['','🖥️','자동'],['home','🏠','집'],['forest','🌲','숲'],['night','🌙','밤'],['sea','🐟','바다']].forEach(([id,ic,label])=>{
+    const b=el('button','theme-opt'+((curTheme||'')===id?' on':''),`<span class="tic">${ic}</span>${esc(label)}`);
+    b.onclick=()=>{ setTheme(id); refreshSheet(); };
+    trow.appendChild(b);
+  });
+  s.appendChild(trow);
   $('#sheetBack').classList.add('show');
 }
 function refreshSheet(){ openCollSheet(); }
+function setTheme(id){
+  curTheme=id||'';
+  const r=document.documentElement;
+  if(curTheme){ r.setAttribute('data-theme',curTheme); localStorage.bm_theme=curTheme; }
+  else{ r.removeAttribute('data-theme'); try{localStorage.removeItem('bm_theme');}catch(e){} }
+  const tc={home:'#f7f3ec',forest:'#0f1a14',night:'#14121f',sea:'#0d1a1e'}[curTheme]||'#1f6f6b';
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',tc);
+}
+setTheme(curTheme);
 
 // ---------- 다운로드 / 업데이트 (PWA 설치) ----------
 let deferredPrompt=null;
@@ -897,28 +936,42 @@ window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredP
 window.addEventListener('appinstalled',()=>{ localStorage.bm_installed='1'; deferredPrompt=null; updateDlBtn(); countInstall(); });
 updateDlBtn();
 
-// ---------- 설치 카운터 (백엔드 없이 전역 집계: Abacus) ----------
+// ---------- 방문/설치 카운터 (백엔드 없이 전역 집계: Abacus) ----------
 const CNT_NS='ella16-bible-memory';
-function cntToday(){ const d=new Date(); return 'installs-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function cntDay(){ const d=new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
 async function cntCall(kind,key){ try{
   const r=await fetch('https://abacus.jasoncameron.dev/'+kind+'/'+CNT_NS+'/'+key,{cache:'no-store'});
   const j=await r.json(); return (j && typeof j.value==='number') ? j.value : 0;
 }catch(e){ return null; } }
-function paintStat(today,all){ const b=$('#installStat'); if(!b) return;
-  b.innerHTML='<span class="ic">📥</span>앱 설치 <b>오늘 '+(today||0)+'</b> · <b>전체 '+(all||0)+'</b>'; b.hidden=false; }
-async function showInstallStat(){
+const statData={visit:{t:null,a:null},install:{t:null,a:null}};
+function paintStat(){ const b=$('#installStat'); if(!b) return;
+  const v=statData.visit, i=statData.install;
+  if(v.a===null && i.a===null) return;                         // 서비스 실패 → 숨김 유지
+  b.innerHTML=
+    '<div class="stat-row"><span class="ic">👀</span>방문 <b>오늘 '+(v.t||0)+'</b> · <b>전체 '+(v.a||0)+'</b></div>'+
+    '<div class="stat-row"><span class="ic">📥</span>설치 <b>오늘 '+(i.t||0)+'</b> · <b>전체 '+(i.a||0)+'</b></div>';
+  b.hidden=false;
+}
+async function loadStats(){
   if(location.protocol.indexOf('http')!==0) return;            // file://은 스킵
-  const [all,today]=await Promise.all([cntCall('get','installs'), cntCall('get',cntToday())]);
-  if(all===null && today===null) return;                       // 서비스 실패 → 숨김 유지
-  paintStat(today,all);
+  const day=cntDay();
+  const vNew=!sessionStorage.bm_visited;                       // 방문은 세션당 1회만 카운트
+  const vKind=vNew?'hit':'get'; if(vNew) sessionStorage.bm_visited='1';
+  const [va,vt,ia,it]=await Promise.all([
+    cntCall(vKind,'visits'), cntCall(vKind,'visits-'+day),
+    cntCall('get','installs'), cntCall('get','installs-'+day)
+  ]);
+  statData.visit={a:va,t:vt}; statData.install={a:ia,t:it};
+  paintStat();
 }
 async function countInstall(){
   if(localStorage.bm_dlcounted==='1'||location.protocol.indexOf('http')!==0) return;
   localStorage.bm_dlcounted='1';
-  const [all,today]=await Promise.all([cntCall('hit','installs'), cntCall('hit',cntToday())]);
-  paintStat(today,all);
+  const day=cntDay();
+  const [ia,it]=await Promise.all([cntCall('hit','installs'), cntCall('hit','installs-'+day)]);
+  statData.install={a:ia,t:it}; paintStat();
 }
-showInstallStat();
+loadStats();
 
 // ---------- utils ----------
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
