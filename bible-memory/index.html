@@ -105,6 +105,35 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .flash .ftext .blank{display:inline-block;min-width:2.4em;border-bottom:2px solid var(--accent);color:transparent;margin:0 1px}
 .flash .ftext .fl{color:var(--muted)}
 .tapzone{position:absolute;inset:64px 0 120px;cursor:pointer}
+.swipe-hint{position:absolute;top:50%;transform:translateY(-50%);font-size:32px;font-weight:800;color:var(--line);pointer-events:none;user-select:none;line-height:1}
+.swipe-hint.left{left:8px}.swipe-hint.right{right:8px}
+.browse-tools{display:flex;gap:8px;margin:0 0 12px}
+.tool-btn{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px;font-size:13px;font-weight:700;color:var(--muted);box-shadow:var(--shadow)}
+.tool-btn:active{color:var(--brand);border-color:var(--brand)}
+.filter-row{display:flex;margin:0 0 12px}
+.tool-btn.ut{flex:0 1 auto;padding:9px 14px}
+.tool-btn.ut.on{color:var(--brand-ink);background:var(--brand);border-color:transparent}
+.acc-head .acc-go{flex:none;color:var(--brand);font-size:11px;padding:5px 7px;border-radius:7px;opacity:.75;background:var(--surface-2)}
+.acc-head .acc-go:active{opacity:1;background:var(--brand);color:var(--brand-ink)}
+.scope-crumb{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 12px;margin-bottom:10px;font-size:13px;font-weight:700}
+.scope-crumb>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent)}
+.scope-crumb .crumb-x{flex:none;width:26px;height:26px;border-radius:7px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:12px}
+.acc-head{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:12px 15px;font-weight:700;border-top:1px solid var(--line);background:none}
+.group>.acc-head{border-top:none}
+.acc-head .caret{transition:transform .2s;color:var(--muted);flex:none}
+.acc-head.open>.caret{transform:rotate(90deg)}
+.acc-head .at{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-head .ac{font-size:11.5px;color:var(--muted);font-weight:700;background:var(--surface-2);padding:2px 8px;border-radius:99px;flex:none}
+.acc-head.d1{font-size:14px}
+.acc-head.d1 .at{color:var(--brand)}
+.acc-head.d2{font-size:13px;font-weight:600}
+.acc-head.d2 .at{color:var(--accent)}
+.resume-banner{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(100deg,var(--brand),color-mix(in srgb,var(--brand) 70%,var(--accent)));color:var(--brand-ink);border-radius:14px;padding:13px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.resume-banner .rb-ic{font-size:18px;flex:none}
+.resume-banner .rb-tx{flex:1;display:flex;flex-direction:column;line-height:1.35;min-width:0}
+.resume-banner .rb-tx b{font-size:14px}
+.resume-banner .rb-tx span{font-size:12px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resume-banner .rb-go{font-size:13px;flex:none;opacity:.85}
 .hintbar{display:flex;gap:7px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
 .hint{font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
 .hint.on{background:var(--accent);color:#fff;border-color:transparent}
@@ -215,7 +244,12 @@ const LS = {
 let learned = LS.l;
 let curColl = COLLS.find(c=>c.name===LS.coll) ? LS.coll : COLLS[0].name;
 let tab = 'browse';
-const state = { openGroups:new Set(), mzScope:null, mzList:[], mzIdx:0, mzHint:0 };
+const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
+function unlearnedToggle(){
+  const b=el('button','tool-btn ut'+(state.unlearnedOnly?' on':''),(state.unlearnedOnly?'☑':'☐')+' 안 외운 것만');
+  b.onclick=()=>{ state.unlearnedOnly=!state.unlearnedOnly; localStorage.bm_unlearned=state.unlearnedOnly?'1':''; state.lastBrowseColl=null; state.mzList=[]; render(); };
+  return b;
+}
 
 let curVersion = localStorage.bm_version || D.defaultVersion || (D.versions&&D.versions[0]&&D.versions[0].id) || 'krv';
 const T = v => (v.texts && (v.texts[curVersion]||v.texts[D.defaultVersion]||Object.values(v.texts)[0])) || v.text || '';
@@ -248,44 +282,88 @@ function render(){
   window.scrollTo(0,0);
 }
 
-// ---------- BROWSE ----------
+// ---------- BROWSE (nested accordion) ----------
+const CARET='<svg class="caret" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>';
+function buildNTree(verses){
+  const root={children:new Map(),verses:[],path:'',pathArr:[]};
+  for(const v of verses){
+    let node=root;
+    const subs=(v.sub&&v.sub.length)?v.sub:['전체'];
+    for(const name of subs){
+      if(!node.children.has(name)) node.children.set(name,{name,children:new Map(),verses:[],path:node.path+''+name,pathArr:node.pathArr.concat(name)});
+      node=node.children.get(name);
+    }
+    node.verses.push(v);
+  }
+  return root;
+}
+function nodeStats(node){
+  let t=node.verses.length, d=node.verses.filter(v=>learned.has(v.id)).length;
+  node.children.forEach(c=>{const s=nodeStats(c);t+=s.t;d+=s.d;});
+  return {t,d};
+}
+function headingPaths(node,acc){
+  node.children.forEach(c=>{ if(c.children.size>0){acc.push(c.path);headingPaths(c,acc);} });
+  return acc;
+}
+function scopeMatch(v,scope){ return (scope==='__all'||!scope)?true:(Array.isArray(scope)?scope.every((s,i)=>v.sub[i]===s):(v.sub[0]||'전체')===scope); }
+function scopeLabel(scope){ return (scope==='__all'||!scope)?'전체':(Array.isArray(scope)?scope.join(' › '):scope); }
 function renderBrowse(root){
   const verses=collVerses();
   const done=verses.filter(v=>learned.has(v.id)).length;
   const pct=Math.round(done/verses.length*100);
-  const band=el('div','progress-band',
+  root.appendChild(el('div','progress-band',
     `<div class="pb-top"><b>${esc((COLLS.find(c=>c.name===curColl)||{}).short||'')}</b>`+
     `<span class="pct">${pct}%</span></div>`+
     `<div class="bar"><i style="width:${pct}%"></i></div>`+
-    `<div class="pinfo">${done} / ${verses.length} 구절 외움</div>`);
-  root.appendChild(band);
+    `<div class="pinfo">${done} / ${verses.length} 구절 외움</div>`));
 
-  const tree=buildTree(verses);
-  tree.forEach((subs,cat)=>{
-    const total=[...subs.values()].reduce((a,b)=>a+b.length,0);
-    const doneC=[...subs.values()].flat().filter(v=>learned.has(v.id)).length;
+  root.appendChild(el('div','filter-row')).appendChild(unlearnedToggle());
+
+  const shown = state.unlearnedOnly ? verses.filter(v=>!learned.has(v.id)) : verses;
+  if(!shown.length){ root.appendChild(el('div','empty','이 과정을 모두 외웠어요 🎉')); return; }
+  const tree=buildNTree(shown);
+  // default 대분류만: reset to all-closed when collection changes
+  if(state.lastBrowseColl!==curColl){ state.openNodes=new Set(); state.lastBrowseColl=curColl; }
+
+  const tools=el('div','browse-tools');
+  const tOutline=el('button','tool-btn','⊞ 주제까지 펼치기');
+  tOutline.onclick=()=>{ state.openNodes=new Set(headingPaths(tree,[])); render(); };
+  const tCollapse=el('button','tool-btn','⊟ 모두 접기');
+  tCollapse.onclick=()=>{ state.openNodes=new Set(); render(); };
+  tools.append(tOutline,tCollapse);
+  root.appendChild(tools);
+
+  tree.children.forEach(node=>renderNode(node,root,0));
+}
+function renderNode(node,parent,depth){
+  const isOpen=state.openNodes.has(node.path);
+  const {t,d}=nodeStats(node);
+  const head=el('button','acc-head d'+depth+(isOpen?' open':''),
+    CARET+`<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span><span class="acc-go" title="이 범위 암송·시험">▶</span>`);
+  head.style.paddingLeft=(15+depth*16)+'px';
+  head.onclick=()=>{ isOpen?state.openNodes.delete(node.path):state.openNodes.add(node.path); render(); };
+  head.querySelector('.acc-go').onclick=e=>{ e.stopPropagation(); openScopeActions(node); };
+  if(depth===0){
     const g=el('div','group');
-    const isOpen=state.openGroups.has(cat);
-    const head=el('button','g-head'+(isOpen?' open':''),
-      `<svg class="caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>`+
-      `<span class="gt">${esc(cat)}</span><span class="gc">${doneC}/${total}</span>`);
-    const body=el('div','g-body'+(isOpen?'':' hidden'));
-    subs.forEach((list,sub)=>{
-      const sg=el('div','subgroup');
-      if(sub) sg.appendChild(el('div','sub-label',esc(sub)));
-      list.forEach(v=>{
-        const row=el('button','vrow'+(learned.has(v.id)?' done':''),
-          `<span class="vref">${esc(v.ref)}</span>`+
-          `<span class="vsnip">${esc(T(v).slice(0,40))}</span>`+
-          `<span class="vchk">✓</span>`);
-        row.onclick=()=>openVerse(v);
-        sg.appendChild(row);
-      });
-      body.appendChild(sg);
-    });
-    head.onclick=()=>{isOpen?state.openGroups.delete(cat):state.openGroups.add(cat);render();};
-    g.appendChild(head);g.appendChild(body);
-    root.appendChild(g);
+    g.appendChild(head);
+    if(isOpen){ const body=el('div','g-body'); fillNode(node,body,depth); g.appendChild(body); }
+    parent.appendChild(g);
+  }else{
+    parent.appendChild(head);
+    if(isOpen) fillNode(node,parent,depth);
+  }
+}
+function fillNode(node,parent,depth){
+  node.children.forEach(c=>renderNode(c,parent,depth+1));
+  node.verses.forEach(v=>{
+    const row=el('button','vrow'+(learned.has(v.id)?' done':''),
+      `<span class="vref">${esc(v.ref)}</span>`+
+      `<span class="vsnip">${esc(T(v).slice(0,40))}</span>`+
+      `<span class="vchk">✓</span>`);
+    row.style.paddingLeft=(16+(depth+1)*16)+'px';
+    row.onclick=()=>openVerse(v);
+    parent.appendChild(row);
   });
 }
 
@@ -308,6 +386,23 @@ function openVerse(v){
 function closeSheet(){$('#sheetBack').classList.remove('show');}
 $('#sheetBack').addEventListener('click',e=>{if(e.target===$('#sheetBack'))closeSheet();});
 
+function openScopeActions(node){
+  const {t,d}=nodeStats(node);
+  const s=$('#sheet');
+  s.innerHTML=`<div class="grip"></div>`+
+    `<div class="sref" style="font-size:17px">${esc(node.name)}</div>`+
+    `<div class="spath">${esc(node.pathArr.join(' › '))} · ${t}구절 · ${d} 외움</div>`+
+    `<div class="sactions" style="flex-direction:column">`+
+      `<button class="btn primary" id="scMz">🎯 이 범위 암송하기</button>`+
+      `<button class="btn" id="scTt">✅ 이 범위 시험하기</button>`+
+      `<button class="btn ghost" id="scC">닫기</button>`+
+    `</div>`;
+  $('#scMz').onclick=()=>{ state.mzScope=node.pathArr; state.mzList=[]; tab='memorize'; closeSheet(); render(); };
+  $('#scTt').onclick=()=>{ TState.scope=node.pathArr; TState.mode=null; tab='test'; closeSheet(); render(); };
+  $('#scC').onclick=closeSheet;
+  $('#sheetBack').classList.add('show');
+}
+
 function toggleLearn(id){
   learned.has(id)?learned.delete(id):learned.add(id);
   LS.l=learned;
@@ -319,21 +414,44 @@ function renderMemorize(root){
   const verses=collVerses();
   // scope chips: 전체 + categories
   const cats=[...buildTree(verses).keys()];
-  if(!state.mzScope||(state.mzScope!=='__all'&&!cats.includes(state.mzScope))) state.mzScope='__all';
+  if(!state.mzScope) state.mzScope='__all';
+
+  // resume banner: shown when saved position differs from current view
+  const rz=getResume();
+  const sameView = rz && rz.coll===curColl && JSON.stringify(rz.scope)===JSON.stringify(state.mzScope) && rz.idx===state.mzIdx;
+  if(rz && rz.ids && rz.ids.length && !sameView){
+    const cs=(COLLS.find(c=>c.name===rz.coll)||{}).short||rz.coll;
+    const sl=scopeLabel(rz.scope);
+    const banner=el('button','resume-banner',
+      `<span class="rb-ic">↩</span><div class="rb-tx"><b>이어서 암송하기</b>`+
+      `<span>${esc(cs)} · ${esc(sl)} · ${(rz.idx+1)}/${rz.ids.length}</span></div><span class="rb-go">▶</span>`);
+    banner.onclick=()=>applyResume(rz);
+    root.appendChild(banner);
+  }
+
+  const scopeArr=Array.isArray(state.mzScope)?state.mzScope:null;
+  // breadcrumb for a deep (browse-selected) scope
+  if(scopeArr && scopeArr.length>1){
+    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(scopeArr))}</span><button class="crumb-x">✕</button>`);
+    bc.querySelector('.crumb-x').onclick=()=>{state.mzScope='__all';startMz();};
+    root.appendChild(bc);
+  }
   const row=el('div','pill-row');
   const allChip=el('button','chip'+(state.mzScope==='__all'?' on':''),'전체 '+verses.length);
   allChip.onclick=()=>{state.mzScope='__all';startMz();};
   row.appendChild(allChip);
   cats.forEach(c=>{
     const n=verses.filter(v=>(v.sub[0]||'전체')===c).length;
-    const ch=el('button','chip'+(state.mzScope===c?' on':''),esc(c)+' '+n);
-    ch.onclick=()=>{state.mzScope=c;startMz();};
+    const ch=el('button','chip'+((scopeArr&&scopeArr[0]===c)?' on':''),esc(c)+' '+n);
+    ch.onclick=()=>{state.mzScope=[c];startMz();};
     row.appendChild(ch);
   });
   root.appendChild(row);
+  root.appendChild(el('div','filter-row')).appendChild(unlearnedToggle());
 
   buildMzList();
-  if(!state.mzList.length){root.appendChild(el('div','empty','구절이 없습니다.'));return;}
+  if(!state.mzList.length){root.appendChild(el('div','empty',state.unlearnedOnly?'이 범위는 다 외웠어요 🎉':'구절이 없습니다.'));return;}
+  if(state.mzIdx>=state.mzList.length) state.mzIdx=0;
   const v=state.mzList[state.mzIdx];
 
   // hint bar
@@ -343,38 +461,63 @@ function renderMemorize(root){
   root.appendChild(hb);
 
   const card=el('div','flash');
-  card.innerHTML=`<div class="fref">${esc(v.ref)}</div>`+
+  card.style.touchAction='pan-y';
+  card.innerHTML=`<div class="swipe-hint left">‹</div><div class="swipe-hint right">›</div>`+
+    `<div class="fref">${esc(v.ref)}</div>`+
     `<div class="fpath">${esc([...v.sub].filter(Boolean).join(' › ')||v.coll)}</div>`+
     `<div class="ftext">${renderHintText(T(v),state.mzHint)}</div>`;
-  const tap=el('div','tapzone');
-  tap.onclick=()=>{state.mzHint=state.mzHint===0?3:0;render();};
-  card.appendChild(tap);
+  let _sx=0,_sy=0,_st=0;
+  card.addEventListener('pointerdown',e=>{_sx=e.clientX;_sy=e.clientY;_st=Date.now();});
+  card.addEventListener('pointerup',e=>{
+    const dx=e.clientX-_sx, dy=e.clientY-_sy;
+    if(Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)*1.4){ mzGo(dx<0?1:-1); }
+    else if(Math.abs(dx)<12 && Math.abs(dy)<12 && Date.now()-_st<400){ mzReveal(); }
+  });
   root.appendChild(card);
 
   const nav=el('div','mz-nav');
-  const prev=el('button','iconbtn','‹');prev.onclick=()=>{state.mzIdx=(state.mzIdx-1+state.mzList.length)%state.mzList.length;state.mzHint=3;render();};
-  const next=el('button','iconbtn','›');next.onclick=()=>{state.mzIdx=(state.mzIdx+1)%state.mzList.length;state.mzHint=3;render();};
+  const prev=el('button','iconbtn','‹');prev.onclick=()=>mzGo(-1);
+  const next=el('button','iconbtn','›');next.onclick=()=>mzGo(1);
   const cnt=el('div','cnt',(state.mzIdx+1)+' / '+state.mzList.length);
   const isL=learned.has(v.id);
   const lb=el('button','learnbtn'+(isL?' on':''),isL?'✓ 외움':'외웠어요');
-  lb.onclick=()=>{toggleLearn(v.id);render();};
+  lb.onclick=()=>{toggleLearn(v.id);saveResume();render();};
   nav.append(prev,cnt,next);
   root.appendChild(nav);
   const nav2=el('div','mz-nav');nav2.appendChild(lb);
-  const sh=el('button','iconbtn','🔀');sh.onclick=()=>{shuffle(state.mzList);state.mzIdx=0;state.mzHint=3;render();};
+  const sh=el('button','iconbtn','🔀');sh.onclick=()=>{shuffle(state.mzList);state.mzIdx=0;state.mzHint=3;saveResume();render();};
   nav2.appendChild(sh);
   root.appendChild(nav2);
-  root.appendChild(el('div','pinfo','카드를 탭하면 참조만/전체가 전환됩니다'));
+  root.appendChild(el('div','pinfo','← → 스와이프로 다음 구절 · 탭하면 참조만/전체 전환'));
+}
+function mzScopeList(){
+  const verses=collVerses();
+  let list = verses.filter(v=>scopeMatch(v,state.mzScope));
+  if(state.unlearnedOnly) list=list.filter(v=>!learned.has(v.id));
+  return list;
+}
+function getResume(){ try{return JSON.parse(localStorage.bm_resume||'null')}catch(e){return null} }
+function saveResume(){ if(!state.mzList||!state.mzList.length)return; try{localStorage.bm_resume=JSON.stringify({coll:curColl,scope:state.mzScope,idx:state.mzIdx,hint:state.mzHint,ids:state.mzList.map(v=>v.id)});}catch(e){} }
+function applyResume(r){
+  curColl=r.coll; LS.coll=r.coll; state.mzScope=r.scope;
+  const list=mzScopeList();
+  const byId=new Map(list.map(v=>[v.id,v]));
+  const ordered=(r.ids||[]).map(id=>byId.get(id)).filter(Boolean);
+  state.mzList = ordered.length===list.length ? ordered : list.slice();
+  state.mzIdx = Math.min(r.idx||0, Math.max(0,state.mzList.length-1));
+  state.mzHint = r.hint||0;
+  tab='memorize'; render();
 }
 function buildMzList(){
-  const verses=collVerses();
-  const list = state.mzScope==='__all'?verses:verses.filter(v=>(v.sub[0]||'전체')===state.mzScope);
+  const list = mzScopeList();
   // keep existing shuffled order if same length & scope unchanged
   if(!state.mzList.length||state.mzList.some(v=>!list.includes(v))||state.mzList.length!==list.length){
     state.mzList=list.slice(); state.mzIdx=0;
   }
 }
 function startMz(){state.mzList=[];state.mzIdx=0;state.mzHint=0;render();}
+function mzGo(d){ if(!state.mzList.length)return; state.mzIdx=(state.mzIdx+d+state.mzList.length)%state.mzList.length; state.mzHint=3; saveResume(); render(); }
+function mzReveal(){ state.mzHint=state.mzHint===0?3:0; saveResume(); render(); }
 function renderHintText(text,mode){
   if(mode===0) return esc(text);
   if(mode===3) return '<span class="fl">✧ 참조를 보고 암송해 보세요 ✧</span>';
@@ -397,10 +540,21 @@ function renderTestMenu(root){
   const cats=[...buildTree(verses).keys()];
   // scope selector
   root.appendChild(el('div','section-title','시험 범위'));
+  const scopeArr=Array.isArray(TState.scope)?TState.scope:null;
+  if(scopeArr && scopeArr.length>1){
+    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(scopeArr))}</span><button class="crumb-x">✕</button>`);
+    bc.querySelector('.crumb-x').onclick=()=>{TState.scope='__all';render();};
+    root.appendChild(bc);
+  }
   const row=el('div','pill-row');
-  const mk=(key,label)=>{const c=el('button','chip'+(TState.scope===key?' on':''),label);c.onclick=()=>{TState.scope=key;render();};return c;};
-  row.appendChild(mk('__all','전체 '+verses.length));
-  cats.forEach(c=>row.appendChild(mk(c,esc(c))));
+  const allC=el('button','chip'+(TState.scope==='__all'?' on':''),'전체 '+verses.length);
+  allC.onclick=()=>{TState.scope='__all';render();};
+  row.appendChild(allC);
+  cats.forEach(c=>{
+    const ch=el('button','chip'+((scopeArr&&scopeArr[0]===c)?' on':''),esc(c));
+    ch.onclick=()=>{TState.scope=[c];render();};
+    row.appendChild(ch);
+  });
   root.appendChild(row);
 
   root.appendChild(el('div','section-title','유형 선택'));
@@ -430,14 +584,14 @@ function renderTestMenu(root){
 }
 function startTest(mode){
   const verses=collVerses();
-  let list=TState.scope==='__all'?verses.slice():verses.filter(v=>(v.sub[0]||'전체')===TState.scope);
+  let list=verses.filter(v=>scopeMatch(v,TState.scope));
   shuffle(list);
   list=list.slice(0,Math.min(10,list.length));
   Object.assign(TState,{mode,list,idx:0,score:0,answered:false});
   render();
 }
 function endTest(){
-  const t=LS.tests;t.push({coll:curColl,mode:TState.mode,scope:TState.scope==='__all'?'전체':TState.scope,score:TState.score,total:TState.list.length,at:Date.now()});LS.tests=t;
+  const t=LS.tests;t.push({coll:curColl,mode:TState.mode,scope:scopeLabel(TState.scope),score:TState.score,total:TState.list.length,at:Date.now()});LS.tests=t;
 }
 function renderQuiz(root){
   const {list,idx,mode}=TState;
@@ -570,6 +724,14 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 // ---------- tabs ----------
 document.querySelectorAll('#tabs button').forEach(b=>{
   b.onclick=()=>{tab=b.dataset.tab; if(tab==='memorize'&&!state.mzList.length)state.mzHint=0; render();};
+});
+
+// keyboard: memorize navigation
+document.addEventListener('keydown',e=>{
+  if(tab!=='memorize'||$('#sheetBack').classList.contains('show'))return;
+  if(e.key==='ArrowRight'){e.preventDefault();mzGo(1);}
+  else if(e.key==='ArrowLeft'){e.preventDefault();mzGo(-1);}
+  else if(e.key===' '||e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();mzReveal();}
 });
 
 render();
