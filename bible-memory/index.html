@@ -120,10 +120,12 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .flash .fpath{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
 .flash .fref.hide{color:var(--muted);background:var(--surface-2);border-radius:8px;padding:3px 14px;align-self:center;letter-spacing:.15em;opacity:.7}
 .flash .fpath.hide{color:var(--muted);background:var(--surface-2);border-radius:6px;padding:2px 10px;align-self:center;letter-spacing:.12em;opacity:.7}
-.flash .ftext{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;
+.flash .ftext{flex:1;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;
   font-size:21px;line-height:1.9;padding:18px 4px;letter-spacing:-.01em;word-break:keep-all}
 .flash .ftext .blank{display:inline-block;min-width:2.4em;border-bottom:2px solid var(--accent);color:transparent;margin:0 1px}
 .flash .ftext .fl{color:var(--muted)}
+.flash .ftext2{font-size:16px;line-height:1.75;color:var(--muted);opacity:.85;padding-top:12px;border-top:1px dashed var(--line);width:100%;word-break:normal}
+.sheet .stext2{font-size:16px;line-height:1.75;color:var(--muted);opacity:.85;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);word-break:normal}
 .tapzone{position:absolute;inset:64px 0 120px;cursor:pointer}
 .swipe-hint{position:absolute;top:50%;transform:translateY(-50%);font-size:32px;font-weight:800;color:var(--line);pointer-events:none;user-select:none;line-height:1}
 .swipe-hint.left{left:8px}.swipe-hint.right{right:8px}
@@ -274,7 +276,10 @@ function unlearnedToggle(){
 }
 
 let curVersion = localStorage.bm_version || D.defaultVersion || (D.versions&&D.versions[0]&&D.versions[0].id) || 'krv';
+let curParallel = localStorage.bm_parallel || '';   // 대역(없으면 '')
 const T = v => (v.texts && (v.texts[curVersion]||v.texts[D.defaultVersion]||Object.values(v.texts)[0])) || v.text || '';
+const T2 = v => (curParallel && curParallel!==curVersion && v.texts && v.texts[curParallel]) ? v.texts[curParallel] : '';
+const verName = id => { const x=(D.versions||[]).find(vv=>vv.id===id); return x?x.name:id; };
 const collVerses = () => V.filter(v=>v.coll===curColl);
 const learnedCount = coll => collVerses().filter(v=>learned.has(v.id)).length;
 
@@ -398,6 +403,7 @@ function openVerse(v){
     `<div class="sref">${esc(v.ref)}</div>`+
     `<div class="spath">${esc([v.coll.replace(/^\S+구절\s*/,''),...v.sub].filter(Boolean).join(' › '))}</div>`+
     `<div class="stext">${esc(T(v))}</div>`+
+    (T2(v)?`<div class="stext2">${esc(T2(v))}</div>`:'')+
     `<div class="sactions">`+
       `<button class="btn ${isL?'primary':''}" id="shL">${isL?'✓ 외움':'외웠어요'}</button>`+
       `<button class="btn ghost" id="shC">닫기</button>`+
@@ -488,17 +494,19 @@ function renderMemorize(root){
   const m=state.mzMode, rev=!!state.mzReveal;
   const showRef=rev||m!=='ref';
   const showTitle=rev||m!=='title';
+  const showVerseFull=rev||!(m==='verse'||m==='first'||m==='blank');
   const title=[...v.sub].filter(Boolean).join(' › ')||v.coll;
   let verseHtml;
-  if(rev||!(m==='verse'||m==='first'||m==='blank')) verseHtml=esc(T(v));
+  if(showVerseFull) verseHtml=esc(T(v));
   else if(m==='first') verseHtml=renderHintText(T(v),1);
   else if(m==='blank') verseHtml=renderHintText(T(v),2);
   else verseHtml='<span class="fl">✧ 구절을 떠올려 보세요 ✧</span>';
+  const par=(showVerseFull&&T2(v))?`<div class="ftext2">${esc(T2(v))}</div>`:'';
   const card=el('div','flash');
   card.style.touchAction='pan-y';
   card.innerHTML=`<div class="fref${showRef?'':' hide'}">${showRef?esc(v.ref):'참조 ?'}</div>`+
     `<div class="fpath${showTitle?'':' hide'}">${showTitle?esc(title):'제목 ?'}</div>`+
-    `<div class="ftext">${verseHtml}</div>`;
+    `<div class="ftext"><div class="ftmain">${verseHtml}</div>${par}</div>`;
   let _sx=0,_sy=0,_st=0;
   card.addEventListener('pointerdown',e=>{_sx=e.clientX;_sy=e.clientY;_st=Date.now();});
   card.addEventListener('pointerup',e=>{
@@ -759,18 +767,30 @@ $('#collBtn').onclick=()=>{
     s.appendChild(b);
   });
   const vers=D.versions||[{id:curVersion,name:'개역한글'}];
-  s.appendChild(el('div','sref','번역본'));
-  s.lastChild.style.cssText='font-size:14px;margin:20px 0 8px;color:var(--muted)';
+  // 번역(주 번역)
+  const h1=el('div','sref','번역'); h1.style.cssText='font-size:14px;margin:22px 0 8px;color:var(--muted)'; s.appendChild(h1);
   vers.forEach(ver=>{
     const b=el('button','coll-opt'+(ver.id===curVersion?' on':''),
       `<div><div class="cn">${esc(ver.name)}</div>${ver.year?`<div class="cc">${ver.year}</div>`:''}</div>`+
       `${ver.id===curVersion?'<span class="cbadge">사용중</span>':''}`);
-    b.onclick=()=>{curVersion=ver.id;localStorage.bm_version=ver.id;closeSheet();render();};
+    b.onclick=()=>{ curVersion=ver.id; localStorage.bm_version=ver.id; if(curParallel===ver.id){curParallel='';localStorage.bm_parallel='';} refreshSheet(); render(); };
     s.appendChild(b);
   });
-  if(vers.length===1) s.appendChild(el('div','pinfo','다른 번역본은 추후 추가 예정'));
+  // 대역(나란히 볼 번역)
+  const h2=el('div','sref','대역 (아래 나란히)'); h2.style.cssText='font-size:14px;margin:20px 0 8px;color:var(--muted)'; s.appendChild(h2);
+  const none=el('button','coll-opt'+(curParallel===''?' on':''),`<div><div class="cn">없음</div></div>${curParallel===''?'<span class="cbadge">사용중</span>':''}`);
+  none.onclick=()=>{ curParallel=''; localStorage.bm_parallel=''; refreshSheet(); render(); };
+  s.appendChild(none);
+  vers.filter(ver=>ver.id!==curVersion).forEach(ver=>{
+    const b=el('button','coll-opt'+(ver.id===curParallel?' on':''),
+      `<div><div class="cn">${esc(ver.name)}</div>${ver.year?`<div class="cc">${ver.year}</div>`:''}</div>`+
+      `${ver.id===curParallel?'<span class="cbadge">사용중</span>':''}`);
+    b.onclick=()=>{ curParallel=ver.id; localStorage.bm_parallel=ver.id; refreshSheet(); render(); };
+    s.appendChild(b);
+  });
   $('#sheetBack').classList.add('show');
 };
+function refreshSheet(){ $('#collBtn').onclick(); }
 
 // ---------- utils ----------
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
