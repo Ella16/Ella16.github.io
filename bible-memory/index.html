@@ -213,8 +213,8 @@ nav.tabs .ti{font-size:20px;line-height:1}
   <main id="view"></main>
 
   <nav class="tabs" id="tabs">
-    <button data-tab="browse" class="on"><span class="ti">📖</span>둘러보기</button>
-    <button data-tab="memorize"><span class="ti">🎯</span>암송</button>
+    <button data-tab="memorize" class="on"><span class="ti">🎯</span>암송</button>
+    <button data-tab="browse"><span class="ti">📖</span>둘러보기</button>
     <button data-tab="test"><span class="ti">✅</span>테스트</button>
     <button data-tab="progress"><span class="ti">📊</span>진도</button>
   </nav>
@@ -243,7 +243,7 @@ const LS = {
 };
 let learned = LS.l;
 let curColl = COLLS.find(c=>c.name===LS.coll) ? LS.coll : COLLS[0].name;
-let tab = 'browse';
+let tab = 'memorize';
 const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
 function unlearnedToggle(){
   const b=el('button','tool-btn ut'+(state.unlearnedOnly?' on':''),(state.unlearnedOnly?'☑':'☐')+' 안 외운 것만');
@@ -308,6 +308,7 @@ function headingPaths(node,acc){
 }
 function scopeMatch(v,scope){ return (scope==='__all'||!scope)?true:(Array.isArray(scope)?scope.every((s,i)=>v.sub[i]===s):(v.sub[0]||'전체')===scope); }
 function scopeLabel(scope){ return (scope==='__all'||!scope)?'전체':(Array.isArray(scope)?scope.join(' › '):scope); }
+function vTitle(v){ return (v.sub&&v.sub.length)?v.sub[v.sub.length-1]:v.ref; }
 function renderBrowse(root){
   const verses=collVerses();
   const done=verses.filter(v=>learned.has(v.id)).length;
@@ -561,7 +562,9 @@ function renderTestMenu(root){
   const modes=[
     ['ref2text','📝','참조 → 구절','장절을 보고 구절을 암송, 스스로 채점'],
     ['text2ref','🔍','구절 → 참조','구절을 보고 어디 말씀인지 4지선다'],
-    ['blank','✏️','빈칸 채우기','가려진 구절을 떠올린 뒤 확인']
+    ['blank','✏️','빈칸 채우기','가려진 구절을 떠올린 뒤 확인'],
+    ['title2text','📌','제목 → 구절','제목을 보고 장절·구절 떠올리기'],
+    ['text2title','🏷️','구절 → 제목','구절을 보고 제목 떠올리기']
   ];
   const grid=el('div','mode-grid');
   modes.forEach(([k,ic,t,d])=>{
@@ -577,7 +580,7 @@ function renderTestMenu(root){
     hist.forEach(h=>{
       root.appendChild(el('div','group',
         `<div style="padding:13px 16px;display:flex;justify-content:space-between;align-items:center">`+
-        `<span style="font-weight:700;font-size:14px">${({ref2text:'참조→구절',text2ref:'구절→참조',blank:'빈칸'})[h.mode]} · ${esc(h.scope)}</span>`+
+        `<span style="font-weight:700;font-size:14px">${({ref2text:'참조→구절',text2ref:'구절→참조',blank:'빈칸',title2text:'제목→구절',text2title:'구절→제목'})[h.mode]} · ${esc(h.scope)}</span>`+
         `<span style="font-weight:800;color:var(--brand)">${h.score}/${h.total}</span></div>`));
     });
   }
@@ -611,7 +614,26 @@ function renderQuiz(root){
 
   if(mode==='text2ref') return quizText2Ref(root,v);
   if(mode==='blank') return quizBlank(root,v);
+  if(mode==='title2text') return quizTitle2Text(root,v);
+  if(mode==='text2title') return quizText2Title(root,v);
   return quizRef2Text(root,v);
+}
+function selfGrade(root){
+  const wrap=el('div');wrap.innerHTML='<div class="section-title" style="text-align:center">얼마나 맞혔나요?</div>';
+  const sr=el('div','selfrow');
+  const ok=el('button','btn primary','✓ 맞음');ok.onclick=()=>nextQ(true);
+  const no=el('button','btn','✗ 틀림');no.onclick=()=>nextQ(false);
+  sr.append(no,ok);wrap.appendChild(sr);root.appendChild(wrap);
+}
+function quizTitle2Text(root,v){
+  root.appendChild(el('div','qcard',`<div class="qprompt">이 제목의 장절·구절을 떠올리세요</div><div class="qref">${esc(vTitle(v))}</div>`));
+  if(!TState.answered){ const b=el('button','btn primary','정답 보기');b.onclick=()=>{TState.answered=true;render();};root.appendChild(b); }
+  else{ root.appendChild(el('div','reveal-box',`<b style="color:var(--brand)">${esc(v.ref)}</b><br>${esc(T(v))}`)); selfGrade(root); }
+}
+function quizText2Title(root,v){
+  root.appendChild(el('div','qcard',`<div class="qprompt">이 구절의 제목은?</div><div class="qtext">${esc(T(v))}</div>`));
+  if(!TState.answered){ const b=el('button','btn primary','제목 확인');b.onclick=()=>{TState.answered=true;render();};root.appendChild(b); }
+  else{ root.appendChild(el('div','reveal-box',`<b style="color:var(--accent)">${esc(vTitle(v))}</b><br><span class="mini">${esc(v.ref)}</span>`)); selfGrade(root); }
 }
 function nextQ(correct){ if(correct)TState.score++; TState.idx++; TState.answered=false;
   if(TState.idx>=TState.list.length) endTest(); render(); }
