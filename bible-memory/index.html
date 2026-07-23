@@ -82,6 +82,20 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
   color:var(--ink);box-shadow:var(--shadow);max-width:58%}
 .collbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .collbtn .chev{color:var(--muted);flex:none}
+.hactions{margin-left:auto;display:flex;align-items:center;gap:7px;flex:none}
+.hactions .collbtn{margin-left:0;max-width:none;padding:7px 10px;border-radius:10px}
+.hstat{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:4px 9px;box-shadow:var(--shadow);flex:none}
+.hstat .hs-ic{font-size:13px}
+.hstat .hs-nums{display:flex;flex-direction:column;line-height:1.15;font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
+.hstat .hs-nums b{color:var(--brand);font-weight:800}
+.gearbtn{flex:none;width:34px;height:34px;border-radius:9px;background:var(--surface);border:1px solid var(--line);
+  box-shadow:var(--shadow);display:grid;place-items:center;color:var(--ink)}
+.set-sec{font-size:14px;color:var(--muted);font-weight:800;margin:20px 0 8px}
+.stat-block{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.stat-block .stat-row{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--muted)}
+.stat-block .stat-row b{color:var(--brand);font-weight:800}
+.stat-block .ic{font-size:15px}
 
 /* main */
 main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
@@ -287,16 +301,24 @@ nav.tabs .ti{font-size:20px;line-height:1}
   <header>
     <div class="hrow">
       <div class="brand"><span class="dot"></span>말씀 암송</div>
-      <button class="collbtn" id="dlBtn" hidden>
-        <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
-        <span id="dlLabel">다운로드</span>
-      </button>
+      <div class="hactions">
+        <button class="hstat" id="hStat" hidden aria-label="방문 통계">
+          <span class="hs-ic">👀</span>
+          <span class="hs-nums"><span>오늘 <b class="hs-t">–</b></span><span>전체 <b class="hs-a">–</b></span></span>
+        </button>
+        <button class="collbtn dl" id="dlBtn" hidden>
+          <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+          <span id="dlLabel">다운로드</span>
+        </button>
+        <button class="gearbtn" id="gearBtn" aria-label="설정">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="9.5" cy="8" r="2.4" fill="var(--surface)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="14.5" cy="16" r="2.4" fill="var(--surface)"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
   <main id="view">
     <div id="viewInner"></div>
-    <div id="installStat" class="install-stat" hidden></div>
     <div id="adFooter" class="adzone" hidden>
       <div class="ad-slot" id="adSlot"></div>
       <p class="ad-disc">쿠팡 파트너스 활동의 일환으로, 이를 통해 일정액의 수수료를 제공받을 수 있습니다.</p>
@@ -853,7 +875,7 @@ function renderProgress(root){
   root.appendChild(reset);
 }
 
-// ---------- collection picker ----------
+// ---------- collection picker (과정 선택만) ----------
 function openCollSheet(){
   const s=$('#sheet');
   s.innerHTML=`<div class="grip"></div><div class="sref" style="font-size:18px;margin-bottom:14px">암송 과정 선택</div>`;
@@ -865,40 +887,60 @@ function openCollSheet(){
     b.onclick=()=>{curColl=c.name;LS.coll=c.name;state.openGroups.clear();state.mzScope=null;TState.scope='__all';TState.mode=null;closeSheet();render();};
     s.appendChild(b);
   });
+  $('#sheetBack').classList.add('show');
+}
+
+// ---------- 설정 시트 (통계 · 테마 · 번역/대역) ----------
+function statBlockEl(){
+  const v=statData.visit, i=statData.install;
+  const online = location.protocol.indexOf('http')===0 && navigator.onLine;
+  const box=el('div','stat-block');
+  if(!online || v.a===null){ box.innerHTML='<div class="stat-row" style="justify-content:center">온라인일 때 통계가 표시됩니다</div>'; return box; }
+  box.innerHTML=
+    '<div class="stat-row"><span class="ic">👀</span>방문 <b>오늘 '+(v.t||0)+'</b> · <b>전체 '+(v.a||0)+'</b></div>'+
+    '<div class="stat-row"><span class="ic">📥</span>설치 <b>오늘 '+(i.t||0)+'</b> · <b>전체 '+(i.a||0)+'</b></div>';
+  return box;
+}
+function openSettingsSheet(){
+  const s=$('#sheet');
+  s.innerHTML=`<div class="grip"></div><div class="sref" style="font-size:18px;margin-bottom:4px">설정</div>`;
+  // 통계
+  s.appendChild(el('div','set-sec','📊 통계'));
+  s.appendChild(statBlockEl());
+  // 테마
+  s.appendChild(el('div','set-sec','🎨 테마'));
+  const trow=el('div','theme-row');
+  [['','🖥️','자동'],['home','🏠','집'],['forest','🌲','숲'],['night','🌙','밤'],['sea','🐟','바다']].forEach(([id,ic,label])=>{
+    const b=el('button','theme-opt'+((curTheme||'')===id?' on':''),`<span class="tic">${ic}</span>${esc(label)}`);
+    b.onclick=()=>{ setTheme(id); openSettingsSheet(); };
+    trow.appendChild(b);
+  });
+  s.appendChild(trow);
+  // 번역
   const vers=D.versions||[{id:curVersion,name:'개역한글'}];
-  // 번역(주 번역)
-  const h1=el('div','sref','번역'); h1.style.cssText='font-size:14px;margin:22px 0 8px;color:var(--muted)'; s.appendChild(h1);
+  s.appendChild(el('div','set-sec','📖 번역'));
   vers.forEach(ver=>{
     const b=el('button','coll-opt'+(ver.id===curVersion?' on':''),
       `<div><div class="cn">${esc(ver.name)}</div>${ver.year?`<div class="cc">${ver.year}</div>`:''}</div>`+
       `${ver.id===curVersion?'<span class="cbadge">사용중</span>':''}`);
-    b.onclick=()=>{ curVersion=ver.id; localStorage.bm_version=ver.id; if(curParallel===ver.id){curParallel='';localStorage.bm_parallel='';} refreshSheet(); render(); };
+    b.onclick=()=>{ curVersion=ver.id; localStorage.bm_version=ver.id; if(curParallel===ver.id){curParallel='';localStorage.bm_parallel='';} openSettingsSheet(); render(); };
     s.appendChild(b);
   });
-  // 대역(나란히 볼 번역)
-  const h2=el('div','sref','대역 (아래 나란히)'); h2.style.cssText='font-size:14px;margin:20px 0 8px;color:var(--muted)'; s.appendChild(h2);
+  // 대역
+  s.appendChild(el('div','set-sec','📖 대역 (아래 나란히)'));
   const none=el('button','coll-opt'+(curParallel===''?' on':''),`<div><div class="cn">없음</div></div>${curParallel===''?'<span class="cbadge">사용중</span>':''}`);
-  none.onclick=()=>{ curParallel=''; localStorage.bm_parallel=''; refreshSheet(); render(); };
+  none.onclick=()=>{ curParallel=''; localStorage.bm_parallel=''; openSettingsSheet(); render(); };
   s.appendChild(none);
   vers.filter(ver=>ver.id!==curVersion).forEach(ver=>{
     const b=el('button','coll-opt'+(ver.id===curParallel?' on':''),
       `<div><div class="cn">${esc(ver.name)}</div>${ver.year?`<div class="cc">${ver.year}</div>`:''}</div>`+
       `${ver.id===curParallel?'<span class="cbadge">사용중</span>':''}`);
-    b.onclick=()=>{ curParallel=ver.id; localStorage.bm_parallel=ver.id; refreshSheet(); render(); };
+    b.onclick=()=>{ curParallel=ver.id; localStorage.bm_parallel=ver.id; openSettingsSheet(); render(); };
     s.appendChild(b);
   });
-  // 테마
-  const hT=el('div','sref','테마'); hT.style.cssText='font-size:14px;margin:22px 0 8px;color:var(--muted)'; s.appendChild(hT);
-  const trow=el('div','theme-row');
-  [['','🖥️','자동'],['home','🏠','집'],['forest','🌲','숲'],['night','🌙','밤'],['sea','🐟','바다']].forEach(([id,ic,label])=>{
-    const b=el('button','theme-opt'+((curTheme||'')===id?' on':''),`<span class="tic">${ic}</span>${esc(label)}`);
-    b.onclick=()=>{ setTheme(id); refreshSheet(); };
-    trow.appendChild(b);
-  });
-  s.appendChild(trow);
   $('#sheetBack').classList.add('show');
 }
-function refreshSheet(){ openCollSheet(); }
+$('#gearBtn').onclick=openSettingsSheet;
 function setTheme(id){
   curTheme=id||'';
   const r=document.documentElement;
@@ -944,14 +986,14 @@ async function cntCall(kind,key){ try{
   const j=await r.json(); return (j && typeof j.value==='number') ? j.value : 0;
 }catch(e){ return null; } }
 const statData={visit:{t:null,a:null},install:{t:null,a:null}};
-function paintStat(){ const b=$('#installStat'); if(!b) return;
-  const v=statData.visit, i=statData.install;
-  if(v.a===null && i.a===null) return;                         // 서비스 실패 → 숨김 유지
-  b.innerHTML=
-    '<div class="stat-row"><span class="ic">👀</span>방문 <b>오늘 '+(v.t||0)+'</b> · <b>전체 '+(v.a||0)+'</b></div>'+
-    '<div class="stat-row"><span class="ic">📥</span>설치 <b>오늘 '+(i.t||0)+'</b> · <b>전체 '+(i.a||0)+'</b></div>';
-  b.hidden=false;
+function paintStat(){
+  const hs=$('#hStat'); if(!hs) return;
+  const v=statData.visit;
+  const online = location.protocol.indexOf('http')===0 && navigator.onLine && v.a!==null;
+  if(online){ hs.querySelector('.hs-t').textContent=(v.t||0); hs.querySelector('.hs-a').textContent=(v.a||0); hs.hidden=false; }
+  else hs.hidden=true;                                          // 오프라인/file:///서비스실패 → 헤더 통계 숨김
 }
+if($('#hStat')) $('#hStat').onclick=openSettingsSheet;          // 헤더 통계 탭 → 설정(상세)
 async function loadStats(){
   if(location.protocol.indexOf('http')!==0) return;            // file://은 스킵
   const day=cntDay();
@@ -1017,8 +1059,8 @@ function loadCoupangAd(){
   slot.appendChild(f);
 }
 loadCoupangAd();
-window.addEventListener('online',loadCoupangAd);
-window.addEventListener('offline',()=>{ const f=$('#adFooter'); if(f) f.hidden=true; });
+window.addEventListener('online',()=>{ loadCoupangAd(); loadStats(); });
+window.addEventListener('offline',()=>{ const f=$('#adFooter'); if(f) f.hidden=true; paintStat(); });
 
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   let _swReloaded=false;
