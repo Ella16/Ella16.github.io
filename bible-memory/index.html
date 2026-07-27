@@ -205,9 +205,11 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .hint.on{background:var(--accent);color:#fff;border-color:transparent}
 .mz-nav{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px}
 .mz-info{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:10px;font-size:12px;color:var(--muted);font-weight:700;flex-wrap:wrap}
-.mz-info .shufbtn{color:var(--muted);font-weight:700;font-size:12px}
-.mz-info .shufbtn:active{color:var(--brand)}
 .mz-info .sep{opacity:.4}
+.ord-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ord-seg button{font-size:11.5px;font-weight:700;padding:4px 10px;color:var(--muted);background:var(--surface)}
+.ord-seg button.on{background:var(--brand);color:var(--brand-ink)}
+.ord-seg button+button{border-left:1px solid var(--line)}
 .iconbtn{width:52px;height:48px;border-radius:12px;background:var(--surface);border:1px solid var(--line);
   font-size:20px;font-weight:800;box-shadow:var(--shadow);display:grid;place-items:center}
 .learnbtn{flex:1;height:48px;border-radius:12px;font-weight:800;font-size:14px;
@@ -644,9 +646,13 @@ function renderMemorize(root){
 
   const info=el('div','mz-info');
   const cnt=el('span','cnt',(state.mzIdx+1)+' / '+state.mzList.length);
-  const sh=el('button','shufbtn','🔀 섞기');
-  sh.onclick=()=>{shuffle(state.mzList);state.mzIdx=0;state.mzReveal=false;saveResume();render();};
-  info.append(cnt,el('span','sep','·'),sh,el('span','sep','·'),el('span',null,'카드 탭=정답'));
+  const seg=el('span','ord-seg');
+  const ord=el('button',(state.mzShuffled?'':'on'),'📖 순서');
+  ord.onclick=()=>{ state.mzList=mzScopeList(); state.mzIdx=0; state.mzReveal=false; state.mzShuffled=false; saveResume(); render(); };
+  const sh=el('button',(state.mzShuffled?'on':''),'🔀 섞기');
+  sh.onclick=()=>{ shuffle(state.mzList); state.mzIdx=0; state.mzReveal=false; state.mzShuffled=true; saveResume(); render(); };
+  seg.append(ord,sh);
+  info.append(cnt,el('span','sep','·'),seg,el('span','sep','·'),el('span',null,'카드 탭=정답'));
   root.appendChild(info);
 }
 function mzScopeList(){
@@ -671,7 +677,7 @@ function buildMzList(){
   const list = mzScopeList();
   // keep existing shuffled order if same length & scope unchanged
   if(!state.mzList.length||state.mzList.some(v=>!list.includes(v))||state.mzList.length!==list.length){
-    state.mzList=list.slice(); state.mzIdx=0;
+    state.mzList=list.slice(); state.mzIdx=0; state.mzShuffled=false;
   }
 }
 function startMz(){state.mzList=[];state.mzIdx=0;state.mzReveal=false;render();}
