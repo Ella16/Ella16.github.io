@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOVEBUG - 러브버그의 사랑</title>
+<style>
+  html, body { margin:0; padding:0; height:100%; background:#0b0f0b;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Courier New', monospace; overflow:hidden; user-select:none; }
+  #wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  #screen { image-rendering:pixelated; image-rendering:crisp-edges;
+    border:4px solid #1e2b1e; box-shadow:0 0 0 4px #0b0f0b, 0 0 24px rgba(120,220,120,0.15);
+    background:#000; height:68vh; max-height:68vh; }
+  #hint { color:#4a6b4a; font-size:11px; letter-spacing:1px; text-align:center; line-height:1.6; }
+  #hint b { color:#8fce8f; }
+  .keycap { display:inline-block; border:1px solid #3a5a3a; border-radius:3px; padding:1px 6px; color:#9fe09f; margin:0 1px; }
+  #pad { display:flex; align-items:center; justify-content:center; gap:36px; touch-action:none; }
+  .dpad { display:grid; grid-template-columns:repeat(3,42px); grid-template-rows:repeat(2,42px); gap:4px; }
+  #pad button { font-family:inherit; font-size:17px; color:#9fe09f; background:#16211a;
+    border:1px solid #3a5a3a; border-radius:7px; touch-action:none; -webkit-user-select:none; user-select:none; }
+  #pad button:active { background:#2a4030; }
+  .dpad .up{grid-column:2;grid-row:1;} .dpad .left{grid-column:1;grid-row:2;}
+  .dpad .down{grid-column:2;grid-row:2;} .dpad .right{grid-column:3;grid-row:2;}
+  #act { width:58px; height:58px; border-radius:50%; font-size:20px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="screen" width="160" height="256"></canvas>
+  <div id="pad">
+    <div class="dpad">
+      <button class="up" data-k="ArrowUp">▲</button>
+      <button class="left" data-k="ArrowLeft">◀</button>
+      <button class="down" data-k="ArrowDown">▼</button>
+      <button class="right" data-k="ArrowRight">▶</button>
+    </div>
+    <button id="act" data-k=" ">●</button>
+  </div>
+  <div id="hint">
+    <span class="keycap">←</span><span class="keycap">↑</span><span class="keycap">↓</span><span class="keycap">→</span> 또는 화면 버튼 ·
+    <span class="keycap">SPACE</span>/<span class="keycap">●</span> 진행 · <span class="keycap">C</span> 색
+    <br><b>짧은 생, 오직 사랑을 찾아서</b>
+  </div>
+</div>
+<script>
+(() => {
+  "use strict";
+  const cv = document.getElementById('screen');
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const W = 160, H = 256;
+
+  // ===== 팔레트: 딱 2색 =====
+  const PALETTES = [
+    ['#9bbc0f', '#0f380f'], // 녹흑
+    ['#f4f4f4', '#101010'], // 흑백
+  ];
+  let palIdx = 0;
+  const C = () => PALETTES[palIdx];   // C()[0]=배경, C()[1]=전경
+
+  // ===== 입력 =====
+  const keys = {};
+  let mash = 0;   // 거미줄 탈출용 연타 카운터
+  addEventListener('keydown', e => {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) { e.preventDefault(); mash++; }
+    keys[e.key] = true;
+    if (e.key === 'c' || e.key === 'C') palIdx = (palIdx+1) % PALETTES.length;
+    if (e.key === ' ') pressAction();
+    // ── 개발자 히든 단축키 ──
+    if (e.key>='1' && e.key<='9') { const n=+e.key; if (STAGES[n]) startStage(n); }  // 해당 스테이지 즉시 이동
+    if (e.key==='0') { if (screen==='play') stageClear(); }                          // 현재 판 즉시 클리어
+    if (e.key==='-') { if (screen==='play') stageFail('개발자 강제 종료'); }          // 현재 판 즉시 실패
+  });
+  addEventListener('keyup', e => { keys[e.key] = false; });
+
+  // SPACE/● 액션 (메뉴 진행 + 거미줄 탈출 연타는 mash로 처리)
+  function pressAction() {
+    if (screen==='title') startNewGame();
+    else if (screen==='cleared') { const n=stage+1; if (STAGES[n]) startStage(n); else screen='ending'; }
+    else if (screen==='gameover') startStage(stage);
+    else if (screen==='ending') screen='title';
+  }
+
+  // 모바일 터치 조작: 화면 버튼 → keys 상태에 매핑
+  document.querySelectorAll('#pad button').forEach(btn => {
+    const k = btn.getAttribute('data-k');
+    const press = e => { e.preventDefault(); mash++; if (k===' ') pressAction(); else keys[k]=true; };
+    const release = e => { e.preventDefault(); if (k!==' ') keys[k]=false; };
+    btn.addEventListener('pointerdown', press);
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointerleave', release);
+    btn.addEventListener('pointercancel', release);
+  });
+
+  // ===== 공통 그리기 =====
+  function pr(n){ return Math.round(n); }
+  function rect(x,y,w,h,col){ ctx.fillStyle=col; ctx.fillRect(pr(x),pr(y),w,h); }
+  function rad(d){ return d*Math.PI/180; }
+  function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+  function line(x0,y0,x1,y1){ const c=C(); const s=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))|0||1;
+    for(let i=0;i<=s;i++) rect(x0+(x1-x0)*i/s, y0+(y1-y0)*i/s, 1,1, c[1]); }
+  function text(str,x,y,size=8,center=false){ const c=C();
+    ctx.fillStyle=c[1]; ctx.font=`${size}px 'Courier New', monospace`;
+    ctx.textBaseline='top'; ctx.textAlign=center?'center':'left';
+    ctx.fillText(str, pr(x), pr(y)); ctx.textAlign='left'; }
+  function circleOutline(cx,cy,r){ const c=C(); const N=Math.max(10,Math.floor(r*5));
+    for(let i=0;i<N;i++){ const a=(i/N)*Math.PI*2; rect(cx+Math.cos(a)*r, cy+Math.sin(a)*r,1,1,c[1]); } }
+  function dashRect(x,y,w,h){ const c=C(); ctx.fillStyle=c[1];
+    for(let i=0;i<w;i+=4){ ctx.fillRect(pr(x+i),pr(y),2,1); ctx.fillRect(pr(x+i),pr(y+h),2,1); }
+    for(let i=0;i<h;i+=4){ ctx.fillRect(pr(x),pr(y+i),1,2); ctx.fillRect(pr(x+w),pr(y+i),1,2); } }
+  function drawLeaf(bx,by,ang,len,wid){ const c=C(); const N=28;
+    const nx=Math.cos(ang+Math.PI/2), ny=Math.sin(ang+Math.PI/2);
+    for(let i=0;i<=N;i++){ const t=i/N, al=t*len, w=Math.sin(t*Math.PI)*wid;
+      const cx=bx+Math.cos(ang)*al, cy=by+Math.sin(ang)*al;
+      rect(cx+nx*w,cy+ny*w,1,1,c[1]); rect(cx-nx*w,cy-ny*w,1,1,c[1]);
+      if(i%2===0) rect(cx,cy,1,1,c[1]); } }
+  function drawFlower(px,py,r){ const c=C();
+    for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; circleOutline(px+Math.cos(a)*r, py+Math.sin(a)*r, r*0.55); }
+    circleOutline(px,py,r*0.5); }
+  function overlay(){ const c=C(); ctx.globalAlpha=0.6; rect(0,0,W,H,c[0]); ctx.globalAlpha=1; }
+
+  // 러브버그
+  function drawBug(px,py,flapUp,hurt){ const c=C(); const wy=flapUp?-2:1;
+    rect(px-6,py-3+wy,5,4,c[1]); rect(px-5,py-2+wy,3,2,c[0]);
+    rect(px+3,py-3+wy,5,4,c[1]); rect(px+4,py-2+wy,3,2,c[0]);
+    const body=(hurt>0 && Math.floor(hurt*20)%2===0)?c[0]:c[1];
+    rect(px-2,py-3,5,8,body); rect(px-3,py-1,7,4,body);
+    rect(px-1,py,1,1,c[0]); rect(px+1,py,1,1,c[0]); rect(px,py+1,1,1,c[0]);
+    rect(px-1,py-5,1,1,c[1]); rect(px+1,py-5,1,1,c[1]); rect(px-1,py-4,3,1,c[1]);
+    rect(px-2,py-7,1,2,c[1]); rect(px+2,py-7,1,2,c[1]); }
+  function drawSpider(px,py){ const c=C();
+    rect(px-6,py,3,1,c[1]); rect(px+3,py,3,1,c[1]);
+    rect(px-5,py-3,2,1,c[1]); rect(px+3,py-3,2,1,c[1]);
+    rect(px-5,py+3,2,1,c[1]); rect(px+3,py+3,2,1,c[1]);
+    rect(px-3,py-3,6,6,c[1]); rect(px-2,py-4,4,8,c[1]);
+    rect(px-2,py-2,1,1,c[0]); rect(px+1,py-2,1,1,c[0]); }
+  function drawAnt(px,py){ const c=C();
+    rect(px-4,py-1,3,2,c[1]); rect(px,py-1,2,2,c[1]); rect(px+3,py-2,3,3,c[1]);
+    rect(px+5,py-4,1,1,c[1]); rect(px+6,py-5,1,1,c[1]);
+    rect(px-2,py+1,1,2,c[1]); rect(px,py+1,1,2,c[1]); rect(px+2,py+1,1,2,c[1]);
+    rect(px-2,py-2,1,1,c[1]); rect(px+1,py-2,1,1,c[1]); }
+  function drawBird(px,py){
+    rect(px-3,py-1,6,3,C()[1]); rect(px-1,py-2,3,5,C()[1]);
+    line(px-3,py,px-15,py-7); line(px-3,py+1,px-15,py-2);
+    line(px+3,py,px+15,py-7); line(px+3,py+1,px+15,py-2);
+    rect(px+3,py,2,1,C()[1]); }
+  function drawChevron(x,y,up){ const c=C();
+    if(up){ rect(x,y-2,1,1,c[1]); rect(x-1,y-1,1,1,c[1]); rect(x+1,y-1,1,1,c[1]); rect(x-2,y,1,1,c[1]); rect(x+2,y,1,1,c[1]); }
+    else  { rect(x-2,y-2,1,1,c[1]); rect(x+2,y-2,1,1,c[1]); rect(x-1,y-1,1,1,c[1]); rect(x+1,y-1,1,1,c[1]); rect(x,y,1,1,c[1]); } }
+  function drawHeart(cx,cy,col){ const P=[[-2,-2],[-1,-2],[1,-2],[2,-2],
+    [-3,-1],[-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1],[3,-1],
+    [-3,0],[-2,0],[-1,0],[0,0],[1,0],[2,0],[3,0],
+    [-2,1],[-1,1],[0,1],[1,1],[2,1],[-1,2],[0,2],[1,2],[0,3]];
+    for(const [dx,dy] of P) rect(cx+dx,cy+dy,1,1,col); }
+  function drawWeb(sx,y,w,h){ const cx=sx+w/2, cy=y+h/2;
+    const pts=[[sx,y],[cx,y],[sx+w,y],[sx+w,cy],[sx+w,y+h],[cx,y+h],[sx,y+h],[sx,cy]];
+    for(const [px,py] of pts) line(cx,cy,px,py);
+    for(const f of [0.45,0.8]){ const q=pts.map(([px,py])=>[cx+(px-cx)*f,cy+(py-cy)*f]);
+      for(let i=0;i<q.length;i++){ const a=q[i],b=q[(i+1)%q.length]; line(a[0],a[1],b[0],b[1]); } } }
+  function drawEgg(px,py,t){ const c=C(); const sh=(t<0.6)?Math.sin(perf/40)*2:0;
+    rect(px-4+sh,py-6,8,12,c[1]); rect(px-3+sh,py-7,6,14,c[1]); rect(px-5+sh,py-4,10,8,c[1]);
+    rect(px-2+sh,py-3,1,1,c[0]); rect(px+1+sh,py,1,1,c[0]); rect(px-1+sh,py+3,1,1,c[0]);
+    if(t<0.7){ rect(px+sh,py-6,1,4,c[0]); rect(px-1+sh,py-2,3,1,c[0]); rect(px+1+sh,py,1,3,c[0]); }
+    text('부화 중...', px, py-20, 7, true); }
+
+  // ===== 공통 이펙트 =====
+  let particles=[], floats=[], shake=0, flash=0;
+  function spawnParticle(x,y,up){ particles.push({x,y,vx:(Math.random()*2-1)*40,
+    vy:up?-(20+Math.random()*30):(Math.random()*2-1)*40, life:0.4+Math.random()*0.4}); }
+  function addFloat(x,y,txt){ floats.push({x,y,txt,life:1.0}); }
+  function updateEffects(dt){
+    for(const p of particles){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; }
+    particles=particles.filter(p=>p.life>0);
+    for(const f of floats){ f.y-=dt*16; f.life-=dt; }
+    floats=floats.filter(f=>f.life>0);
+    if(shake>0) shake-=dt; if(flash>0) flash-=dt;
+  }
+  function drawEffects(){ const c=C();
+    for(const p of particles) rect(p.x,p.y,1,1,c[1]);
+    for(const f of floats) text(f.txt, f.x, f.y, 8, true); }
+
+  // ===== 엔진 / 흐름 =====
+  const TIME=60, DRY_NEED=5;
+  let screen='title', stage=1, cleared=0;
+  let timeLeft, introT, sv={}, cur=null;
+
+  function startNewGame(){ cleared=0; startStage(1); }
+  function startStage(n){ stage=n; cur=STAGES[n]; timeLeft=cur.time; introT=1.6;
+    sv={noTimer:false}; particles=[]; floats=[]; shake=0; flash=0; cur.init(); screen='play'; }
+  function stageClear(){ cleared=Math.max(cleared,stage); flash=0.3; screen='cleared'; }
+  function stageFail(reason){ sv.failMsg=reason; screen='gameover'; }
+
+  const INTERLUDE = {
+    1: ['날개가 마르자,', '세상이 처음으로 넓어졌다.'],
+    2: ['바람의 끝에서 —', '처음으로, 그 빛을 보았다.'],
+    3: ['도시는 우리를 미워했다.', '그래도 나는 빛을 향해 갔다.'],
+    4: ['수천의 날갯짓 속에서', '너를 알아보았다.'],
+    5: ['둘이 하나 되어,', '노을 속으로.'],
+  };
+
+  // ========================================================
+  //  STAGE 1 : 부화 & 등반 (세로 스크롤)
+  // ========================================================
+  const s1 = {
+    name:'STAGE 1  부화', objective:'줄기를 올라 햇빛에서 날개 말리기', time:TIME,
+    GOAL:1540, CW:42, SP:84, SPX:90,
+    stemX(y){ return 80 + Math.sin(y*0.018)*34 + Math.sin(y*0.006+2.0)*14; },
+    sY(wy){ return H-(wy-sv.camY); },
+    goalX(){ return this.stemX(this.GOAL+16); },
+    sunZone(){ const cx=this.goalX(); return {x0:cx-30,x1:cx+30,y0:this.GOAL-4,y1:this.GOAL+46}; },
+    init(){ sv.camY=0; sv.dry=0; sv.phase='hatch'; sv.hatchT=1.4; sv.spawnT=4.0;
+      sv.enemies=[]; sv.noTimer=true;
+      sv.bug={x:this.stemX(6), worldY:6, vx:0, vy:0, hurt:0, flap:0}; },
+    update(dt){
+      const b=sv.bug;
+      if(sv.phase==='hatch'){ sv.hatchT-=dt;
+        if(sv.hatchT<=0){ sv.phase='play'; sv.noTimer=false; for(let i=0;i<10;i++) spawnParticle(b.x,this.sY(b.worldY)); }
+        return; }
+      let mvx=0,mvy=0;
+      if(keys.ArrowRight)mvx+=1; if(keys.ArrowLeft)mvx-=1;
+      if(keys.ArrowUp)mvy+=1; if(keys.ArrowDown)mvy-=1;
+      b.vx+=(mvx*this.SPX-b.vx)*0.25; b.vy+=(mvy*this.SP-b.vy)*0.25;
+      b.x+=b.vx*dt; b.worldY+=b.vy*dt;
+      b.worldY=clamp(b.worldY, sv.camY, this.GOAL+60);
+      const sx=this.stemX(b.worldY);
+      b.x=clamp(b.x, sx-this.CW, sx+this.CW); b.x=clamp(b.x,8,W-8);
+      b.flap+=dt*7; if(b.hurt>0)b.hurt-=dt;
+      const CAM_TOP=this.GOAL-172;
+      sv.camY=Math.max(sv.camY, Math.min(b.worldY-0.42*H, CAM_TOP));
+      const z=this.sunZone();
+      if(b.x>z.x0&&b.x<z.x1&&b.worldY>z.y0&&b.worldY<z.y1){
+        sv.dry+=dt; if(Math.random()<0.3) spawnParticle(b.x+(Math.random()*8-4), this.sY(b.worldY)-4, true);
+        if(sv.dry>=DRY_NEED){ stageClear(); return; } }
+      sv.spawnT-=dt;
+      if(sv.spawnT<=0){ sv.spawnT=Math.max(2.4,4.0-(TIME-timeLeft)*0.02);
+        if(sv.enemies.length<2){ const wy=sv.camY+H+8, cx=this.stemX(wy);
+          sv.enemies.push({x:cx+(Math.random()*2-1)*this.CW*0.7, worldY:wy, sp:16+Math.random()*12,
+            side:0.6+Math.random()*0.5, seed:Math.random()*10, life:12}); } }
+      for(const e of sv.enemies){ e.worldY-=e.sp*dt; const cx=this.stemX(e.worldY);
+        e.x+=clamp(b.x-e.x,-1,1)*e.side*dt*10 + Math.sin(perf/220+e.seed)*0.4;
+        e.x=clamp(e.x,cx-this.CW,cx+this.CW); e.life-=dt;
+        if(b.hurt<=0 && Math.hypot(e.x-b.x,e.worldY-b.worldY)<8){
+          b.hurt=1.2; b.vx=-70; b.vy=-40; b.worldY-=8; const bf=sv.dry; sv.dry=Math.max(0,sv.dry-1.0);
+          shake=0.4; flash=0.15; e.life=0;
+          for(let i=0;i<8;i++) spawnParticle(b.x,this.sY(b.worldY));
+          addFloat(b.x,this.sY(b.worldY)-14, bf>0?'-1초!':'피해라!'); } }
+      sv.enemies=sv.enemies.filter(e=>e.worldY>sv.camY-12 && e.life>0);
+    },
+    render(){ const c=C();
+      rect(0,0,W,H,c[0]);
+      for(let wy=Math.floor(sv.camY/12)*12; wy<sv.camY+H+12; wy+=12){
+        const sx=this.stemX(wy), sy=this.sY(wy); if(sy<14||sy>H-2) continue;
+        for(let x=6;x<W;x+=12) if(Math.abs(x-sx)>this.CW && ((x/12|0)+(wy/12|0))%2===0) rect(x,sy,1,1,c[1]); }
+      if(sv.camY<H){ const gy=this.sY(0); rect(0,gy,W,1,c[1]);
+        for(let x=2;x<W;x+=12){ rect(x,gy-3,1,3,c[1]); rect(x+4,gy-2,1,2,c[1]); } }
+      for(let wy=sv.camY-4; wy<sv.camY+H+4; wy+=3){ const x=this.stemX(wy), y=this.sY(wy);
+        rect(x-2.6,y,1,1,c[1]); rect(x+2.6,y,1,1,c[1]); }
+      const k0=Math.floor((sv.camY-40)/150), k1=Math.floor((sv.camY+H+40)/150);
+      for(let k=k0;k<=k1;k++){ const ly=k*150+75; if(ly<20||ly>this.GOAL-90) continue;
+        const bx=this.stemX(ly), by=this.sY(ly);
+        if(k%2===0) drawLeaf(bx-2,by,rad(205),26,9); else drawLeaf(bx+2,by,rad(-25),26,9); }
+      if(sv.camY+H>this.GOAL-120){ const gx=this.stemX(this.GOAL), gt=this.sY(this.GOAL);
+        drawLeaf(gx,gt,rad(-8),40,14); const sx2=this.goalX(), sy2=this.sY(this.GOAL+70);
+        circleOutline(sx2,sy2,8);
+        for(let i=0;i<8;i++){ const a=(i/8)*Math.PI*2+Math.sin(perf/600)*0.1;
+          rect(sx2+Math.cos(a)*11,sy2+Math.sin(a)*11,1,1,c[1]); rect(sx2+Math.cos(a)*14,sy2+Math.sin(a)*14,1,1,c[1]); }
+        const z=this.sunZone(); if(Math.floor(perf/250)%2===0) dashRect(z.x0,this.sY(z.y1),z.x1-z.x0,this.sY(z.y0)-this.sY(z.y1)); }
+      const b=sv.bug;
+      if(sv.phase==='hatch'){ drawEgg(b.x,this.sY(b.worldY),sv.hatchT); }
+      else { for(const e of sv.enemies) drawSpider(e.x,this.sY(e.worldY));
+        if(!(b.hurt>0 && Math.floor(perf/60)%2===0)) drawBug(b.x,this.sY(b.worldY),Math.floor(b.flap)%2===0,b.hurt); }
+      drawEffects();
+      // HUD: 날개 게이지 + 등반 바
+      drawTimer();
+      const gx=34,gw=88; rect(gx,4,gw,6,c[1]); rect(gx+1,5,gw-2,4,c[0]);
+      rect(gx+1,5,Math.round((gw-2)*Math.min(1,sv.dry/DRY_NEED)),4,c[1]);
+      for(let i=1;i<DRY_NEED;i++) rect(gx+1+Math.round((gw-2)*i/DRY_NEED),5,1,4,c[0]);
+      text('날개',gx+gw+2,3,7);
+      const bx=W-4,by0=18,by1=H-6; rect(bx,by0,2,by1-by0,c[1]);
+      rect(bx-2, by1-(by1-by0)*Math.min(1,b.worldY/this.GOAL), 6,2, c[1]); rect(bx-1,14,4,3,c[1]);
+    },
+  };
+
+  // ========================================================
+  //  STAGE 2 : 첫 비행 (가로 활공)
+  // ========================================================
+  const s2 = {
+    name:'STAGE 2  첫 비행', objective:'정원을 가로질러 날아라', time:TIME,
+    GOAL:1900, GRAV:90, LIFT:240, DIVE:150, SCROLL:66, WIND:70, PARK:72, HEARTY:128,
+    init(){ sv.noTimer=false;
+      sv.bug={x:44,y:120,vy:0,flap:0,hurt:0,stuck:0,struggle:0,lastMash:mash};
+      sv.worldX=0; sv.obstacles=[]; sv.motes=[]; sv.wind=[]; sv.bird=null; sv.birdT=5;
+      let x=150; while(x<this.GOAL-150){ const r=Math.random();
+        if(r<0.45) sv.obstacles.push({type:'web', wx:x, y:36+Math.random()*150, h:46+Math.random()*36, dead:false});
+        else sv.obstacles.push({type:'ant', wx:x, y:56+Math.random()*150, dead:false});
+        x+=120+Math.random()*90; }
+      for(let mx=200;mx<this.GOAL-120;mx+=210) sv.motes.push({wx:mx, y:36+Math.random()*180, got:false});
+      for(let wx=320;wx<this.GOAL-200;wx+=420) sv.wind.push({x0:wx, x1:wx+130, dir:Math.random()<0.5?1:-1});
+    },
+    update(dt){ const b=sv.bug;
+      if(b.stuck>0){ b.struggle += (mash-b.lastMash)*0.16; b.lastMash=mash; b.struggle-=dt*0.35;
+        if(b.struggle>=1){ b.stuck=0; b.struggle=0; b.vy=-70; addFloat(b.x,b.y-14,'탈출!'); }
+        else if(b.struggle<0) b.struggle=0;
+        return; }                       // 거미줄에 걸리면 세계 정지, 연타로 탈출
+      if(this.GOAL - sv.worldX > this.PARK) sv.worldX += this.SCROLL*dt;   // 목표 근처면 스크롤 정지
+      else sv.worldX = this.GOAL - this.PARK;
+      b.vy += this.GRAV*dt;
+      if(keys.ArrowUp) b.vy -= this.LIFT*dt;
+      if(keys.ArrowDown) b.vy += this.DIVE*dt;
+      const bw=sv.worldX+b.x;
+      for(const w of sv.wind) if(bw>w.x0 && bw<w.x1) b.vy += (w.dir>0?-1:1)*this.WIND*dt;
+      b.vy=clamp(b.vy,-135,105); b.y+=b.vy*dt;   // 낙하 최고속도를 낮춰 붕 뜨는 느낌
+      if(b.y<18){ b.y=18; if(b.vy<0) b.vy=0; }        // 천장/바닥에 닿으면 속도 멈춤
+      if(b.y>H-14){ b.y=H-14; if(b.vy>0) b.vy=0; }
+      if(keys.ArrowLeft) b.x-=42*dt; if(keys.ArrowRight) b.x+=42*dt;
+      b.x=clamp(b.x,18,94);
+      b.flap+=dt*7; if(b.hurt>0)b.hurt-=dt;
+      for(const o of sv.obstacles){ if(o.dead) continue; const sx=o.wx-sv.worldX;
+        if(o.type==='web'){ if(b.hurt<=0 && b.x>sx-4 && b.x<sx+18 && b.y>o.y && b.y<o.y+o.h){
+            b.stuck=1; b.struggle=0; b.lastMash=mash; o.dead=true; shake=0.3;
+            addFloat(b.x,b.y-14,'거미줄!'); } }
+        else if(o.type==='ant'){ if(b.hurt<=0 && Math.hypot(sx-b.x, o.y-b.y)<9){
+            b.hurt=1.0; b.vy=-40; b.x-=6; o.dead=true; timeLeft=Math.max(0,timeLeft-1.0);
+            shake=0.35; flash=0.12; for(let i=0;i<6;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'-1초!'); } } }
+      for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX;
+        if(Math.hypot(sx-b.x, m.y-b.y)<9){ m.got=true; timeLeft=Math.min(TIME,timeLeft+3);
+          for(let i=0;i<6;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'+3초'); } }
+      sv.birdT-=dt;
+      if(!sv.bird && sv.birdT<=0) sv.bird={x:W+18, y:30+Math.random()*180, warn:1.1};
+      if(sv.bird){ if(sv.bird.warn>0) sv.bird.warn-=dt;
+        else { sv.bird.x-=125*dt;
+          if(b.hurt<=0 && Math.abs(sv.bird.x-b.x)<11 && Math.abs(sv.bird.y-b.y)<8){
+            b.hurt=1.3; b.vy=60; b.x-=8; timeLeft=Math.max(0,timeLeft-2.0);
+            shake=0.5; flash=0.2; for(let i=0;i<10;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'새다!'); }
+          if(sv.bird.x<-20){ sv.bird=null; sv.birdT=5+Math.random()*4; } } }
+      if(this.GOAL - sv.worldX <= this.PARK && Math.hypot(this.PARK-b.x, this.HEARTY-b.y)<12){ stageClear(); return; }
+    },
+    render(){ const c=C(); const b=sv.bug;
+      rect(0,0,W,H,c[0]);
+      // 원경 꽃 (느린 시차)
+      const px=sv.worldX*0.4;
+      for(let i=0;i<6;i++){ const fx=((i*90 - px)%(W+80)+W+80)%(W+80)-40; drawFlower(fx, 60+((i*53)%120), 7); }
+      // 바람 지대: 드리프트하는 화살표 (▲상승기류 / ▼하강기류)
+      for(const w of sv.wind){ const a=w.x0-sv.worldX, bx=w.x1-sv.worldX; if(bx<0||a>W) continue;
+        const up=w.dir>0, drift=(up?-perf*0.02:perf*0.02);
+        for(let cx=a+16; cx<bx-6; cx+=40){ if(cx<4||cx>W-4) continue;
+          for(let j=0;j<4;j++){ const yy=30 + ((j*56 + drift)%224 + 224)%224; if(yy>24&&yy<H-14) drawChevron(cx, yy, up); } } }
+      // 바닥 풀 (시차 1x)
+      const gx=sv.worldX; rect(0,H-6,W,1,c[1]);
+      for(let x=-((gx)% 10); x<W; x+=10){ rect(x,H-10,1,4,c[1]); rect(x+3,H-9,1,3,c[1]); }
+      // 빛 모트
+      for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX; if(sx<-6||sx>W+6) continue;
+        if(Math.floor(perf/150)%2===0){ circleOutline(sx,m.y,3); rect(sx,m.y,1,1,c[1]); } else circleOutline(sx,m.y,2); }
+      // 장애물
+      for(const o of sv.obstacles){ if(o.dead) continue; const sx=o.wx-sv.worldX;
+        if(o.type==='web'){ if(sx>-20 && sx<W) drawWeb(sx,o.y,16,o.h); }
+        else { if(sx>-8 && sx<W+8) drawAnt(sx,o.y); } }
+      // 목표 꽃 + 짝의 빛
+      const gsx=this.GOAL-sv.worldX;
+      if(gsx<W+30){ drawFlower(gsx, 128, 16); drawHeart(gsx, this.HEARTY, c[1]);
+        if(Math.floor(perf/300)%2===0) circleOutline(gsx, this.HEARTY, 7);
+        if(this.GOAL-sv.worldX<=this.PARK && Math.floor(perf/250)%2===0) text('하트로!', gsx, this.HEARTY-26, 7, true); }
+      // 새
+      if(sv.bird){ if(sv.bird.warn>0){ if(Math.floor(perf/120)%2===0){ text('!', W-8, sv.bird.y-4, 10); rect(W-4,sv.bird.y,4,1,c[1]); } }
+        else drawBird(sv.bird.x, sv.bird.y); }
+      // 러브버그 (+ 거미줄에 걸린 상태)
+      if(!(b.hurt>0 && Math.floor(perf/60)%2===0)) drawBug(b.x,b.y,Math.floor(b.flap)%2===0,b.hurt);
+      if(b.stuck>0){ drawWeb(b.x-9,b.y-9,18,18);
+        const gw=30; rect(b.x-gw/2, b.y-16, gw,3, c[1]); rect(b.x-gw/2+1, b.y-15, Math.round((gw-2)*b.struggle),1, c[0]);
+        if(Math.floor(perf/200)%2===0) text('연타!', b.x, b.y-28, 7, true); }
+      drawEffects();
+      // HUD
+      drawTimer();
+      const bx=34,bw=104; rect(bx,4,bw,6,c[1]); rect(bx+1,5,bw-2,4,c[0]);
+      rect(bx+1,5, Math.round((bw-2)*Math.min(1,sv.worldX/this.GOAL)),4, c[1]);
+      rect(bx+bw-3,3,3,8,c[1]);  // 도착지 표식
+    },
+  };
+
+  const STAGES = { 1:s1, 2:s2 };
+
+  // ===== 공통 HUD / 화면 =====
+  function drawTimer(){ const c=C(); rect(0,0,W,13,c[0]); rect(0,13,W,1,c[1]);
+    const t=Math.max(0,Math.ceil(timeLeft));
+    text('T',3,3,8); ctx.fillStyle=(t<=10 && Math.floor(perf/250)%2===0)?c[0]:c[1];
+    ctx.font="8px 'Courier New', monospace"; ctx.fillText(String(t).padStart(2,'0'),12,3);
+    // 위 게이지는 각 스테이지가 rect(...,13...) 위에 그림; 타이머만 여기서
+  }
+  function drawBeacon(x,y){ const c=C(); text('사랑까지', x-24, y-10, 7, true);
+    for(let i=0;i<5;i++){ const bx=x-24+i*10; if(i<cleared){ rect(bx,y,7,4,c[1]); } else dashRect(bx,y,6,3); }
+    text('♥', x+34, y-2, 8); }
+
+  // ===== 루프 =====
+  let last=performance.now(), perf=last;
+  function loop(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; perf=now;
+    if(screen==='play'){
+      if(introT>0) introT-=dt;
+      else { if(!sv.noTimer){ timeLeft-=dt; if(timeLeft<=0) stageFail('시간 초과... 날개가 마르지 못했다'); }
+        if(screen==='play') cur.update(dt); }
+      updateEffects(dt);
+    }
+    render(); requestAnimationFrame(loop);
+  }
+
+  function render(){ const c=C();
+    ctx.save(); if(shake>0) ctx.translate((Math.random()*2-1)*3,(Math.random()*2-1)*3);
+
+    if(screen==='title'){ rect(0,0,W,H,c[0]);
+      text('L O V E B U G', W/2, 64, 14, true);
+      text('러브버그의 사랑', W/2, 84, 8, true);
+      drawBug(W/2, 118, Math.floor(perf/150)%2===0, 0);
+      if(Math.floor(perf/500)%2===0) text('▶ SPACE 시작', W/2, 150, 9, true);
+      text('짧은 생, 오직 사랑을 찾아서', W/2, 182, 7, true);
+      text('← ↑ ↓ →  이동   ·   C  색', W/2, 202, 7, true);
+      ctx.restore(); return; }
+
+    // 플레이/클리어/실패는 현재 스테이지 화면을 바탕에 그림
+    if(cur) cur.render();
+
+    if(screen==='play' && introT>0){ overlay();
+      text(cur.name, W/2, 108, 12, true); text(cur.objective, W/2, 128, 8, true); }
+
+    if(screen==='cleared'){ overlay();
+      const t=INTERLUDE[stage]||['...','...'];
+      text('★ CLEAR ★', W/2, 70, 12, true);
+      text(t[0], W/2, 104, 8, true); text(t[1], W/2, 118, 8, true);
+      drawBeacon(W/2, 150);
+      if(Math.floor(perf/500)%2===0) text('SPACE ▶', W/2, 186, 9, true); }
+
+    if(screen==='gameover'){ overlay();
+      text('GAME OVER', W/2, 96, 14, true);
+      text(sv.failMsg||'', W/2, 122, 7, true);
+      if(Math.floor(perf/500)%2===0) text('SPACE 다시', W/2, 150, 9, true); }
+
+    if(screen==='ending'){ overlay();
+      text('여기서,', W/2, 92, 10, true);
+      text('여정은 계속된다...', W/2, 112, 9, true);
+      text('(STAGE 3 준비 중)', W/2, 140, 7, true);
+      if(Math.floor(perf/500)%2===0) text('SPACE ▶', W/2, 170, 9, true); }
+
+    if(flash>0){ ctx.globalAlpha=flash*2; rect(0,0,W,H,c[1]); ctx.globalAlpha=1; }
+    ctx.restore();
+  }
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
