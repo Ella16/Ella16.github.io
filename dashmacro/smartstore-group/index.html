@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스마트스토어 그룹 상품 자동 묶기 — 스스 묶음 상품, 클릭 300번을 3번으로 | DashMacro</title>
+<meta name="description" content="스스 그룹 상품(묶음 상품) 전환, 판매자 센터에서 하나하나 체크하고 계신가요? 같은 카테고리 상품을 자동으로 골라 그룹 전환까지 한 방에. API가 없어 손으로만 되던 작업을 크롬 확장으로 자동화합니다.">
+<meta name="keywords" content="스마트스토어 그룹 상품, 스스 그룹 상품, 스스 묶음 상품, 스마트스토어 묶음 상품, 스마트스토어 판매자 센터, 그룹 상품 만들기, 판매옵션, 스마트스토어 자동화, 스마트스토어 매크로, 상품 조회 수정">
+<meta name="author" content="LabDasarada">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ella16.github.io/dashmacro/smartstore-group/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="LabDasarada">
+<meta property="og:title" content="스마트스토어 그룹 상품 자동 묶기 — 클릭 300번을 3번으로">
+<meta property="og:description" content="같은 카테고리 상품을 자동으로 골라 그룹(묶음) 전환까지 한 방에. 손으로만 되던 작업을 크롬 확장으로.">
+<meta property="og:url" content="https://ella16.github.io/dashmacro/smartstore-group/">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"ko","mainEntity":[
+{"@type":"Question","name":"스마트스토어 그룹 상품이 뭔가요?","acceptedAnswer":{"@type":"Answer","text":"네이버쇼핑이 표준화한 '판매옵션'에 맞춰 등록한 상품들을 하나로 묶은 것입니다. 각 판매옵션은 개별 상품으로 등록되고, 그 개별 상품들이 하나의 그룹 상품으로 묶입니다. 셀러들 사이에서는 '스스 묶음 상품'이라고도 부릅니다."}},
+{"@type":"Question","name":"상품이 수백 개인데 자동으로 묶을 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"네. DashMacro가 판매중 목록을 훑어 같은 카테고리 상품끼리 자동으로 골라 그룹 전환까지 실행합니다. 하나하나 체크하던 반복 작업을 대신합니다."}},
+{"@type":"Question","name":"그룹으로 묶으면 기존 옵션은 어떻게 되나요?","acceptedAnswer":{"@type":"Answer","text":"그룹 설정이 끝나면 각 상품에 걸려 있던 기존 옵션 정보는 삭제되고, 선택한 판매옵션을 가진 단일 상품으로 전환됩니다. 되돌릴 수 없으니 전환 전에 반드시 확인해야 합니다."}},
+{"@type":"Question","name":"그룹 상품으로 묶은 뒤 수정이 자유롭나요?","acceptedAnswer":{"@type":"Answer","text":"상품명, 카탈로그, 최소구매수량, 상세설명, 제조사, 브랜드 등 일부 항목은 수정에 제한이 있습니다."}}
+]}
+</script>
+<style>
+  *{box-sizing:border-box}
+  :root{
+    --green:#03c75a;      /* 네이버 그린 계열 */
+    --ink:#191f28;
+    --gray:#8b95a1;
+    --line:#e5e8eb;
+    --bg:#f2f4f6;
+  }
+  body{margin:0;font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+       color:var(--ink);line-height:1.7;background:#fff;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:0 20px}
+
+  /* ── Hero ── */
+  .hero{background:linear-gradient(160deg,#00c65e,#00a94f);color:#fff;padding:56px 20px 48px;text-align:center}
+  .hero .kicker{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+       border-radius:999px;padding:5px 14px;font-size:13px;font-weight:600;margin-bottom:16px}
+  .hero h1{margin:0 auto 14px;font-size:30px;font-weight:800;max-width:600px;line-height:1.35;letter-spacing:-.5px}
+  .hero h1 b{background:rgba(255,255,255,.22);border-radius:6px;padding:0 6px}
+  .hero .sub{margin:0 auto 26px;font-size:16px;opacity:.95;max-width:520px}
+  .btn{display:inline-block;background:#fff;color:#00a94f;font-weight:800;font-size:16px;
+       padding:14px 32px;border-radius:12px;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+  .btn:active{transform:translateY(1px)}
+
+  /* ── 숫자 비교 스트립 ── */
+  .compare{background:var(--bg);padding:28px 20px}
+  .compare .row{max-width:720px;margin:0 auto;display:flex;gap:12px;text-align:center}
+  .compare .box{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 12px}
+  .compare .box .lbl{font-size:13px;color:var(--gray);margin-bottom:6px}
+  .compare .box .big{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .compare .box.bad .big{color:#e5484d}
+  .compare .box.good .big{color:var(--green)}
+  .compare .arrow{align-self:center;font-size:22px;color:var(--gray)}
+
+  section{padding:34px 0}
+  section h2{font-size:22px;font-weight:800;letter-spacing:-.5px;margin:0 0 8px}
+  section .lead{color:#4e5968;font-size:15.5px;margin:0 0 18px}
+  h3{font-size:17px;font-weight:700;margin:24px 0 6px}
+  ul,ol{padding-left:20px;margin:10px 0}
+  li{margin:7px 0}
+
+  .steps{list-style:none;padding:0;counter-reset:step}
+  .steps li{counter-increment:step;position:relative;padding:14px 16px 14px 54px;
+       background:#fff;border:1px solid var(--line);border-radius:12px;margin:10px 0}
+  .steps li::before{content:counter(step);position:absolute;left:14px;top:13px;width:28px;height:28px;
+       background:var(--green);color:#fff;border-radius:50%;font-weight:800;font-size:14px;
+       display:flex;align-items:center;justify-content:center}
+  .steps li b{display:block;margin-bottom:2px}
+  .steps li span{color:#4e5968;font-size:14px}
+
+  .warn{background:#fff5f5;border:1px solid #ffd0d0;border-radius:12px;padding:16px 18px;margin:16px 0}
+  .warn b{color:#e5484d}
+  .info{background:#effaf3;border:1px solid #bdead0;border-radius:12px;padding:16px 18px;margin:16px 0}
+  .info b{color:#00a94f}
+
+  .feat{list-style:none;padding:0;margin:14px 0}
+  .feat li{position:relative;padding:10px 0 10px 30px;border-bottom:1px solid var(--line)}
+  .feat li::before{content:"✓";position:absolute;left:4px;top:10px;color:var(--green);font-weight:800}
+  .feat li b{font-weight:700}
+
+  .cta-card{background:linear-gradient(160deg,#f0fff6,#e6faee);border:1px solid #bdead0;
+       border-radius:16px;padding:26px 22px;text-align:center;margin:22px 0}
+  .cta-card h3{margin:0 0 6px;font-size:19px}
+  .cta-card p{margin:0 0 16px;color:#4e5968;font-size:14px}
+  .cta-card .btn{background:var(--green);color:#fff;box-shadow:0 6px 18px rgba(3,199,90,.35)}
+
+  .faq details{border-bottom:1px solid var(--line);padding:14px 0}
+  .faq summary{font-weight:700;cursor:pointer;list-style:none;font-size:16px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::before{content:"Q  ";color:var(--green);font-weight:800}
+  .faq details p{margin:10px 0 0;color:#4e5968;font-size:14.5px}
+
+  figure.shot{margin:20px 0;padding:0}
+  figure.shot .shot-badge{display:inline-block;background:#effaf3;color:#00a94f;border:1px solid #bdead0;
+       border-radius:999px;padding:3px 12px;font-size:12.5px;font-weight:700;margin-bottom:10px}
+  figure.shot img{width:100%;border:1px solid var(--line);border-radius:12px;
+       box-shadow:0 10px 34px rgba(0,0,0,.10);display:block}
+  figure.shot figcaption{margin-top:10px;font-size:13.5px;color:var(--gray);text-align:center}
+
+  .crumb{font-size:13px;color:var(--gray);padding-top:16px}
+  .crumb a{color:var(--gray);text-decoration:none}
+  .src{font-size:12.5px;color:var(--gray);margin-top:16px}
+  .src a{color:var(--gray)}
+  code{background:var(--bg);padding:1px 6px;border-radius:4px;font-size:13px}
+  footer{border-top:1px solid var(--line);margin-top:20px;padding:26px 20px 44px;
+         text-align:center;color:var(--gray);font-size:13px}
+  footer a{color:var(--gray);margin:0 8px;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="kicker">스마트스토어 셀러를 위한 크롬 확장</span>
+  <h1>스스 그룹 상품 묶기,<br><b>클릭 300번</b>을 <b>3번</b>으로</h1>
+  <p class="sub">같은 카테고리 상품을 자동으로 골라 그룹(묶음) 전환까지 한 번에.
+     판매자 센터에서 하나하나 체크하던 그 시간, 이제 안 써도 됩니다.</p>
+  <a class="btn" href="#install">무료로 시작하기</a>
+</div>
+
+<div class="compare">
+  <div class="row">
+    <div class="box bad">
+      <div class="lbl">직접 할 때</div>
+      <div class="big">30~40분</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="box good">
+      <div class="lbl">DashMacro로</div>
+      <div class="big">1~2분</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="crumb"><a href="/">LabDasarada</a> › <a href="../">DashMacro</a> › 스마트스토어 그룹 상품</div>
+
+  <section>
+    <h2>이런 분께 필요합니다</h2>
+    <ul>
+      <li>상품이 수백 개라 <b>같은 카테고리끼리 찾아 체크하는 것만</b>도 한참 걸리는 셀러</li>
+      <li>색상·사이즈별로 따로 올린 상품을 <b>하나의 그룹(묶음) 상품</b>으로 정리하고 싶은 셀러</li>
+      <li>상품이 많아 <b>그룹 묶기가 엄두가 안 나</b> 계속 미뤄두고 있던 셀러</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>스스 그룹 상품 / 묶음 상품이 뭔가요</h2>
+    <p class="lead">
+      네이버쇼핑이 표준화한 <b>판매옵션</b>에 맞춰 올린 상품들을 하나로 묶은 게 <b>그룹 상품</b>입니다.
+      색상·사이즈처럼 옵션이 다른 상품이 각각 개별 상품으로 등록되고, 그것들이 하나의 그룹으로 연결돼요.
+      셀러들은 흔히 <b>"스스 묶음 상품"</b>이라고 부릅니다.
+    </p>
+    <p>구매자에겐 한 페이지에서 옵션처럼 보이고, 셀러에겐 리뷰·노출을 한곳으로 모을 수 있다는 게 핵심입니다.</p>
+
+    <h3>수동으로 하는 방법</h3>
+    <ol class="steps">
+      <li><b>상품관리 → 상품 조회/수정</b><span>판매자 센터에서 판매중 목록을 엽니다</span></li>
+      <li><b>묶을 상품 체크</b><span>같은 카테고리 상품을 하나하나 찾아 선택 — 여기가 제일 오래 걸립니다</span></li>
+      <li><b>그룹 전환 실행</b><span>선택한 상품을 그룹으로 묶습니다</span></li>
+      <li><b>판매옵션 지정</b><span>대표 옵션 1개 기준으로 각 상품의 판매옵션을 맞춥니다</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>묶기 전에 꼭 확인하세요</h2>
+    <div class="warn">
+      <b>⚠ 기존 옵션 정보는 삭제됩니다.</b><br>
+      그룹 설정이 끝나면 각 상품에 걸려 있던 기존 옵션이 삭제되고, 선택한 판매옵션을 가진
+      <b>단일 상품</b>으로 전환됩니다. 조합형 옵션을 쓰고 있었다면 그 구조가 사라지니,
+      전환 전에 옵션·재고를 꼭 백업해 두세요. <b>되돌릴 수 없습니다.</b>
+    </div>
+    <p>그룹으로 묶은 뒤에는 아래 항목 수정에 제한이 생깁니다.</p>
+    <ul><li>상품명 · 카탈로그 · 최소구매수량 · 상세설명 · 제조사 / 브랜드</li></ul>
+
+    <div class="info">
+      <b>왜 이렇게 오래 걸릴까?</b> 상품이 수백 개면 <b>같은 카테고리끼리 찾아 체크하는 단순 작업</b>이
+      대부분의 시간을 잡아먹습니다. 판단은 단순한데 손만 많이 가는, 자동화에 딱 맞는 일이죠.
+    </div>
+  </section>
+
+  <section>
+    <h2>DashMacro 자동 그룹 — 화면 조작을 대신합니다</h2>
+    <p class="lead">
+      단순 반복이라면 <b>사람이 하던 클릭을 그대로 자동화</b>하면 됩니다.
+      DashMacro가 판매자 센터 화면에서 그 일을 대신합니다.
+    </p>
+
+    <figure class="shot">
+      <span class="shot-badge">실제 화면</span>
+      <img src="img/01-list-scan.png" alt="스마트스토어 판매자 센터 상품 조회/수정 목록을 DashMacro가 스캔해 같은 카테고리끼리 그룹으로 묶어주는 화면">
+      <figcaption>판매중 70개를 스캔해 카테고리(가구 &gt; 서재/사무용가구 &gt; 책꽂이 12개 …)별로 자동 분류하고, 카테고리마다 [그룹전환] 버튼을 만들어 줍니다.</figcaption>
+    </figure>
+
+    <ul class="feat">
+      <li><b>판매중 목록을 훑어</b> 각 상품의 카테고리(대 &gt; 중 &gt; 소 &gt; 세)를 읽습니다</li>
+      <li><b>카테고리가 같은 상품끼리 자동으로 묶습니다.</b> 몇 단계까지 같아야 할지(대분류만~세분류까지) 직접 지정</li>
+      <li><b>최소 묶음 개수</b>를 정해, 그보다 적게 모인 카테고리는 건너뜁니다</li>
+      <li><b>이미 그룹인 상품은 자동 제외</b></li>
+      <li>선택부터 <b>그룹 전환 실행</b>까지 이어서 처리하고, 진행 내역을 화면에 남깁니다</li>
+    </ul>
+    <figure class="shot">
+      <span class="shot-badge">자동 진행</span>
+      <img src="img/02-group-wizard.png" alt="스마트스토어 그룹 전환 마법사(상품 선택 → 옵션 선택 → 기준 상품 선택 → 그룹 전환)를 DashMacro가 자동으로 진행하는 화면">
+      <figcaption>네이버 그룹 전환 마법사(상품 선택 → 옵션 → 기준 상품 → 전환) 4단계를 사람 대신 클릭하며 진행합니다.</figcaption>
+    </figure>
+
+    <p>스크립트를 짤 필요 없습니다. DashMacro에 <b>인증 매크로</b>로 기본 포함돼 있어, 옵션에서 켜기만 하면 됩니다.</p>
+
+    <figure class="shot">
+      <span class="shot-badge">설정</span>
+      <img src="img/03-extension-toggle.png" alt="DashMacro 확장 옵션에서 SmartStore Auto Group 인증 매크로를 켠 화면">
+      <figcaption>확장 옵션의 <b>인증 매크로</b> 목록에서 “SmartStore Auto Group” 체크 하나면 준비 끝입니다.</figcaption>
+    </figure>
+  </section>
+
+  <div class="cta-card" id="install">
+    <h3>지금 무료로 설치하기</h3>
+    <p>크롬 웹스토어 등록 준비 중입니다. 등록되면 이 자리에 설치 버튼이 올라갑니다.<br>
+       Chrome 138+ 는 확장 상세 페이지에서 <b>사용자 스크립트 허용</b> 토글을 켜 주세요.</p>
+    <a class="btn" href="../">DashMacro 자세히 보기</a>
+  </div>
+
+  <section>
+    <h2>안전하게 쓰는 법</h2>
+    <ul>
+      <li>처음엔 <b>최소 묶음 개수를 크게</b> 잡아 몇 묶음만 만들어 보고 결과 확인</li>
+      <li><b>세분류(4단계)까지 일치</b>로 시작하세요. 대분류만 맞추면 엉뚱한 상품이 함께 묶입니다</li>
+      <li>위에 적었듯 <b>기존 옵션은 삭제되고 되돌릴 수 없습니다.</b> 대량 실행 전 반드시 소규모로 검증하세요</li>
+    </ul>
+  </section>
+
+  <section class="faq">
+    <h2>자주 묻는 질문</h2>
+    <details><summary>스스 묶음 상품이랑 그룹 상품이 다른 건가요?</summary>
+      <p>같은 걸 부르는 말입니다. 공식 명칭은 "그룹 상품"이고, 셀러들이 흔히 "묶음 상품"이라고 부릅니다.</p></details>
+    <details><summary>상품이 몇 개까지 되나요?</summary>
+      <p>DashMacro는 판매중 목록을 스크롤하며 읽어 처리하므로 개수 제한이 따로 없습니다.
+         다만 대량은 소규모로 먼저 검증한 뒤 돌리시길 권합니다.</p></details>
+    <details><summary>스크립트를 짤 줄 몰라도 되나요?</summary>
+      <p>네. 스마트스토어 자동 그룹은 확장에 기본 포함된 인증 매크로라, 옵션에서 켜기만 하면 됩니다.</p></details>
+    <details><summary>내 스토어 정보가 어디로 전송되나요?</summary>
+      <p>아니요. 모든 동작은 내 브라우저 안에서만 일어나고, 스토어 데이터는 외부로 전송되지 않습니다.</p></details>
+  </section>
+
+  <p class="src">
+    그룹 상품 사양(판매옵션 구조, 옵션 삭제, 수정 제한, API 미제공)은
+    <a href="https://shopnotice.cafe24.com/view?no=348226&amp;bbs_no=12" rel="nofollow noopener" target="_blank">카페24 마켓플러스 공지</a> 및
+    네이버 스마트스토어센터 매뉴얼 기준입니다. 네이버 정책은 바뀔 수 있으니 실제 작업 전 판매자 센터 공지를 확인하세요.
+  </p>
+</div>
+
+<footer>
+  <a href="/">LabDasarada</a> · <a href="../">DashMacro</a> · <a href="../privacy.html">개인정보처리방침</a> · © 2026 LabDasarada
+</footer>
+
+</body>
+</html>
