@@ -8,12 +8,12 @@
 <meta name="keywords" content="스마트스토어 그룹 상품, 스스 그룹 상품, 스스 묶음 상품, 스마트스토어 묶음 상품, 스마트스토어 판매자 센터, 그룹 상품 만들기, 판매옵션, 스마트스토어 자동화, 스마트스토어 매크로, 상품 조회 수정">
 <meta name="author" content="LabDasarada">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://ella16.github.io/dashmacro/smartstore-group/">
+<link rel="canonical" href="https://ella16.github.io/dashmacro/seller-dash/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="LabDasarada">
 <meta property="og:title" content="스마트스토어 그룹 상품 자동 묶기 — 클릭 300번을 3번으로">
 <meta property="og:description" content="같은 카테고리 상품을 자동으로 골라 그룹(묶음) 전환까지 한 방에. 손으로만 되던 작업을 크롬 확장으로.">
-<meta property="og:url" content="https://ella16.github.io/dashmacro/smartstore-group/">
+<meta property="og:url" content="https://ella16.github.io/dashmacro/seller-dash/">
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">
@@ -103,6 +103,10 @@
        box-shadow:0 10px 34px rgba(0,0,0,.10);display:block}
   figure.shot figcaption{margin-top:10px;font-size:13.5px;color:var(--gray);text-align:center}
 
+  .coupang{margin:26px 0 8px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .coupang-slot{width:100%;overflow-x:auto;text-align:center;min-height:140px}
+  .coupang-note{font-size:12px;color:var(--gray);margin:10px 0 0;text-align:center}
+
   .crumb{font-size:13px;color:var(--gray);padding-top:16px}
   .crumb a{color:var(--gray);text-decoration:none}
   .src{font-size:12.5px;color:var(--gray);margin-top:16px}
@@ -165,18 +169,6 @@
       <li><b>그룹 전환 실행</b><span>선택한 상품을 그룹으로 묶습니다</span></li>
       <li><b>판매옵션 지정</b><span>대표 옵션 1개 기준으로 각 상품의 판매옵션을 맞춥니다</span></li>
     </ol>
-  </section>
-
-  <section>
-    <h2>묶기 전에 꼭 확인하세요</h2>
-    <div class="warn">
-      <b>⚠ 기존 옵션 정보는 삭제됩니다.</b><br>
-      그룹 설정이 끝나면 각 상품에 걸려 있던 기존 옵션이 삭제되고, 선택한 판매옵션을 가진
-      <b>단일 상품</b>으로 전환됩니다. 조합형 옵션을 쓰고 있었다면 그 구조가 사라지니,
-      전환 전에 옵션·재고를 꼭 백업해 두세요. <b>되돌릴 수 없습니다.</b>
-    </div>
-    <p>그룹으로 묶은 뒤에는 아래 항목 수정에 제한이 생깁니다.</p>
-    <ul><li>상품명 · 카탈로그 · 최소구매수량 · 상세설명 · 제조사 / 브랜드</li></ul>
 
     <div class="info">
       <b>왜 이렇게 오래 걸릴까?</b> 상품이 수백 개면 <b>같은 카테고리끼리 찾아 체크하는 단순 작업</b>이
@@ -231,7 +223,7 @@
     <ul>
       <li>처음엔 <b>최소 묶음 개수를 크게</b> 잡아 몇 묶음만 만들어 보고 결과 확인</li>
       <li><b>세분류(4단계)까지 일치</b>로 시작하세요. 대분류만 맞추면 엉뚱한 상품이 함께 묶입니다</li>
-      <li>위에 적었듯 <b>기존 옵션은 삭제되고 되돌릴 수 없습니다.</b> 대량 실행 전 반드시 소규모로 검증하세요</li>
+      <li>그룹 전환 시 <b>기존 옵션은 삭제되고 되돌릴 수 없습니다.</b> 대량 실행 전 반드시 소규모로 검증하세요 (아래 주의사항 참고)</li>
     </ul>
   </section>
 
@@ -248,11 +240,39 @@
       <p>아니요. 모든 동작은 내 브라우저 안에서만 일어나고, 스토어 데이터는 외부로 전송되지 않습니다.</p></details>
   </section>
 
+  <section>
+    <h2>⚠ 묶기 전에 꼭 확인하세요</h2>
+    <div class="warn">
+      <b>기존 옵션 정보는 삭제됩니다.</b><br>
+      그룹 설정이 끝나면 각 상품에 걸려 있던 기존 옵션이 삭제되고, 선택한 판매옵션을 가진
+      <b>단일 상품</b>으로 전환됩니다. 조합형 옵션을 쓰고 있었다면 그 구조가 사라지니,
+      전환 전에 옵션·재고를 꼭 백업해 두세요. <b>되돌릴 수 없습니다.</b>
+    </div>
+    <div class="warn">
+      <b>기존 편집 프로그램과의 싱크가 끊어집니다.</b><br>
+      그룹 전환을 하면 각 상품이 새 상품번호로 재등록되어, 기존에 쓰던 편집·업로드 프로그램
+      (반자동 등록, 대량 업로드 프로그램 등)과의 <b>연동(싱크)이 끊어집니다.</b>
+      그런 도구로 상품을 관리 중이라면 전환 전에 반드시 확인하세요.
+    </div>
+    <p>그룹으로 묶은 뒤에는 아래 항목 수정에 제한이 생깁니다.</p>
+    <ul><li>상품명 · 카탈로그 · 최소구매수량 · 상세설명 · 제조사 / 브랜드</li></ul>
+  </section>
+
   <p class="src">
-    그룹 상품 사양(판매옵션 구조, 옵션 삭제, 수정 제한, API 미제공)은
+    그룹 상품 사양(판매옵션 구조, 옵션 삭제, 수정 제한)은
     <a href="https://shopnotice.cafe24.com/view?no=348226&amp;bbs_no=12" rel="nofollow noopener" target="_blank">카페24 마켓플러스 공지</a> 및
     네이버 스마트스토어센터 매뉴얼 기준입니다. 네이버 정책은 바뀔 수 있으니 실제 작업 전 판매자 센터 공지를 확인하세요.
   </p>
+
+  <div class="coupang">
+    <div class="coupang-slot">
+      <script src="https://ads-partners.coupang.com/g.js"></script>
+      <script>
+        new PartnersCoupang.G({"id":1008876,"template":"carousel","trackingCode":"AF3789214","width":"680","height":"140","tsource":""});
+      </script>
+    </div>
+    <p class="coupang-note">이 페이지의 일부 링크는 쿠팡 파트너스 활동의 일환으로, 구매 시 일정액의 수수료를 제공받을 수 있습니다.</p>
+  </div>
 </div>
 
 <footer>
