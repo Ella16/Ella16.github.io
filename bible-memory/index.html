@@ -180,6 +180,8 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .tool-btn.ut.on{color:var(--brand-ink);background:var(--brand);border-color:transparent}
 .acc-head .acc-go{flex:none;color:var(--brand);font-size:11px;padding:5px 7px;border-radius:7px;opacity:.75;background:var(--surface-2)}
 .acc-head .acc-go:active{opacity:1;background:var(--brand);color:var(--brand-ink)}
+.acc-head .acc-exp{flex:none;color:var(--accent);font-size:14px;line-height:1;padding:4px 7px;border-radius:7px;opacity:.8;background:var(--surface-2)}
+.acc-head .acc-exp:active{opacity:1;background:var(--accent);color:#fff}
 .scope-crumb{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 12px;margin-bottom:10px;font-size:13px;font-weight:700}
 .scope-crumb>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent)}
 .scope-crumb .crumb-x{flex:none;width:26px;height:26px;border-radius:7px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:12px}
@@ -448,6 +450,8 @@ function headingPaths(node,acc){
   node.children.forEach(c=>{ if(c.children.size>0){acc.push(c.path);headingPaths(c,acc);} });
   return acc;
 }
+// 이 노드 + 모든 하위 노드 경로(한번에 펼치기용)
+function subtreePaths(node,acc){ acc.push(node.path); node.children.forEach(c=>subtreePaths(c,acc)); return acc; }
 function scopeMatch(v,scope){ return (scope==='__all'||!scope)?true:(Array.isArray(scope)?scope.every((s,i)=>v.sub[i]===s):(v.sub[0]||'전체')===scope); }
 function scopeLabel(scope){ return (scope==='__all'||!scope)?'전체':(Array.isArray(scope)?scope.join(' › '):scope); }
 function vTitle(v){ return (v.sub&&v.sub.length)?v.sub[v.sub.length-1]:v.ref; }
@@ -483,10 +487,18 @@ function renderBrowse(root){
 function renderNode(node,parent,depth){
   const isOpen=state.openNodes.has(node.path);
   const {t,d}=nodeStats(node);
+  const hasKids=node.children.size>0;
+  const expOn=hasKids && subtreePaths(node,[]).every(p=>state.openNodes.has(p));
+  const expBtn=hasKids?`<span class="acc-exp" title="이 아래 전부 펼치기">${expOn?'⊟':'⊞'}</span>`:'';
   const head=el('button','acc-head d'+depth+(isOpen?' open':''),
-    CARET+`<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span><span class="acc-go" title="이 범위 암송·시험">▶</span>`);
+    CARET+`<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span>`+expBtn+`<span class="acc-go" title="이 범위 암송·시험">▶</span>`);
   head.style.paddingLeft=(15+depth*16)+'px';
   head.onclick=()=>{ isOpen?state.openNodes.delete(node.path):state.openNodes.add(node.path); render(); };
+  if(hasKids) head.querySelector('.acc-exp').onclick=e=>{ e.stopPropagation();
+    const paths=subtreePaths(node,[]); const allOpen=paths.every(p=>state.openNodes.has(p));
+    if(allOpen) paths.forEach(p=>state.openNodes.delete(p)); else paths.forEach(p=>state.openNodes.add(p));
+    render();
+  };
   head.querySelector('.acc-go').onclick=e=>{ e.stopPropagation(); openScopeActions(node); };
   if(depth===0){
     const g=el('div','group');
