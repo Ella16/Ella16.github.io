@@ -15,14 +15,14 @@
   #hint { color:#4a6b4a; font-size:11px; letter-spacing:1px; text-align:center; line-height:1.6; }
   #hint b { color:#8fce8f; }
   .keycap { display:inline-block; border:1px solid #3a5a3a; border-radius:3px; padding:1px 6px; color:#9fe09f; margin:0 1px; }
-  #pad { display:flex; align-items:center; justify-content:center; gap:36px; touch-action:none; }
-  .dpad { display:grid; grid-template-columns:repeat(3,42px); grid-template-rows:repeat(2,42px); gap:4px; }
-  #pad button { font-family:inherit; font-size:17px; color:#9fe09f; background:#16211a;
-    border:1px solid #3a5a3a; border-radius:7px; touch-action:none; -webkit-user-select:none; user-select:none; }
+  #pad { display:flex; align-items:center; justify-content:center; gap:28px; touch-action:none; }
+  .dpad { display:grid; grid-template-columns:repeat(3,34px); grid-template-rows:repeat(2,34px); gap:3px; }
+  #pad button { font-family:inherit; font-size:15px; color:#9fe09f; background:#16211a;
+    border:1px solid #3a5a3a; border-radius:6px; touch-action:none; -webkit-user-select:none; user-select:none; }
   #pad button:active { background:#2a4030; }
   .dpad .up{grid-column:2;grid-row:1;} .dpad .left{grid-column:1;grid-row:2;}
   .dpad .down{grid-column:2;grid-row:2;} .dpad .right{grid-column:3;grid-row:2;}
-  #act { width:58px; height:58px; border-radius:50%; font-size:20px; }
+  #act { width:46px; height:46px; border-radius:50%; font-size:18px; }
 </style>
 </head>
 <body>
@@ -37,12 +37,7 @@
     </div>
     <button id="act" data-k=" ">●</button>
   </div>
-  <div id="hint">
-    📱 <b>화면 탭</b> 시작 · <b>끌어서</b> 이동 · 연타로 거미줄 탈출
-    <br>🖥 <span class="keycap">←</span><span class="keycap">↑</span><span class="keycap">↓</span><span class="keycap">→</span>·화면버튼 이동 ·
-    <span class="keycap">SPACE</span>/<span class="keycap">●</span> 진행 · <span class="keycap">C</span> 색
-    <br><b>짧은 생, 오직 사랑을 찾아서</b>
-  </div>
+  <div id="hint">📱 <b>탭</b> 시작 · <b>끌어서</b> 이동 · 연타 탈출　|　🖥 방향키·<span class="keycap">SPACE</span>·<span class="keycap">C</span></div>
 </div>
 <script>
 (() => {
@@ -52,11 +47,11 @@
   ctx.imageSmoothingEnabled = false;
   const W = 160, H = 256;
 
-  // 화면에 맞는 최대 '정수배'로 캔버스를 키움 → 픽셀이 딱 떨어지는 선명한 사각형
+  // 화면에 맞는 최대 '정수배'로 캔버스를 키움 → 픽셀이 딱 떨어지는 선명한 사각형(가능한 크게)
   function fitCanvas(){
-    const availH = Math.max(120, window.innerHeight - 150);   // 아래 D패드+힌트 여유
-    const availW = window.innerWidth * 0.96;
-    let s = Math.max(1, Math.min(Math.floor(availH/H), Math.floor(availW/W)));
+    const sW = Math.floor((window.innerWidth  - 6) / W);      // 가로폭 기준(폰에선 보통 2배가 최대)
+    const sH = Math.floor((window.innerHeight - 72) / H);     // 아래 컨트롤 여유(컴팩트)
+    const s  = Math.max(1, Math.min(sW, sH));
     cv.style.width = (W*s)+'px'; cv.style.height = (H*s)+'px';
   }
   window.addEventListener('resize', fitCanvas); fitCanvas();
