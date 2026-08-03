@@ -11,7 +11,7 @@
   #wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
   #screen { image-rendering:pixelated; image-rendering:crisp-edges;
     border:4px solid #1e2b1e; box-shadow:0 0 0 4px #0b0f0b, 0 0 24px rgba(120,220,120,0.15);
-    background:#000; height:68vh; max-height:68vh; touch-action:none; cursor:pointer; }
+    background:#000; touch-action:none; cursor:pointer; }  /* 크기는 JS가 정수배로 설정(선명) */
   #hint { color:#4a6b4a; font-size:11px; letter-spacing:1px; text-align:center; line-height:1.6; }
   #hint b { color:#8fce8f; }
   .keycap { display:inline-block; border:1px solid #3a5a3a; border-radius:3px; padding:1px 6px; color:#9fe09f; margin:0 1px; }
@@ -51,6 +51,15 @@
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = false;
   const W = 160, H = 256;
+
+  // 화면에 맞는 최대 '정수배'로 캔버스를 키움 → 픽셀이 딱 떨어지는 선명한 사각형
+  function fitCanvas(){
+    const availH = Math.max(120, window.innerHeight - 150);   // 아래 D패드+힌트 여유
+    const availW = window.innerWidth * 0.96;
+    let s = Math.max(1, Math.min(Math.floor(availH/H), Math.floor(availW/W)));
+    cv.style.width = (W*s)+'px'; cv.style.height = (H*s)+'px';
+  }
+  window.addEventListener('resize', fitCanvas); fitCanvas();
 
   // ===== 팔레트: 딱 2색 =====
   const PALETTES = [
@@ -210,7 +219,7 @@
     for(const f of floats) text(f.txt, f.x, f.y, 8, true); }
 
   // ===== 엔진 / 흐름 =====
-  const TIME=60, DRY_NEED=5, LOVE_GOOD=5;   // 빛 LOVE_GOOD개 이상 모으면 해피엔딩
+  const TIME=60, DRY_NEED=5, LOVE_GOOD=4;   // 빛 LOVE_GOOD개 이상 모으면 해피엔딩
   let screen='title', stage=1, cleared=0, loveLight=0;   // loveLight: 한 판 동안 모은 빛(사랑)
   let maxCleared=0;   // 지금까지 깬 최고 스테이지(진행도, localStorage 저장) → 스테이지 선택 해금
   try { maxCleared = +(localStorage.getItem('lovebug_cleared')||0) || 0; } catch(_){}
@@ -322,8 +331,8 @@
   // ========================================================
   const s2 = {
     name:'STAGE 2  첫 비행', objective:'정원을 가로질러 날아라', time:TIME,
-    GOAL:1900, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:66, WIND:70, PARK:72, HEARTY:128,
-    RUSH0:800, RUSH1:1160,   // 중간 '급류' 구간(스크롤 가속) → 단조로움 변주
+    GOAL:1500, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:50, WIND:55, PARK:72, HEARTY:128,
+    RUSH0:620, RUSH1:900,   // 중간 '급류' 구간(스크롤 가속) → 단조로움 변주
     init(){ sv.noTimer=false;
       sv.bug={x:44,y:120,vy:0,flap:0,hurt:0,stuck:0,struggle:0,lastMash:mash};
       sv.worldX=0; sv.obstacles=[]; sv.motes=[]; sv.wind=[]; sv.bird=null; sv.birdT=5;
@@ -332,14 +341,11 @@
         if(r<0.45) sv.obstacles.push({type:'web', wx:x, y:36+Math.random()*150, h:46+Math.random()*36, dead:false});
         else sv.obstacles.push({type:'ant', wx:x, y:56+Math.random()*150, dead:false});
         x+=120+Math.random()*90; }
-      // 빛(사랑) 모트 — 상/하/중 밴드로 약간의 위험 변주, 단 천장·바닥에 붙이지 않아 도달 가능
-      let mi=0;
-      for(let mx=210;mx<this.GOAL-120;mx+=200){
-        const risk=mi%3; let my;
-        if(risk===0) my=48+Math.random()*22;     // 위쪽(살짝 위험, 새 쪽)
-        else if(risk===1) my=176+Math.random()*30; // 아래쪽(개미 쪽)
-        else my=96+Math.random()*54;             // 중앙
-        sv.motes.push({wx:mx, y:my, got:false}); mi++;
+      // 빛(사랑) 모트 — 직전 위치에서 ±(38~70)씩 완만한 지그재그(밴드 52~178) → 스크롤 느려 도달 가능
+      let mi=0, py=115;
+      for(let mx=210;mx<this.GOAL-110;mx+=190){
+        py = clamp(py + (mi%2===0?1:-1)*(38+Math.random()*32), 52, 178);
+        sv.motes.push({wx:mx, y:py, got:false}); mi++;
       }
       for(let wx=320;wx<this.GOAL-200;wx+=420) sv.wind.push({x0:wx, x1:wx+130, dir:Math.random()<0.5?1:-1});
     },
@@ -350,7 +356,7 @@
         return; }                       // 거미줄에 걸리면 세계 정지, 연타로 탈출
       if(this.GOAL - sv.worldX > this.PARK){
         const rush = sv.worldX>this.RUSH0 && sv.worldX<this.RUSH1;   // 중간 급류 구간: 스크롤 가속
-        sv.worldX += this.SCROLL*(rush?1.9:1)*dt;
+        sv.worldX += this.SCROLL*(rush?1.4:1)*dt;
       } else sv.worldX = this.GOAL - this.PARK;   // 목표 근처면 스크롤 정지
       b.vy += this.GRAV*dt;
       if(keys.ArrowUp) b.vy -= this.LIFT*dt;
@@ -372,7 +378,9 @@
             b.hurt=1.0; b.vy=-40; b.x-=6; o.dead=true; timeLeft=Math.max(0,timeLeft-1.0);
             shake=0.35; flash=0.12; for(let i=0;i<6;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'-1초!'); } } }
       for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX;
-        if(Math.hypot(sx-b.x, m.y-b.y)<13){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+3);
+        const d=Math.hypot(sx-b.x, m.y-b.y);
+        if(d<30) m.y += (b.y-m.y)*0.14;              // 자석: 가까우면 벌레 높이로 빨려옴 → 조준하면 먹힘
+        if(d<15){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+3);
           for(let i=0;i<8;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'빛 +1'); } }
       sv.birdT-=dt;
       if(!sv.bird && sv.birdT<=0) sv.bird={x:W+18, y:30+Math.random()*180, warn:1.1};
