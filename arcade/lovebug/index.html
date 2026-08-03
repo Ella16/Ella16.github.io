@@ -323,13 +323,13 @@
         if(r<0.45) sv.obstacles.push({type:'web', wx:x, y:36+Math.random()*150, h:46+Math.random()*36, dead:false});
         else sv.obstacles.push({type:'ant', wx:x, y:56+Math.random()*150, dead:false});
         x+=120+Math.random()*90; }
-      // 빛(사랑) 모트 — 2/3는 위험한 상·하단(새·개미·바닥 근처)에, 1/3만 안전한 중앙에
+      // 빛(사랑) 모트 — 상/하/중 밴드로 약간의 위험 변주, 단 천장·바닥에 붙이지 않아 도달 가능
       let mi=0;
-      for(let mx=200;mx<this.GOAL-120;mx+=210){
+      for(let mx=210;mx<this.GOAL-120;mx+=200){
         const risk=mi%3; let my;
-        if(risk===0) my=26+Math.random()*12;        // 위험: 상단(새 경로)
-        else if(risk===1) my=H-42+Math.random()*12; // 위험: 하단(개미·바닥)
-        else my=72+Math.random()*84;                // 안전: 중앙
+        if(risk===0) my=48+Math.random()*22;     // 위쪽(살짝 위험, 새 쪽)
+        else if(risk===1) my=176+Math.random()*30; // 아래쪽(개미 쪽)
+        else my=96+Math.random()*54;             // 중앙
         sv.motes.push({wx:mx, y:my, got:false}); mi++;
       }
       for(let wx=320;wx<this.GOAL-200;wx+=420) sv.wind.push({x0:wx, x1:wx+130, dir:Math.random()<0.5?1:-1});
@@ -362,7 +362,7 @@
             b.hurt=1.0; b.vy=-40; b.x-=6; o.dead=true; timeLeft=Math.max(0,timeLeft-1.0);
             shake=0.35; flash=0.12; for(let i=0;i<6;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'-1초!'); } } }
       for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX;
-        if(Math.hypot(sx-b.x, m.y-b.y)<9){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+3);
+        if(Math.hypot(sx-b.x, m.y-b.y)<13){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+3);
           for(let i=0;i<8;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'빛 +1'); } }
       sv.birdT-=dt;
       if(!sv.bird && sv.birdT<=0) sv.bird={x:W+18, y:30+Math.random()*180, warn:1.1};
@@ -375,10 +375,11 @@
       sv.bugSX=b.x; sv.bugSY=b.y;   // 터치 조작용 화면좌표
       // 목표 도착: 곧장 클리어가 아니라 하트 곁에 잠깐 머물며 '구애'(듀엣) 후 클리어
       if(this.GOAL - sv.worldX <= this.PARK){
-        const near = Math.hypot(this.PARK-b.x, this.HEARTY-b.y)<18;
-        if(near){ sv.court = Math.min(1, sv.court + dt/1.3);
+        b.vy += (this.HEARTY - b.y)*2.4*dt; b.vy *= 0.93;   // 구애 보조: 하트 높이로 부드럽게 당겨 호버 쉽게
+        const near = Math.hypot(this.PARK-b.x, this.HEARTY-b.y)<28;
+        if(near){ sv.court = Math.min(1, sv.court + dt/1.1);
           if(Math.random()<0.3) addFloat(this.PARK+(Math.random()*16-8), this.HEARTY-4-Math.random()*8, '♥'); }
-        else sv.court = Math.max(0, sv.court - dt*0.8);
+        else sv.court = Math.max(0, sv.court - dt*0.5);
         if(sv.court>=1){ for(let i=0;i<14;i++) spawnParticle(this.PARK, this.HEARTY, true);
           addFloat(this.PARK, this.HEARTY-16, '사랑!'); stageClear(); return; }
       }
