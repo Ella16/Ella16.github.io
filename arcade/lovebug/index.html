@@ -206,11 +206,11 @@
     for(const f of floats) text(f.txt, f.x, f.y, 8, true); }
 
   // ===== 엔진 / 흐름 =====
-  const TIME=60, DRY_NEED=5;
-  let screen='title', stage=1, cleared=0;
+  const TIME=60, DRY_NEED=5, LOVE_GOOD=5;   // 빛 LOVE_GOOD개 이상 모으면 해피엔딩
+  let screen='title', stage=1, cleared=0, loveLight=0;   // loveLight: 한 판 동안 모은 빛(사랑)
   let timeLeft, introT, sv={}, cur=null;
 
-  function startNewGame(){ cleared=0; startStage(1); }
+  function startNewGame(){ cleared=0; loveLight=0; startStage(1); }
   function startStage(n){ stage=n; cur=STAGES[n]; timeLeft=cur.time; introT=1.6;
     sv={noTimer:false}; particles=[]; floats=[]; shake=0; flash=0; cur.init(); screen='play'; }
   function stageClear(){ cleared=Math.max(cleared,stage); flash=0.3; screen='cleared'; }
@@ -314,14 +314,24 @@
   const s2 = {
     name:'STAGE 2  첫 비행', objective:'정원을 가로질러 날아라', time:TIME,
     GOAL:1900, GRAV:85, LIFT:330, DIVE:260, SCROLL:66, WIND:70, PARK:72, HEARTY:128,
+    RUSH0:800, RUSH1:1160,   // 중간 '급류' 구간(스크롤 가속) → 단조로움 변주
     init(){ sv.noTimer=false;
       sv.bug={x:44,y:120,vy:0,flap:0,hurt:0,stuck:0,struggle:0,lastMash:mash};
       sv.worldX=0; sv.obstacles=[]; sv.motes=[]; sv.wind=[]; sv.bird=null; sv.birdT=5;
+      sv.court=0; sv.rushWarn=0;   // 구애 진행도 / 급류 경고 타이머
       let x=150; while(x<this.GOAL-150){ const r=Math.random();
         if(r<0.45) sv.obstacles.push({type:'web', wx:x, y:36+Math.random()*150, h:46+Math.random()*36, dead:false});
         else sv.obstacles.push({type:'ant', wx:x, y:56+Math.random()*150, dead:false});
         x+=120+Math.random()*90; }
-      for(let mx=200;mx<this.GOAL-120;mx+=210) sv.motes.push({wx:mx, y:36+Math.random()*180, got:false});
+      // 빛(사랑) 모트 — 2/3는 위험한 상·하단(새·개미·바닥 근처)에, 1/3만 안전한 중앙에
+      let mi=0;
+      for(let mx=200;mx<this.GOAL-120;mx+=210){
+        const risk=mi%3; let my;
+        if(risk===0) my=26+Math.random()*12;        // 위험: 상단(새 경로)
+        else if(risk===1) my=H-42+Math.random()*12; // 위험: 하단(개미·바닥)
+        else my=72+Math.random()*84;                // 안전: 중앙
+        sv.motes.push({wx:mx, y:my, got:false}); mi++;
+      }
       for(let wx=320;wx<this.GOAL-200;wx+=420) sv.wind.push({x0:wx, x1:wx+130, dir:Math.random()<0.5?1:-1});
     },
     update(dt){ const b=sv.bug;
@@ -329,8 +339,10 @@
         if(b.struggle>=1){ b.stuck=0; b.struggle=0; b.vy=-70; addFloat(b.x,b.y-14,'탈출!'); }
         else if(b.struggle<0) b.struggle=0;
         return; }                       // 거미줄에 걸리면 세계 정지, 연타로 탈출
-      if(this.GOAL - sv.worldX > this.PARK) sv.worldX += this.SCROLL*dt;   // 목표 근처면 스크롤 정지
-      else sv.worldX = this.GOAL - this.PARK;
+      if(this.GOAL - sv.worldX > this.PARK){
+        const rush = sv.worldX>this.RUSH0 && sv.worldX<this.RUSH1;   // 중간 급류 구간: 스크롤 가속
+        sv.worldX += this.SCROLL*(rush?1.9:1)*dt;
+      } else sv.worldX = this.GOAL - this.PARK;   // 목표 근처면 스크롤 정지
       b.vy += this.GRAV*dt;
       if(keys.ArrowUp) b.vy -= this.LIFT*dt;
       if(keys.ArrowDown) b.vy += this.DIVE*dt;
@@ -350,8 +362,8 @@
             b.hurt=1.0; b.vy=-40; b.x-=6; o.dead=true; timeLeft=Math.max(0,timeLeft-1.0);
             shake=0.35; flash=0.12; for(let i=0;i<6;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'-1초!'); } } }
       for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX;
-        if(Math.hypot(sx-b.x, m.y-b.y)<9){ m.got=true; timeLeft=Math.min(TIME,timeLeft+3);
-          for(let i=0;i<6;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'+3초'); } }
+        if(Math.hypot(sx-b.x, m.y-b.y)<9){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+3);
+          for(let i=0;i<8;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'빛 +1'); } }
       sv.birdT-=dt;
       if(!sv.bird && sv.birdT<=0) sv.bird={x:W+18, y:30+Math.random()*180, warn:1.1};
       if(sv.bird){ if(sv.bird.warn>0) sv.bird.warn-=dt;
@@ -361,7 +373,15 @@
             shake=0.5; flash=0.2; for(let i=0;i<10;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'새다!'); }
           if(sv.bird.x<-20){ sv.bird=null; sv.birdT=5+Math.random()*4; } } }
       sv.bugSX=b.x; sv.bugSY=b.y;   // 터치 조작용 화면좌표
-      if(this.GOAL - sv.worldX <= this.PARK && Math.hypot(this.PARK-b.x, this.HEARTY-b.y)<12){ stageClear(); return; }
+      // 목표 도착: 곧장 클리어가 아니라 하트 곁에 잠깐 머물며 '구애'(듀엣) 후 클리어
+      if(this.GOAL - sv.worldX <= this.PARK){
+        const near = Math.hypot(this.PARK-b.x, this.HEARTY-b.y)<18;
+        if(near){ sv.court = Math.min(1, sv.court + dt/1.3);
+          if(Math.random()<0.3) addFloat(this.PARK+(Math.random()*16-8), this.HEARTY-4-Math.random()*8, '♥'); }
+        else sv.court = Math.max(0, sv.court - dt*0.8);
+        if(sv.court>=1){ for(let i=0;i<14;i++) spawnParticle(this.PARK, this.HEARTY, true);
+          addFloat(this.PARK, this.HEARTY-16, '사랑!'); stageClear(); return; }
+      }
     },
     render(){ const c=C(); const b=sv.bug;
       rect(0,0,W,H,c[0]);
@@ -387,7 +407,15 @@
       const gsx=this.GOAL-sv.worldX;
       if(gsx<W+30){ drawFlower(gsx, 128, 16); drawHeart(gsx, this.HEARTY, c[1]);
         if(Math.floor(perf/300)%2===0) circleOutline(gsx, this.HEARTY, 7);
-        if(this.GOAL-sv.worldX<=this.PARK && Math.floor(perf/250)%2===0) text('하트로!', gsx, this.HEARTY-26, 7, true); }
+        if(this.GOAL-sv.worldX<=this.PARK){
+          if(sv.court>0){ const rr=Math.max(3,11-sv.court*7); circleOutline(gsx,this.HEARTY,rr);   // 좁혀지는 고리
+            const gw=22,gxx=gsx-gw/2,gyy=this.HEARTY-18;                                            // 구애 게이지
+            rect(gxx,gyy,gw,4,c[1]); rect(gxx+1,gyy+1,gw-2,2,c[0]); rect(gxx+1,gyy+1,Math.round((gw-2)*sv.court),2,c[1]); }
+          if(Math.floor(perf/250)%2===0) text(sv.court>0?'구애중…':'하트로!', gsx, this.HEARTY-30, 7, true); } }
+      // 급류 구간: 속도감 스트릭 + 배너
+      if(sv.worldX>this.RUSH0-40 && sv.worldX<this.RUSH1){
+        for(let i=0;i<6;i++){ const yy=24+(i*40+perf*0.25)%(H-46); const xx=(perf*0.6+i*57)%W; rect(xx,yy,5,1,c[1]); }
+        if(Math.floor(perf/140)%2===0) text('≫ 급 류 ≫', W/2, 18, 8, true); }
       // 새
       if(sv.bird){ if(sv.bird.warn>0){ if(Math.floor(perf/120)%2===0){ text('!', W-8, sv.bird.y-4, 10); rect(W-4,sv.bird.y,4,1,c[1]); } }
         else drawBird(sv.bird.x, sv.bird.y); }
@@ -402,6 +430,7 @@
       const bx=34,bw=104; rect(bx,4,bw,6,c[1]); rect(bx+1,5,bw-2,4,c[0]);
       rect(bx+1,5, Math.round((bw-2)*Math.min(1,sv.worldX/this.GOAL)),4, c[1]);
       rect(bx+bw-3,3,3,8,c[1]);  // 도착지 표식
+      text('♥'+loveLight, W-15, 3, 7);   // 모은 빛(사랑) 카운트
     },
   };
 
@@ -462,10 +491,15 @@
       if(Math.floor(perf/500)%2===0) text('SPACE 다시', W/2, 150, 9, true); }
 
     if(screen==='ending'){ overlay();
-      text('여기서,', W/2, 92, 10, true);
-      text('여정은 계속된다...', W/2, 112, 9, true);
-      text('(STAGE 3 준비 중)', W/2, 140, 7, true);
-      if(Math.floor(perf/500)%2===0) text('SPACE ▶', W/2, 170, 9, true); }
+      const good = loveLight>=LOVE_GOOD;   // 모은 빛에 따라 엔딩 분기
+      if(good){ text('둘이 하나 되어,', W/2, 82, 10, true);
+        text('노을 속으로.', W/2, 102, 9, true);
+        drawHeart(W/2-7,130,c[1]); drawHeart(W/2+7,130,c[1]); }
+      else { text('빛은 옅었지만,', W/2, 82, 10, true);
+        text('끝까지 사랑을 향해 날았다.', W/2, 102, 8, true);
+        drawHeart(W/2,130,c[1]); }
+      text('모은 빛  ♥ × '+loveLight, W/2, 152, 7, true);
+      if(Math.floor(perf/500)%2===0) text('SPACE ▶', W/2, 176, 9, true); }
 
     if(flash>0){ ctx.globalAlpha=flash*2; rect(0,0,W,H,c[1]); ctx.globalAlpha=1; }
     ctx.restore();
