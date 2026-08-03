@@ -11,7 +11,7 @@
   #wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
   #screen { image-rendering:pixelated; image-rendering:crisp-edges;
     border:4px solid #1e2b1e; box-shadow:0 0 0 4px #0b0f0b, 0 0 24px rgba(120,220,120,0.15);
-    background:#000; height:68vh; max-height:68vh; }
+    background:#000; height:68vh; max-height:68vh; touch-action:none; cursor:pointer; }
   #hint { color:#4a6b4a; font-size:11px; letter-spacing:1px; text-align:center; line-height:1.6; }
   #hint b { color:#8fce8f; }
   .keycap { display:inline-block; border:1px solid #3a5a3a; border-radius:3px; padding:1px 6px; color:#9fe09f; margin:0 1px; }
@@ -38,7 +38,8 @@
     <button id="act" data-k=" ">●</button>
   </div>
   <div id="hint">
-    <span class="keycap">←</span><span class="keycap">↑</span><span class="keycap">↓</span><span class="keycap">→</span> 또는 화면 버튼 ·
+    📱 <b>화면 탭</b> 시작 · <b>끌어서</b> 이동 · 연타로 거미줄 탈출
+    <br>🖥 <span class="keycap">←</span><span class="keycap">↑</span><span class="keycap">↓</span><span class="keycap">→</span>·화면버튼 이동 ·
     <span class="keycap">SPACE</span>/<span class="keycap">●</span> 진행 · <span class="keycap">C</span> 색
     <br><b>짧은 생, 오직 사랑을 찾아서</b>
   </div>
@@ -92,6 +93,29 @@
     btn.addEventListener('pointerleave', release);
     btn.addEventListener('pointercancel', release);
   });
+
+  // ===== 캔버스 직접 터치: 눌러서 시작/진행 · 끌어서 이동 · 연타로 탈출 =====
+  let touchTarget = null;   // 손가락 위치(160x256 캔버스 좌표) / 안 누르면 null
+  function canvasPos(e){ const r=cv.getBoundingClientRect();
+    return { x:(e.clientX-r.left)/r.width*W, y:(e.clientY-r.top)/r.height*H }; }
+  function canvasDown(e){ e.preventDefault(); mash++;          // 연타 탭 = 거미줄 탈출 겸용
+    if(screen!=='play'){ pressAction(); return; }              // 메뉴에선 화면 탭 = 진행
+    try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+    touchTarget = canvasPos(e); }
+  function canvasMove(e){ if(touchTarget===null) return; e.preventDefault(); touchTarget = canvasPos(e); }
+  function canvasUp(){ if(touchTarget===null) return; touchTarget=null;
+    keys.ArrowUp=keys.ArrowDown=keys.ArrowLeft=keys.ArrowRight=false; }
+  cv.addEventListener('pointerdown', canvasDown);
+  cv.addEventListener('pointermove', canvasMove);
+  cv.addEventListener('pointerup', canvasUp);
+  cv.addEventListener('pointercancel', canvasUp);
+
+  // 매 프레임: 손가락 위치를 향해 방향키 입력 생성 (벌레 화면좌표 기준, 데드존)
+  function applyTouchInput(){ if(touchTarget===null) return;
+    const dz=6, bx=(sv.bugSX==null?W/2:sv.bugSX), by=(sv.bugSY==null?H/2:sv.bugSY);
+    const dx=touchTarget.x-bx, dy=touchTarget.y-by;
+    keys.ArrowLeft = dx<-dz;  keys.ArrowRight = dx>dz;
+    keys.ArrowUp   = dy<-dz;  keys.ArrowDown  = dy>dz; }   // 손가락 위(작은 y)=상승
 
   // ===== 공통 그리기 =====
   function pr(n){ return Math.round(n); }
@@ -246,6 +270,7 @@
           for(let i=0;i<8;i++) spawnParticle(b.x,this.sY(b.worldY));
           addFloat(b.x,this.sY(b.worldY)-14, bf>0?'-1초!':'피해라!'); } }
       sv.enemies=sv.enemies.filter(e=>e.worldY>sv.camY-12 && e.life>0);
+      sv.bugSX=b.x; sv.bugSY=this.sY(b.worldY);   // 터치 조작용 화면좌표
     },
     render(){ const c=C();
       rect(0,0,W,H,c[0]);
@@ -334,6 +359,7 @@
             b.hurt=1.3; b.vy=60; b.x-=8; timeLeft=Math.max(0,timeLeft-2.0);
             shake=0.5; flash=0.2; for(let i=0;i<10;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'새다!'); }
           if(sv.bird.x<-20){ sv.bird=null; sv.birdT=5+Math.random()*4; } } }
+      sv.bugSX=b.x; sv.bugSY=b.y;   // 터치 조작용 화면좌표
       if(this.GOAL - sv.worldX <= this.PARK && Math.hypot(this.PARK-b.x, this.HEARTY-b.y)<12){ stageClear(); return; }
     },
     render(){ const c=C(); const b=sv.bug;
@@ -397,7 +423,7 @@
     if(screen==='play'){
       if(introT>0) introT-=dt;
       else { if(!sv.noTimer){ timeLeft-=dt; if(timeLeft<=0) stageFail('시간 초과... 날개가 마르지 못했다'); }
-        if(screen==='play') cur.update(dt); }
+        if(screen==='play'){ applyTouchInput(); cur.update(dt); } }
       updateEffects(dt);
     }
     render(); requestAnimationFrame(loop);
@@ -410,9 +436,10 @@
       text('L O V E B U G', W/2, 64, 14, true);
       text('러브버그의 사랑', W/2, 84, 8, true);
       drawBug(W/2, 118, Math.floor(perf/150)%2===0, 0);
-      if(Math.floor(perf/500)%2===0) text('▶ SPACE 시작', W/2, 150, 9, true);
-      text('짧은 생, 오직 사랑을 찾아서', W/2, 182, 7, true);
-      text('← ↑ ↓ →  이동   ·   C  색', W/2, 202, 7, true);
+      if(Math.floor(perf/500)%2===0) text('▶ 탭 / SPACE 시작', W/2, 150, 9, true);
+      text('짧은 생, 오직 사랑을 찾아서', W/2, 178, 7, true);
+      text('화면 끌기 / 방향키 이동', W/2, 196, 7, true);
+      text('C  색 바꾸기', W/2, 210, 7, true);
       ctx.restore(); return; }
 
     // 플레이/클리어/실패는 현재 스테이지 화면을 바탕에 그림
