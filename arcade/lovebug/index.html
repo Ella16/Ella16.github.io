@@ -100,7 +100,11 @@
   function canvasPos(e){ const r=cv.getBoundingClientRect();
     return { x:(e.clientX-r.left)/r.width*W, y:(e.clientY-r.top)/r.height*H }; }
   function canvasDown(e){ e.preventDefault(); mash++;          // 연타 탭 = 거미줄 탈출 겸용
-    if(screen!=='play'){ pressAction(); return; }              // 메뉴에선 화면 탭 = 진행
+    if(screen==='title'){ const p=canvasPos(e);                // 타이틀: 스테이지 버튼 탭하면 그 판으로
+      for(const b of stageBtns()){ if(p.x>=b.x && p.x<=b.x+b.w && p.y>=b.y && p.y<=b.y+b.h){
+        if(b.s<=maxCleared+1) startSelected(b.s); return; } }   // 잠긴 판은 무시
+      pressAction(); return; }                                 // 버튼 밖 탭 = 기본 시작(1탄)
+    if(screen!=='play'){ pressAction(); return; }              // 그 외 메뉴 탭 = 진행
     try{ cv.setPointerCapture(e.pointerId); }catch(_){}
     const p=canvasPos(e); stick={ox:p.x, oy:p.y, cx:p.x, cy:p.y}; }
   function canvasMove(e){ if(stick===null) return; e.preventDefault();
@@ -208,12 +212,17 @@
   // ===== 엔진 / 흐름 =====
   const TIME=60, DRY_NEED=5, LOVE_GOOD=5;   // 빛 LOVE_GOOD개 이상 모으면 해피엔딩
   let screen='title', stage=1, cleared=0, loveLight=0;   // loveLight: 한 판 동안 모은 빛(사랑)
+  let maxCleared=0;   // 지금까지 깬 최고 스테이지(진행도, localStorage 저장) → 스테이지 선택 해금
+  try { maxCleared = +(localStorage.getItem('lovebug_cleared')||0) || 0; } catch(_){}
   let timeLeft, introT, sv={}, cur=null;
 
-  function startNewGame(){ cleared=0; loveLight=0; startStage(1); }
+  function startNewGame(){ cleared=maxCleared; loveLight=0; startStage(1); }
+  function startSelected(n){ cleared=maxCleared; loveLight=0; startStage(n); }   // 스테이지 선택
   function startStage(n){ stage=n; cur=STAGES[n]; timeLeft=cur.time; introT=1.6;
     sv={noTimer:false}; particles=[]; floats=[]; shake=0; flash=0; cur.init(); screen='play'; }
-  function stageClear(){ cleared=Math.max(cleared,stage); flash=0.3; screen='cleared'; }
+  function stageClear(){ cleared=Math.max(cleared,stage);
+    if(stage>maxCleared){ maxCleared=stage; try{ localStorage.setItem('lovebug_cleared',maxCleared); }catch(_){} }
+    flash=0.3; screen='cleared'; }
   function stageFail(reason){ sv.failMsg=reason; screen='gameover'; }
 
   const INTERLUDE = {
@@ -313,7 +322,7 @@
   // ========================================================
   const s2 = {
     name:'STAGE 2  첫 비행', objective:'정원을 가로질러 날아라', time:TIME,
-    GOAL:1900, GRAV:85, LIFT:330, DIVE:260, SCROLL:66, WIND:70, PARK:72, HEARTY:128,
+    GOAL:1900, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:66, WIND:70, PARK:72, HEARTY:128,
     RUSH0:800, RUSH1:1160,   // 중간 '급류' 구간(스크롤 가속) → 단조로움 변주
     init(){ sv.noTimer=false;
       sv.bug={x:44,y:120,vy:0,flap:0,hurt:0,stuck:0,struggle:0,lastMash:mash};
@@ -348,7 +357,8 @@
       if(keys.ArrowDown) b.vy += this.DIVE*dt;
       const bw=sv.worldX+b.x;
       for(const w of sv.wind) if(bw>w.x0 && bw<w.x1) b.vy += (w.dir>0?-1:1)*this.WIND*dt;
-      b.vy=clamp(b.vy,-175,150); b.y+=b.vy*dt;   // 상하 조작 반응성↑ (붕 뜨되 굼뜨지 않게)
+      b.vy -= b.vy*this.DRAG*dt;                  // 공기저항: 관성 억제 → 위아래 덜 튐, 손 떼면 금방 안정
+      b.vy=clamp(b.vy,-120,110); b.y+=b.vy*dt;
       if(b.y<18){ b.y=18; if(b.vy<0) b.vy=0; }        // 천장/바닥에 닿으면 속도 멈춤
       if(b.y>H-14){ b.y=H-14; if(b.vy>0) b.vy=0; }
       if(keys.ArrowLeft) b.x-=100*dt; if(keys.ArrowRight) b.x+=100*dt;   // 좌우 이동 42→100
@@ -437,6 +447,11 @@
 
   const STAGES = { 1:s1, 2:s2 };
 
+  // 타이틀 스테이지 선택 버튼 좌표 (렌더/터치 공용). 해금: s <= maxCleared+1
+  function stageBtns(){ const ss=Object.keys(STAGES).map(Number).sort((a,b)=>a-b);
+    const bw=26, gap=12, h=22, y=136, tot=ss.length*bw+(ss.length-1)*gap, x0=Math.round((W-tot)/2);
+    return ss.map((s,i)=>({ s, x:x0+i*(bw+gap), y, w:bw, h })); }
+
   // ===== 공통 HUD / 화면 =====
   function drawTimer(){ const c=C(); rect(0,0,W,13,c[0]); rect(0,13,W,1,c[1]);
     const t=Math.max(0,Math.ceil(timeLeft));
@@ -464,13 +479,18 @@
     ctx.save(); if(shake>0) ctx.translate((Math.random()*2-1)*3,(Math.random()*2-1)*3);
 
     if(screen==='title'){ rect(0,0,W,H,c[0]);
-      text('L O V E B U G', W/2, 64, 14, true);
-      text('러브버그의 사랑', W/2, 84, 8, true);
-      drawBug(W/2, 118, Math.floor(perf/150)%2===0, 0);
-      if(Math.floor(perf/500)%2===0) text('▶ 탭 / SPACE 시작', W/2, 150, 9, true);
-      text('짧은 생, 오직 사랑을 찾아서', W/2, 178, 7, true);
-      text('화면 끌기 / 방향키 이동', W/2, 196, 7, true);
-      text('C  색 바꾸기', W/2, 210, 7, true);
+      text('L O V E B U G', W/2, 38, 14, true);
+      text('러브버그의 사랑', W/2, 58, 8, true);
+      drawBug(W/2, 92, Math.floor(perf/150)%2===0, 0);
+      text('STAGE 선택', W/2, 120, 7, true);
+      for(const btn of stageBtns()){ const unlocked=btn.s<=maxCleared+1, done=btn.s<=maxCleared;
+        if(unlocked){ rect(btn.x,btn.y,btn.w,btn.h,c[1]); rect(btn.x+1,btn.y+1,btn.w-2,btn.h-2,c[0]);
+          text(String(btn.s), btn.x+btn.w/2, btn.y+4, 11, true);
+          if(done) text('★', btn.x+btn.w/2, btn.y+btn.h-8, 6, true); }   // 클리어 표식
+        else dashRect(btn.x,btn.y,btn.w,btn.h); }                        // 잠김(점선)
+      if(Math.floor(perf/500)%2===0) text('▶ 번호 탭해서 시작', W/2, 168, 8, true);
+      text('짧은 생, 오직 사랑을 찾아서', W/2, 190, 7, true);
+      text('끌기/방향키 이동 · C 색', W/2, 206, 7, true);
       ctx.restore(); return; }
 
     // 플레이/클리어/실패는 현재 스테이지 화면을 바탕에 그림
