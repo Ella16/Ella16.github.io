@@ -312,7 +312,7 @@
   // ========================================================
   const s2 = {
     name:'STAGE 2  첫 비행', objective:'정원을 가로질러 날아라', time:TIME,
-    GOAL:1900, GRAV:90, LIFT:240, DIVE:150, SCROLL:66, WIND:70, PARK:72, HEARTY:128,
+    GOAL:1900, GRAV:85, LIFT:330, DIVE:260, SCROLL:66, WIND:70, PARK:72, HEARTY:128,
     init(){ sv.noTimer=false;
       sv.bug={x:44,y:120,vy:0,flap:0,hurt:0,stuck:0,struggle:0,lastMash:mash};
       sv.worldX=0; sv.obstacles=[]; sv.motes=[]; sv.wind=[]; sv.bird=null; sv.birdT=5;
@@ -335,10 +335,10 @@
       if(keys.ArrowDown) b.vy += this.DIVE*dt;
       const bw=sv.worldX+b.x;
       for(const w of sv.wind) if(bw>w.x0 && bw<w.x1) b.vy += (w.dir>0?-1:1)*this.WIND*dt;
-      b.vy=clamp(b.vy,-135,105); b.y+=b.vy*dt;   // 낙하 최고속도를 낮춰 붕 뜨는 느낌
+      b.vy=clamp(b.vy,-175,150); b.y+=b.vy*dt;   // 상하 조작 반응성↑ (붕 뜨되 굼뜨지 않게)
       if(b.y<18){ b.y=18; if(b.vy<0) b.vy=0; }        // 천장/바닥에 닿으면 속도 멈춤
       if(b.y>H-14){ b.y=H-14; if(b.vy>0) b.vy=0; }
-      if(keys.ArrowLeft) b.x-=42*dt; if(keys.ArrowRight) b.x+=42*dt;
+      if(keys.ArrowLeft) b.x-=100*dt; if(keys.ArrowRight) b.x+=100*dt;   // 좌우 이동 42→100
       b.x=clamp(b.x,18,94);
       b.flap+=dt*7; if(b.hurt>0)b.hurt-=dt;
       for(const o of sv.obstacles){ if(o.dead) continue; const sx=o.wx-sv.worldX;
