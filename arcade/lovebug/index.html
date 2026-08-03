@@ -94,28 +94,29 @@
     btn.addEventListener('pointercancel', release);
   });
 
-  // ===== 캔버스 직접 터치: 눌러서 시작/진행 · 끌어서 이동 · 연타로 탈출 =====
-  let touchTarget = null;   // 손가락 위치(160x256 캔버스 좌표) / 안 누르면 null
+  // ===== 캔버스 직접 터치: 눌러서 시작/진행 · 플로팅 조이스틱(민 방향)으로 이동 · 연타 탈출 =====
+  //  절대위치가 아니라 '터치 시작점 대비 민 방향'으로 조종 → 손가락이 진행로/벌레를 안 가림.
+  let stick = null;   // {ox,oy,cx,cy} 시작점(o)·현재(c) 캔버스좌표 / 안 누르면 null
   function canvasPos(e){ const r=cv.getBoundingClientRect();
     return { x:(e.clientX-r.left)/r.width*W, y:(e.clientY-r.top)/r.height*H }; }
   function canvasDown(e){ e.preventDefault(); mash++;          // 연타 탭 = 거미줄 탈출 겸용
     if(screen!=='play'){ pressAction(); return; }              // 메뉴에선 화면 탭 = 진행
     try{ cv.setPointerCapture(e.pointerId); }catch(_){}
-    touchTarget = canvasPos(e); }
-  function canvasMove(e){ if(touchTarget===null) return; e.preventDefault(); touchTarget = canvasPos(e); }
-  function canvasUp(){ if(touchTarget===null) return; touchTarget=null;
+    const p=canvasPos(e); stick={ox:p.x, oy:p.y, cx:p.x, cy:p.y}; }
+  function canvasMove(e){ if(stick===null) return; e.preventDefault();
+    const p=canvasPos(e); stick.cx=p.x; stick.cy=p.y; }
+  function canvasUp(){ if(stick===null) return; stick=null;
     keys.ArrowUp=keys.ArrowDown=keys.ArrowLeft=keys.ArrowRight=false; }
   cv.addEventListener('pointerdown', canvasDown);
   cv.addEventListener('pointermove', canvasMove);
   cv.addEventListener('pointerup', canvasUp);
   cv.addEventListener('pointercancel', canvasUp);
 
-  // 매 프레임: 손가락 위치를 향해 방향키 입력 생성 (벌레 화면좌표 기준, 데드존)
-  function applyTouchInput(){ if(touchTarget===null) return;
-    const dz=6, bx=(sv.bugSX==null?W/2:sv.bugSX), by=(sv.bugSY==null?H/2:sv.bugSY);
-    const dx=touchTarget.x-bx, dy=touchTarget.y-by;
+  // 매 프레임: 조이스틱이 밀린 '방향'으로 방향키 입력 (벌레 위치와 무관)
+  function applyTouchInput(){ if(stick===null) return;
+    const dz=8, dx=stick.cx-stick.ox, dy=stick.cy-stick.oy;
     keys.ArrowLeft = dx<-dz;  keys.ArrowRight = dx>dz;
-    keys.ArrowUp   = dy<-dz;  keys.ArrowDown  = dy>dz; }   // 손가락 위(작은 y)=상승
+    keys.ArrowUp   = dy<-dz;  keys.ArrowDown  = dy>dz; }   // 위로 밀면=상승
 
   // ===== 공통 그리기 =====
   function pr(n){ return Math.round(n); }
@@ -468,6 +469,11 @@
 
     if(flash>0){ ctx.globalAlpha=flash*2; rect(0,0,W,H,c[1]); ctx.globalAlpha=1; }
     ctx.restore();
+
+    // 플로팅 조이스틱 표시 (터치 중에만): 시작점 고리 + 민 방향 손잡이
+    if(stick && screen==='play'){ circleOutline(stick.ox, stick.oy, 12);
+      const dx=stick.cx-stick.ox, dy=stick.cy-stick.oy, m=Math.hypot(dx,dy)||1, k=Math.min(12,m)/m;
+      rect(stick.ox+dx*k-1, stick.oy+dy*k-1, 3,3, c[1]); }
   }
 
   requestAnimationFrame(loop);
