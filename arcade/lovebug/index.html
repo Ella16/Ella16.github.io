@@ -56,6 +56,18 @@
   }
   window.addEventListener('resize', fitCanvas); fitCanvas();
 
+  // '굵은 픽셀' 실험: 렌더된 화면을 P×P 블록으로 뭉쳐 표현 (?px=2~6 또는 P키로 순환).
+  // 내부 격자(160×256)를 P칸씩 묶어 하나의 큰 사각형으로 → 대신 글자·디테일도 같이 뭉개짐.
+  let PIX = Math.max(1, Math.min(8, Math.round(+(new URLSearchParams(location.search).get('px')) || 1)));
+  const _off = document.createElement('canvas'); _off.width = W; _off.height = H;
+  const _offctx = _off.getContext('2d'); _offctx.imageSmoothingEnabled = false;
+  function pixelate(){ if(PIX<=1) return;
+    const sw=Math.max(1,Math.floor(W/PIX)), sh=Math.max(1,Math.floor(H/PIX));
+    _offctx.clearRect(0,0,W,H); _offctx.imageSmoothingEnabled=false;
+    _offctx.drawImage(cv, 0,0,W,H, 0,0,sw,sh);        // 다운샘플(대표 픽셀 1개/블록)
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(_off, 0,0,sw,sh, 0,0,W,H); }        // 다시 확대 → 굵은 블록
+
   // ===== 팔레트: 딱 2색 =====
   const PALETTES = [
     ['#9bbc0f', '#0f380f'], // 녹흑
@@ -71,6 +83,7 @@
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) { e.preventDefault(); mash++; }
     keys[e.key] = true;
     if (e.key === 'c' || e.key === 'C') palIdx = (palIdx+1) % PALETTES.length;
+    if (e.key === 'p' || e.key === 'P') PIX = PIX>=5 ? 1 : PIX+1;   // 픽셀 굵기 순환(1→2→..→5→1)
     if (e.key === ' ') pressAction();
     // ── 개발자 히든 단축키 ──
     if (e.key>='1' && e.key<='9') { const n=+e.key; if (STAGES[n]) startStage(n); }  // 해당 스테이지 즉시 이동
@@ -475,7 +488,7 @@
         if(screen==='play'){ applyTouchInput(); cur.update(dt); } }
       updateEffects(dt);
     }
-    render(); requestAnimationFrame(loop);
+    render(); pixelate(); requestAnimationFrame(loop);
   }
 
   function render(){ const c=C();
