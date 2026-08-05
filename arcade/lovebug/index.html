@@ -56,18 +56,6 @@
   }
   window.addEventListener('resize', fitCanvas); fitCanvas();
 
-  // '굵은 픽셀' 실험: 렌더된 화면을 P×P 블록으로 뭉쳐 표현 (?px=2~6 또는 P키로 순환).
-  // 내부 격자(160×256)를 P칸씩 묶어 하나의 큰 사각형으로 → 대신 글자·디테일도 같이 뭉개짐.
-  let PIX = Math.max(1, Math.min(8, Math.round(+(new URLSearchParams(location.search).get('px')) || 1)));
-  const _off = document.createElement('canvas'); _off.width = W; _off.height = H;
-  const _offctx = _off.getContext('2d'); _offctx.imageSmoothingEnabled = false;
-  function pixelate(){ if(PIX<=1) return;
-    const sw=Math.max(1,Math.floor(W/PIX)), sh=Math.max(1,Math.floor(H/PIX));
-    _offctx.clearRect(0,0,W,H); _offctx.imageSmoothingEnabled=false;
-    _offctx.drawImage(cv, 0,0,W,H, 0,0,sw,sh);        // 다운샘플(대표 픽셀 1개/블록)
-    ctx.imageSmoothingEnabled=false;
-    ctx.drawImage(_off, 0,0,sw,sh, 0,0,W,H); }        // 다시 확대 → 굵은 블록
-
   // ===== 팔레트: 딱 2색 =====
   const PALETTES = [
     ['#9bbc0f', '#0f380f'], // 녹흑
@@ -83,7 +71,6 @@
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) { e.preventDefault(); mash++; }
     keys[e.key] = true;
     if (e.key === 'c' || e.key === 'C') palIdx = (palIdx+1) % PALETTES.length;
-    if (e.key === 'p' || e.key === 'P') PIX = PIX>=5 ? 1 : PIX+1;   // 픽셀 굵기 순환(1→2→..→5→1)
     if (e.key === ' ') pressAction();
     // ── 개발자 히든 단축키 ──
     if (e.key>='1' && e.key<='9') { const n=+e.key; if (STAGES[n]) startStage(n); }  // 해당 스테이지 즉시 이동
@@ -461,11 +448,114 @@
     },
   };
 
-  const STAGES = { 1:s1, 2:s2 };
+  // ========================================================
+  //  STAGE 3 : 도시의 밤 (불빛의 유혹) — 가로 활공, 불빛이 끌어당김
+  // ========================================================
+  const s3 = {
+    name:'STAGE 3  도시', objective:'불빛에 홀리지 말고, 빛으로', time:TIME,
+    GOAL:1400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:48, PARK:72, HEARTY:128, PULL:80,
+    init(){ sv.noTimer=false; sv.bug={x:44,y:120,vy:0,flap:0,hurt:0}; sv.worldX=0; sv.court=0;
+      sv.lights=[]; let x=190; while(x<this.GOAL-160){ sv.lights.push({wx:x, y:34+Math.random()*188, r:8, dead:false}); x+=150+Math.random()*80; } },
+    update(dt){ const b=sv.bug;
+      if(this.GOAL - sv.worldX > this.PARK) sv.worldX += this.SCROLL*dt; else sv.worldX=this.GOAL-this.PARK;
+      b.vy += this.GRAV*dt;
+      if(keys.ArrowUp) b.vy-=this.LIFT*dt; if(keys.ArrowDown) b.vy+=this.DIVE*dt;
+      for(const L of sv.lights){ if(L.dead) continue; const sx=L.wx-sv.worldX;
+        const dy=L.y-b.y, dx=sx-b.x, dist=Math.hypot(dx,dy);
+        if(dist<50 && dist>0.5) b.vy += (dy/dist)*(1-dist/50)*this.PULL*dt;   // 불빛의 유혹(세로로 끌림)
+        if(dist<L.r+5 && b.hurt<=0){ b.hurt=1.0; b.vy=-40; timeLeft=Math.max(0,timeLeft-1.5); shake=0.4; flash=0.15; L.dead=true;
+          for(let i=0;i<8;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'홀렸다!'); } }
+      b.vy -= b.vy*this.DRAG*dt; b.vy=clamp(b.vy,-120,110); b.y+=b.vy*dt;
+      if(b.y<18){b.y=18; if(b.vy<0)b.vy=0;} if(b.y>H-14){b.y=H-14; if(b.vy>0)b.vy=0;}
+      if(keys.ArrowLeft) b.x-=100*dt; if(keys.ArrowRight) b.x+=100*dt; b.x=clamp(b.x,18,94);
+      b.flap+=dt*7; if(b.hurt>0)b.hurt-=dt; sv.bugSX=b.x; sv.bugSY=b.y;
+      if(this.GOAL - sv.worldX <= this.PARK){
+        b.vy += (this.HEARTY-b.y)*2.4*dt; b.vy*=0.93;
+        const near=Math.hypot(this.PARK-b.x, this.HEARTY-b.y)<28;
+        if(near){ sv.court=Math.min(1,sv.court+dt/1.1); if(Math.random()<0.3) addFloat(this.PARK+(Math.random()*16-8),this.HEARTY-4-Math.random()*8,'♥'); }
+        else sv.court=Math.max(0,sv.court-dt*0.5);
+        if(sv.court>=1){ for(let i=0;i<14;i++) spawnParticle(this.PARK,this.HEARTY,true); addFloat(this.PARK,this.HEARTY-16,'사랑!'); stageClear(); return; } } },
+    render(){ const c=C(); const b=sv.bug; rect(0,0,W,H,c[0]);
+      for(let i=0;i<16;i++){ const bx=((i*74 - sv.worldX*0.6)%(W+140)+W+140)%(W+140)-70; const bh=44+((i*37)%92);
+        rect(bx, H-6-bh, 30, bh, c[1]);
+        for(let wy=H-4-bh; wy<H-12; wy+=10) for(let wx=bx+4; wx<bx+26; wx+=8) if(((wx+wy)|0)%3===0) rect(wx,wy,2,2,c[0]); }
+      rect(0,H-6,W,1,c[1]);
+      for(const L of sv.lights){ if(L.dead) continue; const sx=L.wx-sv.worldX; if(sx<-12||sx>W+12) continue;
+        circleOutline(sx,L.y,L.r); if(Math.floor(perf/220)%2===0) circleOutline(sx,L.y,L.r+3); rect(sx,L.y,1,1,c[1]); }
+      const gsx=this.GOAL-sv.worldX;
+      if(gsx<W+30){ drawHeart(gsx,this.HEARTY,c[1]); if(Math.floor(perf/300)%2===0) circleOutline(gsx,this.HEARTY,7);
+        if(this.GOAL-sv.worldX<=this.PARK){ if(sv.court>0){ const rr=Math.max(3,11-sv.court*7); circleOutline(gsx,this.HEARTY,rr);
+          const gw=22,gxx=gsx-gw/2,gyy=this.HEARTY-18; rect(gxx,gyy,gw,4,c[1]); rect(gxx+1,gyy+1,gw-2,2,c[0]); rect(gxx+1,gyy+1,Math.round((gw-2)*sv.court),2,c[1]); }
+          if(Math.floor(perf/250)%2===0) text(sv.court>0?'구애중…':'하트로!',gsx,this.HEARTY-30,7,true); } }
+      if(!(b.hurt>0 && Math.floor(perf/60)%2===0)) drawBug(b.x,b.y,Math.floor(b.flap)%2===0,b.hurt);
+      drawEffects(); drawTimer();
+      const bx=34,bw=104; rect(bx,4,bw,6,c[1]); rect(bx+1,5,bw-2,4,c[0]); rect(bx+1,5,Math.round((bw-2)*Math.min(1,sv.worldX/this.GOAL)),4,c[1]); rect(bx+bw-3,3,3,8,c[1]);
+      text('♥'+loveLight, W-15, 3, 7); },
+  };
+
+  // ========================================================
+  //  STAGE 4 : 군무 (수천 속에서 짝찾기) — 자유 이동, 하트 신호 주는 짝 찾기
+  // ========================================================
+  const s4 = {
+    name:'STAGE 4  군무', objective:'하트 신호를 주는 너를 찾아', time:TIME, ACC:320, DRG:5,
+    init(){ sv.noTimer=false; sv.bug={x:W/2,y:H/2,vx:0,vy:0,flap:0,hurt:0};
+      sv.crowd=[]; const N=15;
+      for(let i=0;i<N;i++) sv.crowd.push({x:16+Math.random()*(W-32), y:22+Math.random()*(H-44),
+        vx:(Math.random()*2-1)*12, vy:(Math.random()*2-1)*12, seed:Math.random()*10});
+      sv.crowd[(Math.random()*N)|0].real=true; },
+    update(dt){ const b=sv.bug;
+      if(keys.ArrowLeft)b.vx-=this.ACC*dt; if(keys.ArrowRight)b.vx+=this.ACC*dt;
+      if(keys.ArrowUp)b.vy-=this.ACC*dt; if(keys.ArrowDown)b.vy+=this.ACC*dt;
+      b.vx-=b.vx*this.DRG*dt; b.vy-=b.vy*this.DRG*dt; b.vx=clamp(b.vx,-115,115); b.vy=clamp(b.vy,-115,115);
+      b.x=clamp(b.x+b.vx*dt,10,W-10); b.y=clamp(b.y+b.vy*dt,16,H-10); b.flap+=dt*7; if(b.hurt>0)b.hurt-=dt;
+      for(const m of sv.crowd){ m.x+=m.vx*dt; m.y+=m.vy*dt;
+        if(m.x<10||m.x>W-10){m.vx*=-1;m.x=clamp(m.x,10,W-10);} if(m.y<16||m.y>H-10){m.vy*=-1;m.y=clamp(m.y,16,H-10);}
+        const d=Math.hypot(m.x-b.x,m.y-b.y);
+        if(d<9){ if(m.real){ for(let i=0;i<16;i++) spawnParticle(b.x,b.y,true); addFloat(b.x,b.y-14,'너다!'); stageClear(); return; }
+          else if(b.hurt<=0){ b.hurt=0.8; timeLeft=Math.max(0,timeLeft-1.0); shake=0.25; b.vx=-b.vx;b.vy=-b.vy; addFloat(m.x,m.y-12,'아냐…'); } } }
+      sv.bugSX=b.x; sv.bugSY=b.y; },
+    render(){ const c=C(); const b=sv.bug; rect(0,0,W,H,c[0]);
+      for(const m of sv.crowd){ drawBug(m.x,m.y,(Math.floor(perf/150+m.seed)%2===0),0);
+        if(m.real && Math.floor(perf/450)%2===0) drawHeart(m.x,m.y-9,c[1]); }         // 진짜 짝의 하트 신호
+      circleOutline(b.x,b.y,7);                                                       // 플레이어 표식(고리)
+      drawBug(b.x,b.y,Math.floor(b.flap)%2===0,b.hurt);
+      drawEffects(); drawTimer();
+      if(Math.floor(perf/500)%2===0) text('♥ 신호를 찾아', W/2, 3, 7, true); },
+  };
+
+  // ========================================================
+  //  STAGE 5 : 노을 듀엣 (피날레) — 짝 곁에 머물러 함께 날기
+  // ========================================================
+  const s5 = {
+    name:'STAGE 5  노을', objective:'둘이 함께, 노을 속으로', time:TIME,
+    init(){ sv.noTimer=false; sv.bug={x:60,y:140,vy:0,flap:0,hurt:0}; sv.mateX=94; sv.t=0; sv.together=0; sv.mateY=120; },
+    update(dt){ const b=sv.bug; sv.t+=dt; sv.mateY=128+Math.sin(sv.t*0.8)*44;
+      b.vy+=70*dt; if(keys.ArrowUp)b.vy-=280*dt; if(keys.ArrowDown)b.vy+=200*dt;
+      b.vy-=b.vy*2.6*dt; b.vy=clamp(b.vy,-120,110); b.y+=b.vy*dt;
+      if(b.y<18){b.y=18;if(b.vy<0)b.vy=0;} if(b.y>H-14){b.y=H-14;if(b.vy>0)b.vy=0;}
+      if(keys.ArrowLeft)b.x-=90*dt; if(keys.ArrowRight)b.x+=90*dt; b.x=clamp(b.x,20,120); b.flap+=dt*7;
+      const d=Math.hypot(sv.mateX-b.x, sv.mateY-b.y);
+      if(d<32){ sv.together=Math.min(1,sv.together+dt/7); if(Math.random()<0.15) addFloat(b.x+(Math.random()*16-8),b.y-6,'♥'); }
+      else sv.together=Math.max(0,sv.together-dt*0.3);
+      sv.bugSX=b.x; sv.bugSY=b.y;
+      if(sv.together>=1){ for(let i=0;i<22;i++) spawnParticle((b.x+sv.mateX)/2,(b.y+sv.mateY)/2,true);
+        loveLight=Math.max(loveLight,LOVE_GOOD); addFloat((b.x+sv.mateX)/2,b.y-16,'사랑!'); stageClear(); return; } },
+    render(){ const c=C(); const b=sv.bug; rect(0,0,W,H,c[0]);
+      for(let i=0;i<5;i++) if(i%2===0) for(let x=(i*3)%6;x<W;x+=6) rect(x, 44+i*15, 3,1, c[1]);   // 노을 밴드
+      circleOutline(W/2, 58, 15);                                                                  // 해
+      drawBug(sv.mateX, sv.mateY, Math.floor(perf/150)%2===0, 0);
+      if(Math.floor(perf/300)%2===0) circleOutline(sv.mateX,sv.mateY,8);
+      drawBug(b.x,b.y,Math.floor(b.flap)%2===0,0);
+      drawEffects(); drawTimer();
+      const gw=100,gx=(W-gw)/2; rect(gx,H-12,gw,5,c[1]); rect(gx+1,H-11,gw-2,3,c[0]); rect(gx+1,H-11,Math.round((gw-2)*sv.together),3,c[1]);
+      text('함께', W/2, H-22, 7, true); },
+  };
+
+  const STAGES = { 1:s1, 2:s2, 3:s3, 4:s4, 5:s5 };
 
   // 타이틀 스테이지 선택 버튼 좌표 (렌더/터치 공용). 해금: s <= maxCleared+1
   function stageBtns(){ const ss=Object.keys(STAGES).map(Number).sort((a,b)=>a-b);
-    const bw=26, gap=12, h=22, y=136, tot=ss.length*bw+(ss.length-1)*gap, x0=Math.round((W-tot)/2);
+    const bw=20, gap=7, h=22, y=136, tot=ss.length*bw+(ss.length-1)*gap, x0=Math.round((W-tot)/2);
     return ss.map((s,i)=>({ s, x:x0+i*(bw+gap), y, w:bw, h })); }
 
   // ===== 공통 HUD / 화면 =====
@@ -488,7 +578,7 @@
         if(screen==='play'){ applyTouchInput(); cur.update(dt); } }
       updateEffects(dt);
     }
-    render(); pixelate(); requestAnimationFrame(loop);
+    render(); requestAnimationFrame(loop);
   }
 
   function render(){ const c=C();
