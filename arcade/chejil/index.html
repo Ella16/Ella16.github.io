@@ -89,15 +89,8 @@ h1{
   display:block;font-size:11px;margin-top:6px;color:var(--soft);
   letter-spacing:.14em;font-weight:500;
 }
-.gauges.locked .tube{
-  background:repeating-linear-gradient(135deg,#fff 0 6px,#F0F2ED 6px 12px);
-  border-style:dashed;
-}
-.gauges.locked .gauge span{opacity:.5}
-.lockmsg{
-  font-size:11.5px;color:var(--soft);letter-spacing:.02em;margin-top:10px;text-align:center;
-}
-.fill{transition:height .8s cubic-bezier(.4,0,.2,1)}
+header.slim .eyebrow,header.slim h1,header.slim .lede{display:none}
+header.slim{padding:18px 0 0}
 .g-geum .fill{background:var(--geum)} .g-to .fill{background:var(--to)}
 .g-mok .fill{background:var(--mok)}  .g-su .fill{background:var(--su)}
 
@@ -198,13 +191,6 @@ button.skip:focus-visible{outline:2px solid var(--mok);outline-offset:2px}
     <div class="eyebrow">권도원 8체질론 기반</div>
     <h1>내 몸은<br>어느 쪽으로 기울까</h1>
     <p class="lede">34개 문항을 모두 마치면 금·토·목·수 네 갈래 중 어느 쪽으로 기우는지 한 번에 보여줍니다. 3분 정도 걸리고, 중간 점수는 일부러 감춥니다. 진단이 아니라 참고용 지표입니다.</p>
-    <div class="gauges" id="gauges">
-      <div class="gauge g-geum"><div class="tube"><div class="fill" id="f-금"></div></div><span>금 金</span></div>
-      <div class="gauge g-to"><div class="tube"><div class="fill" id="f-토"></div></div><span>토 土</span></div>
-      <div class="gauge g-mok"><div class="tube"><div class="fill" id="f-목"></div></div><span>목 木</span></div>
-      <div class="gauge g-su"><div class="tube"><div class="fill" id="f-수"></div></div><span>수 水</span></div>
-    </div>
-    <p class="lockmsg" id="lockmsg"></p>
     <div class="bar"><i id="prog"></i></div>
     <div class="count" id="count"></div>
   </header>
@@ -498,24 +484,8 @@ function scores(){
 }
 
 function render(){
-  const done = idx >= Q.length;
-  const gauges = document.getElementById("gauges");
-  const lock = document.getElementById("lockmsg");
-
-  if (!done) {
-    // 진행 중에는 어느 쪽으로 기우는지 보여주지 않는다.
-    // 중간 점수가 보이면 다음 답을 거기에 맞추게 되기 때문.
-    gauges.style.display = "";
-    lock.style.display = "";
-    gauges.classList.add("locked");
-    ORDER.forEach(k => document.getElementById("f-"+k).style.height = "0%");
-    lock.textContent = `모든 문항에 답하면 열립니다`;
-  } else {
-    // 결과 게이지는 결과 카드 안에 그린다 — 위로 스크롤하지 않아도 되게.
-    gauges.style.display = "none";
-    lock.style.display = "none";
-  }
-
+  // 첫 문항 이후에는 제목·소개문을 접어 문항이 화면 맨 위에 오게 한다.
+  document.querySelector("header").classList.toggle("slim", idx > 0);
   finish();
 }
 
