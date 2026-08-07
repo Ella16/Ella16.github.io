@@ -63,6 +63,15 @@ h1{
   display:block;font-size:11px;margin-top:6px;color:var(--soft);
   letter-spacing:.14em;font-weight:500;
 }
+.gauges.locked .tube{
+  background:repeating-linear-gradient(135deg,#fff 0 6px,#F0F2ED 6px 12px);
+  border-style:dashed;
+}
+.gauges.locked .gauge span{opacity:.5}
+.lockmsg{
+  font-size:11.5px;color:var(--soft);letter-spacing:.02em;margin-top:10px;text-align:center;
+}
+.fill{transition:height .8s cubic-bezier(.4,0,.2,1)}
 .g-geum .fill{background:var(--geum)} .g-to .fill{background:var(--to)}
 .g-mok .fill{background:var(--mok)}  .g-su .fill{background:var(--su)}
 
@@ -81,21 +90,36 @@ h1{
 .topic{font-size:11px;letter-spacing:.2em;color:var(--soft);font-weight:600;margin-bottom:8px}
 .qtext{
   font-family:'Gowun Batang','Apple Myungjo',serif;
-  font-size:20px;font-weight:700;line-height:1.5;margin-bottom:16px;
+  font-size:20px;font-weight:700;line-height:1.5;margin-bottom:8px;
+}
+.qsub{
+  font-size:13px;color:var(--soft);line-height:1.6;margin-bottom:16px;
+  padding-left:10px;border-left:2px solid var(--line);
 }
 button.opt{
   display:block;width:100%;text-align:left;cursor:pointer;
   background:#fff;border:1px solid var(--line);border-radius:var(--radius);
-  padding:13px 14px;margin-bottom:8px;font:inherit;font-size:14.5px;color:var(--ink);
+  padding:13px 15px;margin-bottom:8px;font:inherit;font-size:14.5px;color:var(--ink);
+  line-height:1.55;
   transition:border-color .15s, background .15s, transform .1s;
 }
 button.opt:hover{border-color:var(--ink)}
 button.opt:active{transform:scale(.99)}
 button.opt:focus-visible{outline:2px solid var(--mok);outline-offset:2px}
+button.skip{
+  display:block;width:100%;text-align:left;cursor:pointer;
+  background:transparent;border:1px dashed var(--line);border-radius:var(--radius);
+  padding:12px 14px;margin-top:2px;font:inherit;font-size:13.5px;color:var(--soft);
+  transition:border-color .15s,color .15s;
+}
+button.skip:hover{border-color:var(--soft);color:var(--ink)}
+button.skip:focus-visible{outline:2px solid var(--mok);outline-offset:2px}
+.navrow{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 .back{
   background:none;border:none;font:inherit;font-size:12.5px;color:var(--soft);
-  cursor:pointer;margin-top:6px;padding:6px 0;text-decoration:underline;
+  cursor:pointer;padding:6px 0;text-decoration:underline;
 }
+.skipcount{font-size:11.5px;color:var(--soft);letter-spacing:.04em}
 
 /* ---- result ---- */
 .verdict{margin-top:18px}
@@ -147,13 +171,14 @@ button.opt:focus-visible{outline:2px solid var(--mok);outline-offset:2px}
   <header>
     <div class="eyebrow">권도원 8체질론 기반</div>
     <h1>내 몸은<br>어느 쪽으로 기울까</h1>
-    <p class="lede">16개 문항에 답하면 금·토·목·수 네 갈래 중 어느 쪽 성향이 강한지 보여줍니다. 진단이 아니라 참고용 지표입니다.</p>
+    <p class="lede">18개 문항을 모두 마치면 금·토·목·수 네 갈래 중 어느 쪽으로 기우는지 한 번에 보여줍니다. 중간 점수는 일부러 감춥니다. 진단이 아니라 참고용 지표입니다.</p>
     <div class="gauges" id="gauges">
       <div class="gauge g-geum"><div class="tube"><div class="fill" id="f-금"></div></div><span>금 金</span></div>
       <div class="gauge g-to"><div class="tube"><div class="fill" id="f-토"></div></div><span>토 土</span></div>
       <div class="gauge g-mok"><div class="tube"><div class="fill" id="f-목"></div></div><span>목 木</span></div>
       <div class="gauge g-su"><div class="tube"><div class="fill" id="f-수"></div></div><span>수 水</span></div>
     </div>
+    <p class="lockmsg" id="lockmsg"></p>
     <div class="bar"><i id="prog"></i></div>
     <div class="count" id="count"></div>
   </header>
@@ -162,105 +187,126 @@ button.opt:focus-visible{outline:2px solid var(--mok);outline-offset:2px}
 
 <script>
 const Q = [
-  { topic:"땀", q:"땀을 흘리고 난 뒤 몸이 어떤가요?",
+  { topic:"땀", q:"운동을 하거나 더운 날 땀을 흠뻑 흘리고 난 뒤, 몸이 어떻게 되나요?",
+    sub:"8체질에서 가장 중요하게 보는 단서입니다. 땀의 양보다 '흘리고 난 뒤의 컨디션'을 떠올려 주세요.",
     o:[
-      {t:"가볍고 개운하다. 땀 빼는 운동이 잘 맞는다", s:{목:3}, y:1},
-      {t:"기운이 쭉 빠지고 한참 피곤하다", s:{금:3, 수:1}, y:-1},
-      {t:"평소 땀이 거의 나지 않는다", s:{수:3}, y:1},
-      {t:"땀은 많이 나지만 컨디션과 별 상관없다", s:{토:2, 목:1}, y:0}
+      {t:"몸이 가벼워지고 개운하다. 땀 빼는 운동이나 반신욕이 잘 맞는다", s:{목:3}, y:1},
+      {t:"기운이 쭉 빠지고 한동안 늘어진다. 많이 흘린 날은 저녁까지 피곤하다", s:{금:3, 수:1}, y:-1},
+      {t:"웬만해선 땀이 잘 나지 않는다. 남들 다 흘릴 때도 나만 뽀송한 편이다", s:{수:3}, y:1},
+      {t:"땀은 많이 나는 편이지만, 흘리고 나서 특별히 좋지도 나쁘지도 않다", s:{토:2, 목:1}, y:0}
     ]},
-  { topic:"체온", q:"사우나나 뜨거운 탕은 어떤가요?",
+  { topic:"체온", q:"사우나나 뜨거운 탕에 들어갔을 때 몸이 어떻게 반응하나요?",
+    sub:"찜질방이나 온천을 떠올려 주세요. 좋아하는지가 아니라, 몸이 얼마나 견디는지를 봅니다.",
     o:[
-      {t:"오래 있어도 좋고 나오면 몸이 풀린다", s:{목:3, 수:1}, y:1},
-      {t:"금방 답답하고 어지럽다. 찬물이 시원하다", s:{금:3, 토:1}, y:-1},
-      {t:"미지근한 물이 제일 편하다", s:{수:1, 금:1}, y:0}
+      {t:"오래 있어도 편안하고, 나오면 뭉쳐 있던 게 풀리는 느낌이 든다", s:{목:3, 수:1}, y:1},
+      {t:"금방 답답하고 어지러워 오래 못 있는다. 차라리 찬물이 시원하다", s:{금:2, 토:2}, y:-1},
+      {t:"뜨거운 것도 찬 것도 부담스럽고, 미지근한 물이 제일 편하다", s:{수:1, 금:1}, y:0}
     ]},
-  { topic:"육류", q:"고기를 먹은 다음 날 몸 상태는?",
+  { topic:"육류", q:"고기를 배부르게 먹은 다음 날, 몸 상태가 어떤가요?",
+    sub:"회식이나 고깃집에 다녀온 다음 날 아침을 떠올려 주세요. 소화뿐 아니라 기운과 피부까지 함께 생각해 보세요.",
     o:[
-      {t:"힘이 나고 든든하다. 안 먹으면 기운이 없다", s:{목:4}, y:1},
-      {t:"더부룩하거나 피부에 뭐가 올라온다", s:{금:4}, y:-1},
-      {t:"돼지고기는 괜찮은데 닭·양고기는 열이 오른다", s:{토:3, 금:1}, y:1},
-      {t:"닭고기처럼 따뜻한 고기가 오히려 편하다", s:{수:3, 목:1}, y:1}
+      {t:"속이 든든하고 힘이 난다. 한동안 고기를 못 먹으면 오히려 기운이 없다", s:{목:4}, y:1},
+      {t:"더부룩하게 남거나, 얼굴·등에 뭐가 올라오고 몸이 무겁다", s:{금:4}, y:-1},
+      {t:"돼지고기는 괜찮은데 닭고기나 양고기를 먹으면 열이 오르고 답답하다", s:{토:4}, y:1},
+      {t:"돼지고기보다 닭고기처럼 따뜻한 성질의 고기가 속에 훨씬 편하다", s:{수:3, 목:1}, y:1}
     ]},
-  { topic:"소화", q:"평소 위장은 어떤가요?",
+  { topic:"소화", q:"평소 위장은 얼마나 튼튼한 편인가요?",
+    sub:"최근 몇 달 동안 식사를 마치고 나서 어땠는지를 기준으로 답해 주세요.",
     o:[
-      {t:"뭘 먹어도 잘 소화되고 금방 배가 고프다", s:{토:4}, y:1},
-      {t:"조금만 먹어도 더부룩하고 자주 체한다", s:{수:4}, y:-1},
-      {t:"찬 음식이나 밀가루를 먹으면 바로 화장실에 간다", s:{금:2, 목:1}, y:-1},
-      {t:"특별히 문제를 느낀 적이 없다", s:{}, y:0}
+      {t:"뭘 먹어도 잘 내려가고, 먹고 돌아서면 금방 또 배가 고프다", s:{토:4}, y:1},
+      {t:"조금만 많이 먹어도 얹힌 듯 답답하고, 체하는 일이 잦다", s:{수:4}, y:-1},
+      {t:"소화 자체는 되는데, 찬 음식이나 밀가루를 먹으면 곧장 화장실로 간다", s:{금:2, 목:1}, y:-1}
     ]},
-  { topic:"기질", q:"본인 성격에 더 가까운 쪽은?",
+  { topic:"기질", q:"일이 뜻대로 풀리지 않을 때, 본인은 어느 쪽에 가깝나요?",
+    sub:"스스로의 평가보다, 가까운 사람들이 나를 어떻게 묘사하는지 떠올리면 고르기 쉽습니다.",
     o:[
-      {t:"급하고 추진력 있다. 욱하는 편", s:{토:3, 금:1}, y:1},
-      {t:"느긋하고 참을성이 있다. 무던한 편", s:{목:3}, y:1},
-      {t:"꼼꼼하고 예민하다. 생각이 많다", s:{수:3, 금:1}, y:-1}
+      {t:"성격이 급하고 밀어붙인다. 답답하면 그 자리에서 화가 올라온다", s:{토:3}, y:1},
+      {t:"웬만하면 넘어간다. 느긋하고 참을성 있다는 말을 자주 듣는다", s:{목:3}, y:1},
+      {t:"겉으로는 참지만 속으로 생각이 많다. 꼼꼼하고 예민한 편이다", s:{수:3}, y:-1}
     ]},
-  { topic:"체형", q:"살이 붙는 방식은?",
+  { topic:"체형", q:"본인의 체형과 살이 붙는 방식은 어느 쪽인가요?",
+    sub:"지금 체중보다, 몸이 가장 안정적이던 시기의 원래 체형을 기준으로 보는 편이 정확합니다.",
     o:[
-      {t:"상체·어깨가 발달했고 살은 잘 안 찐다", s:{금:3}, y:1},
-      {t:"배와 허리 위주로 잘 찐다", s:{목:3, 토:1}, y:1},
-      {t:"전체적으로 마르고 아무리 먹어도 안 찐다", s:{수:3, 금:1}, y:-1},
-      {t:"단단하고 근육이 잘 붙는다", s:{토:2, 목:2}, y:1}
+      {t:"어깨와 상체가 발달했고, 잘 먹어도 살은 크게 안 찌는 편이다", s:{금:3}, y:1},
+      {t:"배와 허리 위주로 잘 찌고, 한번 찌면 좀처럼 빠지지 않는다", s:{목:3, 토:1}, y:1},
+      {t:"전체적으로 마른 편이고, 아무리 먹어도 살이 붙지 않는다", s:{수:3}, y:-1},
+      {t:"체격이 단단하고 근육이 잘 붙는다. 운동하면 티가 빨리 난다", s:{토:3, 목:2}, y:1}
     ]},
-  { topic:"보약", q:"인삼이나 홍삼을 먹으면?",
+  { topic:"보약", q:"인삼이나 홍삼을 먹었을 때 몸이 어땠나요?",
+    sub:"8체질에서 인삼은 체질에 따라 반응이 정반대로 갈리는 대표적인 재료로 봅니다.",
     o:[
-      {t:"열이 오르고 잠이 안 온다", s:{금:3, 토:2}, y:1},
-      {t:"확실히 기운이 난다", s:{수:3, 목:1}, y:1},
-      {t:"먹어본 적이 없거나 잘 모르겠다", s:{}, y:0}
+      {t:"열이 오르고 얼굴이 달아오르거나, 그날 밤 잠을 설쳤다", s:{토:3, 금:2}, y:1},
+      {t:"확실히 기운이 나고 몸이 따뜻해지는 느낌이 들었다", s:{수:3, 목:1}, y:1}
     ]},
-  { topic:"약물", q:"항생제·진통제 같은 약에 대한 반응은?",
+  { topic:"약물", q:"항생제나 진통제 같은 양약을 먹으면 어떤가요?",
+    sub:"처방대로 먹었는데 예상 못 한 반응이 있었는지를 떠올려 주세요.",
     o:[
-      {t:"부작용이 잦다. 약을 잘 못 견딘다", s:{금:4}, y:0},
-      {t:"별 탈 없이 잘 듣는다", s:{목:2, 토:1}, y:0},
-      {t:"약을 거의 먹지 않아 모르겠다", s:{}, y:0}
+      {t:"속이 뒤집히거나 두드러기가 나는 등 부작용이 잦아 약을 잘 못 견딘다", s:{금:3}, y:0},
+      {t:"별 탈 없이 잘 듣는다. 약 때문에 고생한 기억이 거의 없다", s:{목:2, 토:1}, y:0}
     ]},
-  { topic:"유제품", q:"우유나 치즈를 먹으면?",
+  { topic:"유제품", q:"우유나 치즈, 요거트를 먹으면 배가 어떤가요?",
+    sub:"유당 불내증과 겹칠 수 있는 항목이지만, 8체질에서도 중요한 단서로 봅니다.",
     o:[
-      {t:"속이 부글거리거나 설사를 한다", s:{금:3, 수:1}, y:-1},
-      {t:"아무렇지 않고 오히려 잘 맞는다", s:{목:3, 토:1}, y:1},
-      {t:"잘 모르겠다", s:{}, y:0}
+      {t:"속이 부글거리거나 설사를 해서 되도록 피하게 된다", s:{금:3, 수:1}, y:-1},
+      {t:"아무렇지 않다. 오히려 먹으면 속이 편하고 잘 맞는 느낌이다", s:{목:3, 토:1}, y:1}
     ]},
-  { topic:"기호품", q:"커피 한 잔의 여파는?",
+  { topic:"기호품", q:"커피를 마시고 나면 몸에 어떤 반응이 오나요?",
+    sub:"하루 한두 잔 기준으로, 가장 자주 겪는 반응을 골라 주세요.",
     o:[
-      {t:"심장이 뛰고 밤에 잠을 못 잔다", s:{금:3, 수:1}, y:-1},
-      {t:"저녁에 마셔도 잘 잔다", s:{목:2, 토:2}, y:1},
-      {t:"속이 쓰리다", s:{토:1, 수:2}, y:-1}
+      {t:"한 잔만 마셔도 가슴이 두근거리고 밤에 잠이 오지 않는다", s:{금:2, 수:2}, y:-1},
+      {t:"저녁 늦게 마셔도 잘 자고, 별다른 영향을 느끼지 못한다", s:{목:2, 토:2}, y:1},
+      {t:"잠은 자는데 속이 쓰리거나 위가 불편해진다", s:{토:2, 수:2}, y:-1}
     ]},
-  { topic:"곡물", q:"밀가루 음식(빵·면)을 먹으면?",
+  { topic:"곡물", q:"빵이나 면 같은 밀가루 음식을 먹으면 어떤가요?",
+    sub:"먹고 두세 시간 뒤의 뱃속 상태와 붓기를 함께 떠올려 주세요.",
     o:[
-      {t:"더부룩하고 몸이 붓는다", s:{금:3, 수:1}, y:-1},
-      {t:"잘 맞고 즐겨 먹는다", s:{목:2, 토:2}, y:1},
-      {t:"별 차이를 못 느낀다", s:{}, y:0}
+      {t:"속이 더부룩하게 남고, 몸이나 얼굴이 붓는 느낌이 든다", s:{금:3, 수:1}, y:-1},
+      {t:"잘 맞는 편이라 자주 찾게 되고, 먹어도 부담이 없다", s:{목:2, 토:2}, y:1}
     ]},
-  { topic:"해산물", q:"생선회나 조개류는?",
+  { topic:"해산물", q:"생선회나 조개·갑각류는 몸에 잘 받나요?",
+    sub:"상한 음식 때문에 한 번 탈이 났던 경우는 빼고, 반복해서 겪는 반응을 골라 주세요.",
     o:[
-      {t:"잘 맞고 먹으면 컨디션이 좋다", s:{금:4}, y:1},
-      {t:"조개·갑각류를 먹고 탈이 난 적 있다", s:{목:3, 수:1}, y:-1},
-      {t:"별 차이가 없다", s:{}, y:0}
+      {t:"잘 맞는다. 회를 먹고 나면 오히려 속이 편하고 컨디션이 좋다", s:{금:3}, y:1},
+      {t:"조개나 게·새우를 먹고 두드러기가 나거나 탈이 난 적이 여러 번 있다", s:{목:3, 수:1}, y:-1}
     ]},
-  { topic:"한열", q:"더위와 추위 중 어느 쪽이 힘든가요?",
+  { topic:"한열", q:"여름과 겨울 중 어느 쪽이 더 견디기 힘든가요?",
+    sub:"실내 냉난방까지 포함해서, 주변 사람들과 비교했을 때 어떤지 생각해 보세요.",
     o:[
-      {t:"더위를 많이 탄다", s:{토:3, 목:1}, y:1},
-      {t:"추위를 많이 타고 손발이 차다", s:{수:3}, y:-1},
-      {t:"둘 다 예민하다", s:{금:2, 수:1}, y:-1}
+      {t:"더위를 많이 탄다. 여름이면 남보다 먼저 지치고 시원한 것만 찾는다", s:{토:3, 목:1}, y:1},
+      {t:"추위를 많이 타고 손발이 늘 차다. 여름에도 에어컨 바람이 힘들다", s:{수:3}, y:-1},
+      {t:"더위도 추위도 다 힘들다. 온도가 바뀌는 것 자체에 예민하다", s:{금:2, 수:1}, y:-1}
     ]},
-  { topic:"피부·호흡", q:"이 중 겪어본 것에 가까운 쪽은?",
+  { topic:"피부·호흡", q:"몸이 약해질 때 어느 쪽에서 먼저 신호가 오나요?",
+    sub:"둘 다 겪었다면, 더 오래 그리고 더 자주 겪은 쪽으로 골라 주세요.",
     o:[
-      {t:"아토피·두드러기·금속 알레르기", s:{금:4}, y:1},
-      {t:"비염·기관지염 등 호흡기가 약함", s:{목:3}, y:1},
-      {t:"딱히 없다", s:{}, y:0}
+      {t:"피부 쪽이다. 아토피·두드러기·금속 알레르기 같은 반응이 잦다", s:{금:3}, y:1},
+      {t:"호흡기 쪽이다. 비염이나 기관지염을 달고 살고 환절기에 특히 심하다", s:{목:3}, y:1}
     ]},
-  { topic:"장", q:"배와 화장실 습관은?",
+  { topic:"장", q:"배와 화장실 습관은 어떤 편인가요?",
+    sub:"스트레스를 받거나 배가 차가워졌을 때 어떻게 되는지가 핵심입니다.",
     o:[
-      {t:"배가 차거나 긴장하면 바로 신호가 온다", s:{금:2, 목:2}, y:-1},
-      {t:"변비 경향이 있다", s:{수:2, 토:1}, y:1},
-      {t:"규칙적이고 편한 편", s:{}, y:0}
+      {t:"배가 차거나 긴장하면 곧바로 신호가 온다. 하루에 여러 번 갈 때도 있다", s:{금:2, 목:2}, y:-1},
+      {t:"며칠씩 거르는 변비 경향이 있지만, 크게 불편하다고 느끼지는 않는다", s:{수:2, 토:1}, y:1}
     ]},
-  { topic:"운동·술", q:"격한 운동이나 과음 다음 날은?",
+  { topic:"운동", q:"숨이 찰 정도로 운동한 다음 날은 어떤가요?",
+    sub:"가벼운 산책 말고, 땀이 나고 근육이 뻐근할 정도의 운동을 기준으로 답해 주세요.",
     o:[
-      {t:"개운하다. 회복이 빠르다", s:{목:3, 토:1}, y:1},
-      {t:"며칠씩 피곤이 남는다", s:{금:3, 수:1}, y:-1},
-      {t:"조금만 마셔도 얼굴이 빨개지고 힘들다", s:{금:2, 수:2}, y:-1}
+      {t:"개운하고 회복이 빠르다. 운동한 날은 오히려 잠도 잘 온다", s:{목:3, 토:1}, y:1},
+      {t:"며칠씩 피로가 남는다. 무리하면 오히려 컨디션이 무너진다", s:{금:3, 수:1}, y:-1}
+    ]},
+  { topic:"술", q:"술은 어느 정도까지 감당이 되나요?",
+    sub:"체질보다 유전적 요인이 큰 항목이라 참고 지표로만 씁니다. 마시지 않는다면 건너뛰세요.",
+    o:[
+      {t:"한두 잔에도 얼굴이 빨개지고 심장이 뛴다. 다음 날까지 힘들다", s:{금:2, 수:2}, y:-1},
+      {t:"센 편이고 어지간히 마셔도 다음 날 멀쩡하다", s:{목:2, 토:1}, y:1},
+      {t:"취하기 전에 속이 먼저 탈이 난다. 위가 쓰리고 다음 날 소화가 안 된다", s:{수:2, 토:1}, y:-1}
+    ]},
+  { topic:"식사", q:"끼니를 한 번 거르면 몸이 어떻게 되나요?",
+    sub:"일이나 약속 때문에 한 끼를 건너뛰었던 날을 떠올려 주세요.",
+    o:[
+      {t:"못 참는다. 예민해지고 손이 떨려서 정해진 시간에 꼭 먹어야 한다", s:{토:3}, y:1},
+      {t:"한 끼쯤 걸러도 별 상관없다. 원래 조금씩 먹는 편이다", s:{수:3, 금:1}, y:-1},
+      {t:"기운이 확 떨어져서 뭐라도 챙겨 먹어야 버틸 수 있다", s:{목:2, 토:1}, y:1}
     ]}
 ];
 
@@ -304,16 +350,39 @@ function scores(){
 }
 
 function render(){
-  const {s} = scores();
-  const max = Math.max(1, ...ORDER.map(k => s[k]));
-  ORDER.forEach(k => {
-    document.getElementById("f-"+k).style.height =
-      (answers.length ? Math.round(s[k]/max*100) : 0) + "%";
-  });
+  const done = idx >= Q.length;
+  const gauges = document.getElementById("gauges");
+  const lock = document.getElementById("lockmsg");
+
+  if (!done) {
+    // 진행 중에는 어느 쪽으로 기우는지 보여주지 않는다.
+    // 중간 점수가 보이면 다음 답을 거기에 맞추게 되기 때문.
+    gauges.classList.add("locked");
+    ORDER.forEach(k => document.getElementById("f-"+k).style.height = "0%");
+    lock.textContent = `모든 문항에 답하면 열립니다`;
+  } else {
+    const {s} = scores();
+    const max = Math.max(1, ...ORDER.map(k => s[k]));
+    if (Q.length - skipCount() < 6) {
+      gauges.classList.add("locked");
+      lock.textContent = "답한 문항이 적어 열지 않았습니다";
+      return finish();
+    }
+    gauges.classList.remove("locked");
+    lock.textContent = "네 갈래 중 어느 쪽으로 기울었는지";
+    setTimeout(() => {
+      ORDER.forEach(k =>
+        document.getElementById("f-"+k).style.height = Math.round(s[k]/max*100) + "%");
+    }, 120);
+  }
+
+  finish();
+}
+
+function finish(){
   document.getElementById("prog").style.width = (idx / Q.length * 100) + "%";
   document.getElementById("count").textContent =
     idx < Q.length ? `문항 ${idx+1} / ${Q.length}` : `${Q.length}개 문항 완료`;
-
   const stage = document.getElementById("stage");
   if (idx < Q.length) { stage.innerHTML = qHTML(Q[idx]); bindQ(); }
   else { stage.innerHTML = resultHTML(); document.getElementById("again").onclick = reset; }
@@ -323,21 +392,49 @@ function qHTML(q){
   return `<section class="card">
     <div class="topic">${q.topic}</div>
     <h2 class="qtext">${q.q}</h2>
+    ${q.sub ? `<p class="qsub">${q.sub}</p>` : ""}
     ${q.o.map((o,i)=>`<button class="opt" data-i="${i}">${o.t}</button>`).join("")}
-    ${idx>0 ? `<button class="back" id="back">이전 문항으로</button>` : ""}
+    <button class="skip" id="skip">잘 모르겠다 · 해당 없음</button>
+    <div class="navrow">
+      ${idx>0 ? `<button class="back" id="back">이전 문항으로</button>` : `<span></span>`}
+      ${skipCount()>0 ? `<span class="skipcount">건너뛴 문항 ${skipCount()}개</span>` : `<span></span>`}
+    </div>
   </section>`;
+}
+
+const SKIP = {t:"잘 모르겠다", s:{}, y:0, skip:true};
+function skipCount(){ return answers.filter(a => a && a.skip).length; }
+
+function choose(ans){
+  answers[idx] = ans; idx++; render();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function bindQ(){
   document.querySelectorAll("button.opt").forEach(b => {
-    b.onclick = () => { answers[idx] = Q[idx].o[+b.dataset.i]; idx++; render(); window.scrollTo({top:0,behavior:'smooth'}); };
+    b.onclick = () => choose(Q[idx].o[+b.dataset.i]);
   });
+  document.getElementById("skip").onclick = () => choose(SKIP);
   const back = document.getElementById("back");
   if (back) back.onclick = () => { idx--; answers.length = idx; render(); };
 }
 
 function resultHTML(){
   const {s, y} = scores();
+  const skipped = skipCount(), answered = Q.length - skipped;
+
+  if (answered < 6) {
+    return `<section class="card verdict">
+      <div class="topic">결과 없음</div>
+      <div class="name" style="font-size:30px">답한 문항이<br>너무 적습니다</div>
+      <p class="blurb">${Q.length}개 중 ${answered}개만 답하셨습니다. 이 정도로는 어느 쪽으로 기우는지 판단할 근거가 부족합니다.</p>
+      <div class="note">
+        답하기 어려운 문항이 많았다면, 2~3주 정도 식사와 그날의 컨디션(소화·수면·피부·기운)을 기록해 보세요. 육류·유제품·밀가루·찬 음식에 몸이 어떻게 반응하는지가 드러나면 그때 다시 해보시는 편이 훨씬 정확합니다.
+      </div>
+      <button class="again" id="again">처음부터 다시 하기</button>
+    </section>`;
+  }
+
   const ranked = ORDER.slice().sort((a,b) => s[b]-s[a]);
   const group = ranked[0];
   const pole = y >= 0 ? "양" : "음";
@@ -377,6 +474,8 @@ function resultHTML(){
 
     <div class="note">
       <b>점수 분포</b> · 금 ${Math.round(s.금/total*100)}% · 토 ${Math.round(s.토/total*100)}% · 목 ${Math.round(s.목/total*100)}% · 수 ${Math.round(s.수/total*100)}%<br>
+      <b>답한 문항</b> ${answered}개 / 건너뛴 문항 ${skipped}개<br>
+      ${skipped >= 5 ? `건너뛴 문항이 ${skipped}개라 결과가 흔들릴 수 있습니다. 몸의 반응을 좀 더 관찰한 뒤 다시 해보세요.<br>` : ``}
       ${gap <= 2
         ? `1위 ${group}과 2위 ${second}의 점수 차가 ${gap}점뿐입니다. <b>${second+pole}체질일 가능성도 비슷하게 열려 있습니다.</b>`
         : `2위는 ${second} 계열이며 ${gap}점 차이입니다.`}
