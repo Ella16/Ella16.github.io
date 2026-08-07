@@ -373,8 +373,8 @@
   //  STAGE 2 : 첫 비행 (가로 활공)
   // ========================================================
   const s2 = {
-    name:'STAGE 2  첫 비행', objective:'정원을 가로질러 날아라', time:TIME,
-    GOAL:2400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:50, WIND:55, PARK:72, HEARTY:128,
+    name:'STAGE 2  첫 비행', objective:'→ 가속 ← 감속 — 느리면 못 간다!', time:TIME,
+    GOAL:2400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:40, BOOST:45, BRAKE:18, WIND:55, PARK:72, HEARTY:128,
     RUSH0:620, RUSH1:900, RUSH2:1520, RUSH3:1840,   // '급류' 구간 2곳(스크롤 가속) → 단조로움 변주
     inRush(x){ return (x>this.RUSH0 && x<this.RUSH1) || (x>this.RUSH2 && x<this.RUSH3); },
     init(){ sv.noTimer=false;
@@ -402,7 +402,8 @@
         else if(b.struggle<0) b.struggle=0;
         return; }                       // 거미줄에 걸리면 세계 정지, 연타로 탈출
       if(this.GOAL - sv.worldX > this.PARK){
-        sv.worldX += this.SCROLL*(this.inRush(sv.worldX)?1.4:1)*dt;   // 급류 구간: 스크롤 가속
+        const sc = this.SCROLL + (keys.ArrowRight?this.BOOST:0) - (keys.ArrowLeft?this.BRAKE:0);   // →가속 ←감속
+        sv.worldX += sc*(this.inRush(sv.worldX)?1.3:1)*dt;
       } else sv.worldX = this.GOAL - this.PARK;   // 목표 근처면 스크롤 정지
       b.vy += this.GRAV*dt;
       if(keys.ArrowUp) b.vy -= this.LIFT*dt;
@@ -413,8 +414,8 @@
       b.vy=clamp(b.vy,-120,110); b.y+=b.vy*dt;
       if(b.y<18){ b.y=18; if(b.vy<0) b.vy=0; }        // 천장/바닥에 닿으면 속도 멈춤
       if(b.y>H-14){ b.y=H-14; if(b.vy>0) b.vy=0; }
-      if(keys.ArrowLeft) b.x-=100*dt; if(keys.ArrowRight) b.x+=100*dt;   // 좌우 이동 42→100
-      b.x=clamp(b.x,18,94);
+      const tx = 44 + (keys.ArrowRight?16:0) - (keys.ArrowLeft?12:0);   // 가속/감속 때 몸이 앞뒤로 기움
+      b.x += (tx-b.x)*3*dt; b.x=clamp(b.x,18,94);
       b.flap+=dt*7; if(b.hurt>0)b.hurt-=dt;
       for(const o of sv.obstacles){ if(o.dead) continue; const sx=o.wx-sv.worldX;
         if(o.type==='web'){ if(b.hurt<=0 && b.x>sx-4 && b.x<sx+18 && b.y>o.y && b.y<o.y+o.h){
@@ -426,7 +427,7 @@
       for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX;
         const d=Math.hypot(sx-b.x, m.y-b.y);
         if(d<30) m.y += (b.y-m.y)*0.14;              // 자석: 가까우면 벌레 높이로 빨려옴 → 조준하면 먹힘
-        if(d<15){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+3);
+        if(d<15){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+2);
           for(let i=0;i<8;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'빛 +1'); } }
       sv.birdT-=dt;
       if(!sv.bird && sv.birdT<=0) sv.bird={x:W+18, y:b.y, warn:1.1};
@@ -461,6 +462,9 @@
       // 바닥 풀 (시차 1x)
       const gx=sv.worldX; rect(0,H-6,W,1,c[1]);
       for(let x=-((gx)% 10); x<W; x+=10){ rect(x,H-10,1,4,c[1]); rect(x+3,H-9,1,3,c[1]); }
+      // 가속 중: 속도선
+      if(keys.ArrowRight) for(let i=0;i<5;i++){ const yy=22+(i*47)%(H-44);
+        const xx=W-((perf*(0.18+i*0.04)+i*61)%(W+10)); rect(xx,yy,6,1,c[1]); }
       // 빛 모트
       for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX; if(sx<-6||sx>W+6) continue;
         if(Math.floor(perf/150)%2===0){ circleOutline(sx,m.y,3); rect(sx,m.y,1,1,c[1]); } else circleOutline(sx,m.y,2); }
