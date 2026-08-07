@@ -269,7 +269,7 @@
   // ========================================================
   const s1 = {
     name:'STAGE 1  부화', objective:'줄기를 올라 햇빛에서 날개 말리기', time:TIME,
-    GOAL:1540, CW:42, SP:84, SPX:90,
+    GOAL:2400, CW:42, SP:84, SPX:90,
     stemX(y){ return 80 + Math.sin(y*0.018)*34 + Math.sin(y*0.006+2.0)*14; },
     sY(wy){ return H-(wy-sv.camY); },
     goalX(){ return this.stemX(this.GOAL+16); },
@@ -504,7 +504,7 @@
   // ========================================================
   const s3 = {
     name:'STAGE 3  도시', objective:'불빛은 빨아들이고, 지직! 순간을 피해', time:TIME,
-    GOAL:1400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:54, PARK:72, HEARTY:128,
+    GOAL:2300, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:54, PARK:72, HEARTY:128,
     PULL:175, PULLX:85, RANGE:68, ZAP_R:25, PERIOD:1.9,   // 흡인력(상하/좌우)·감전 반경·사이클
     zapT(L){ return (perf/1000 + L.phase) % this.PERIOD; },
     telAt(){ return this.PERIOD-0.75; },  zapAt(){ return this.PERIOD-0.35; },   // 예고/방전 시점
