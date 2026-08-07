@@ -471,23 +471,15 @@ function render(){
   if (!done) {
     // 진행 중에는 어느 쪽으로 기우는지 보여주지 않는다.
     // 중간 점수가 보이면 다음 답을 거기에 맞추게 되기 때문.
+    gauges.style.display = "";
+    lock.style.display = "";
     gauges.classList.add("locked");
     ORDER.forEach(k => document.getElementById("f-"+k).style.height = "0%");
     lock.textContent = `모든 문항에 답하면 열립니다`;
   } else {
-    const {s} = scores();
-    const max = Math.max(1, ...ORDER.map(k => s[k]));
-    if (Q.length - skipCount() < 10) {
-      gauges.classList.add("locked");
-      lock.textContent = "답한 문항이 적어 열지 않았습니다";
-      return finish();
-    }
-    gauges.classList.remove("locked");
-    lock.textContent = "네 갈래 중 어느 쪽으로 기울었는지";
-    setTimeout(() => {
-      ORDER.forEach(k =>
-        document.getElementById("f-"+k).style.height = Math.round(s[k]/max*100) + "%");
-    }, 120);
+    // 결과 게이지는 결과 카드 안에 그린다 — 위로 스크롤하지 않아도 되게.
+    gauges.style.display = "none";
+    lock.style.display = "none";
   }
 
   finish();
@@ -562,6 +554,13 @@ function resultHTML(){
     ORDER.map(g => `<div class="cell${g+p===key?" on":""}">${g}${p}</div>`).join("")
   ).join("");
 
+  const GCLS = {금:"g-geum", 토:"g-to", 목:"g-mok", 수:"g-su"};
+  const GHAN = {금:"금 金", 토:"토 土", 목:"목 木", 수:"수 水"};
+  const gmax = Math.max(1, ...ORDER.map(k => s[k]));
+  const gaugeCells = ORDER.map(k =>
+    `<div class="gauge ${GCLS[k]}"><div class="tube"><div class="fill" style="height:${Math.round(s[k]/gmax*100)}%"></div></div><span>${GHAN[k]}</span></div>`
+  ).join("");
+
   return `<section class="card verdict">
     <div class="topic">가장 가까운 유형</div>
     <div class="name">${key}체질</div>
@@ -585,6 +584,9 @@ function resultHTML(){
 
     <div class="maplab">팔체질 지도</div>
     <div class="map">${cells}</div>
+
+    <div class="maplab">네 갈래 게이지</div>
+    <div class="gauges">${gaugeCells}</div>
 
     <div class="note">
       <b>점수 분포</b> · 금 ${Math.round(s.금/total*100)}% · 토 ${Math.round(s.토/total*100)}% · 목 ${Math.round(s.목/total*100)}% · 수 ${Math.round(s.수/total*100)}%<br>
