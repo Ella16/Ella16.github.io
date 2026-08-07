@@ -374,8 +374,9 @@
   // ========================================================
   const s2 = {
     name:'STAGE 2  첫 비행', objective:'정원을 가로질러 날아라', time:TIME,
-    GOAL:1500, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:50, WIND:55, PARK:72, HEARTY:128,
-    RUSH0:620, RUSH1:900,   // 중간 '급류' 구간(스크롤 가속) → 단조로움 변주
+    GOAL:2400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:50, WIND:55, PARK:72, HEARTY:128,
+    RUSH0:620, RUSH1:900, RUSH2:1520, RUSH3:1840,   // '급류' 구간 2곳(스크롤 가속) → 단조로움 변주
+    inRush(x){ return (x>this.RUSH0 && x<this.RUSH1) || (x>this.RUSH2 && x<this.RUSH3); },
     init(){ sv.noTimer=false;
       sv.bug={x:44,y:120,vy:0,flap:0,hurt:0,stuck:0,struggle:0,lastMash:mash};
       sv.worldX=0; sv.obstacles=[]; sv.motes=[]; sv.wind=[]; sv.bird=null; sv.birdT=5;
@@ -401,8 +402,7 @@
         else if(b.struggle<0) b.struggle=0;
         return; }                       // 거미줄에 걸리면 세계 정지, 연타로 탈출
       if(this.GOAL - sv.worldX > this.PARK){
-        const rush = sv.worldX>this.RUSH0 && sv.worldX<this.RUSH1;   // 중간 급류 구간: 스크롤 가속
-        sv.worldX += this.SCROLL*(rush?1.4:1)*dt;
+        sv.worldX += this.SCROLL*(this.inRush(sv.worldX)?1.4:1)*dt;   // 급류 구간: 스크롤 가속
       } else sv.worldX = this.GOAL - this.PARK;   // 목표 근처면 스크롤 정지
       b.vy += this.GRAV*dt;
       if(keys.ArrowUp) b.vy -= this.LIFT*dt;
@@ -478,7 +478,7 @@
             rect(gxx,gyy,gw,4,c[1]); rect(gxx+1,gyy+1,gw-2,2,c[0]); rect(gxx+1,gyy+1,Math.round((gw-2)*sv.court),2,c[1]); }
           if(Math.floor(perf/250)%2===0) text(sv.court>0?'구애중…':'하트로!', gsx, this.HEARTY-30, 7, true); } }
       // 급류 구간: 속도감 스트릭 + 배너
-      if(sv.worldX>this.RUSH0-40 && sv.worldX<this.RUSH1){
+      if(this.inRush(sv.worldX+40) || this.inRush(sv.worldX)){
         for(let i=0;i<6;i++){ const yy=24+(i*40+perf*0.25)%(H-46); const xx=(perf*0.6+i*57)%W; rect(xx,yy,5,1,c[1]); }
         if(Math.floor(perf/140)%2===0) text('≫ 급 류 ≫', W/2, 18, 8, true); }
       // 새
