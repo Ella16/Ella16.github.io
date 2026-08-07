@@ -228,7 +228,7 @@
     if(txt[0]==='빛') sfx('coin');
     else if(txt==='사랑!'||txt==='너다!'||txt==='탈출!') sfx('good');
     else if(txt==='♥') sfx('heart');
-    else if(txt.indexOf('초')>=0||txt==='새다!'||txt==='거미줄!'||txt==='홀렸다!'||txt==='지직!'||txt==='아냐…'||txt==='피해라!') sfx('hit'); }
+    else if(txt.indexOf('초')>=0||txt==='새다!'||txt==='거미줄!'||txt==='홀렸다!'||txt==='지직!'||txt==='찰싹!'||txt==='아냐…'||txt==='피해라!') sfx('hit'); }
   function updateEffects(dt){
     for(const p of particles){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; }
     particles=particles.filter(p=>p.life>0);
@@ -276,7 +276,10 @@
     sunZone(){ const cx=this.goalX(); return {x0:cx-30,x1:cx+30,y0:this.GOAL-4,y1:this.GOAL+46}; },
     init(){ sv.camY=0; sv.dry=0; sv.phase='hatch'; sv.hatchT=1.4; sv.spawnT=4.0;
       sv.enemies=[]; sv.noTimer=true;
-      sv.bug={x:this.stemX(6), worldY:6, vx:0, vy:0, hurt:0, flap:0}; },
+      sv.bug={x:this.stemX(6), worldY:6, vx:0, vy:0, hurt:0, flap:0};
+      sv.dews=[]; sv.twigs=[]; sv.twigT=3.0;                          // 이슬(빛) + 낙하 나뭇가지
+      for(let wy=220; wy<this.GOAL-120; wy+=170+Math.random()*60)
+        sv.dews.push({wy, off:(Math.random()*2-1)*(this.CW-12), got:false}); },
     update(dt){
       const b=sv.bug;
       if(sv.phase==='hatch'){ sv.hatchT-=dt;
@@ -311,6 +314,19 @@
           for(let i=0;i<8;i++) spawnParticle(b.x,this.sY(b.worldY));
           addFloat(b.x,this.sY(b.worldY)-14, bf>0?'-1초!':'피해라!'); } }
       sv.enemies=sv.enemies.filter(e=>e.worldY>sv.camY-12 && e.life>0);
+      // 이슬 수집 (빛+1, 시간+2초)
+      for(const d of sv.dews){ if(d.got) continue; const dx=this.stemX(d.wy)+d.off;
+        if(Math.hypot(dx-b.x, d.wy-b.worldY)<10){ d.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+2);
+          for(let i=0;i<6;i++) spawnParticle(dx,this.sY(d.wy),true); addFloat(dx,this.sY(d.wy)-8,'빛 +1'); } }
+      // 나뭇가지 낙하 (위에서 통로로 떨어짐 → 등반 중 회피)
+      sv.twigT-=dt;
+      if(sv.twigT<=0){ sv.twigT=3.0+Math.random()*1.8; const wy0=sv.camY+H+20;
+        sv.twigs.push({x:this.stemX(wy0)+(Math.random()*2-1)*this.CW, wy:wy0, vy:62+Math.random()*30, drift:(Math.random()*2-1)*14}); }
+      for(const t of sv.twigs){ t.wy-=t.vy*dt; t.x+=t.drift*dt;
+        if(b.hurt<=0 && Math.hypot(t.x-b.x, t.wy-b.worldY)<8){ t.dead=true;
+          b.hurt=1.0; b.vy=-50; timeLeft=Math.max(0,timeLeft-1.0); shake=0.35; flash=0.12;
+          for(let i=0;i<6;i++) spawnParticle(b.x,this.sY(b.worldY)); addFloat(b.x,this.sY(b.worldY)-14,'-1초!'); } }
+      sv.twigs=sv.twigs.filter(t=>!t.dead && t.wy>sv.camY-16);
       sv.bugSX=b.x; sv.bugSY=this.sY(b.worldY);   // 터치 조작용 화면좌표
     },
     render(){ const c=C();
@@ -332,6 +348,11 @@
         for(let i=0;i<8;i++){ const a=(i/8)*Math.PI*2+Math.sin(perf/600)*0.1;
           rect(sx2+Math.cos(a)*11,sy2+Math.sin(a)*11,1,1,c[1]); rect(sx2+Math.cos(a)*14,sy2+Math.sin(a)*14,1,1,c[1]); }
         const z=this.sunZone(); if(Math.floor(perf/250)%2===0) dashRect(z.x0,this.sY(z.y1),z.x1-z.x0,this.sY(z.y0)-this.sY(z.y1)); }
+      for(const d of sv.dews){ if(d.got) continue; const sy=this.sY(d.wy); if(sy<16||sy>H+6) continue;
+        const dx=this.stemX(d.wy)+d.off;
+        if(Math.floor(perf/200)%2===0){ circleOutline(dx,sy,3); rect(dx,sy,1,1,c[1]); } else circleOutline(dx,sy,2); }
+      for(const t of sv.twigs){ const sy=this.sY(t.wy); if(sy<10||sy>H+10) continue;
+        line(t.x-3,sy-3,t.x+3,sy+3); rect(t.x,sy-1,1,1,c[1]); }
       const b=sv.bug;
       if(sv.phase==='hatch'){ drawEgg(b.x,this.sY(b.worldY),sv.hatchT); }
       else { for(const e of sv.enemies) drawSpider(e.x,this.sY(e.worldY));
@@ -360,7 +381,10 @@
       sv.worldX=0; sv.obstacles=[]; sv.motes=[]; sv.wind=[]; sv.bird=null; sv.birdT=5;
       sv.court=0; sv.rushWarn=0;   // 구애 진행도 / 급류 경고 타이머
       let x=150; while(x<this.GOAL-150){ const r=Math.random();
-        if(r<0.45) sv.obstacles.push({type:'web', wx:x, y:36+Math.random()*150, h:46+Math.random()*36, dead:false});
+        if(r<0.40) sv.obstacles.push({type:'web', wx:x, y:36+Math.random()*150, h:46+Math.random()*36, dead:false});
+        else if(r<0.58){ const gy=70+Math.random()*110;                     // 이중 거미줄 관문: 틈새로만 통과
+          sv.obstacles.push({type:'web', wx:x, y:20, h:gy-44, dead:false});
+          sv.obstacles.push({type:'web', wx:x, y:gy+24, h:(H-22)-(gy+24), dead:false}); }
         else sv.obstacles.push({type:'ant', wx:x, y:56+Math.random()*150, dead:false});
         x+=120+Math.random()*90; }
       // 빛(사랑) 모트 — 직전 위치에서 ±(38~70)씩 완만한 지그재그(밴드 52~178) → 스크롤 느려 도달 가능
@@ -405,8 +429,8 @@
         if(d<15){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+3);
           for(let i=0;i<8;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'빛 +1'); } }
       sv.birdT-=dt;
-      if(!sv.bird && sv.birdT<=0) sv.bird={x:W+18, y:30+Math.random()*180, warn:1.1};
-      if(sv.bird){ if(sv.bird.warn>0) sv.bird.warn-=dt;
+      if(!sv.bird && sv.birdT<=0) sv.bird={x:W+18, y:b.y, warn:1.1};
+      if(sv.bird){ if(sv.bird.warn>0){ sv.bird.warn-=dt; sv.bird.y=b.y; }   // 경고 동안 내 높이를 조준 → 끝나면 고정
         else { sv.bird.x-=125*dt;
           if(b.hurt<=0 && Math.abs(sv.bird.x-b.x)<11 && Math.abs(sv.bird.y-b.y)<8){
             b.hurt=1.3; b.vy=60; b.x-=8; timeLeft=Math.max(0,timeLeft-2.0);
@@ -480,16 +504,19 @@
   // ========================================================
   const s3 = {
     name:'STAGE 3  도시', objective:'불빛은 빨아들이고, 지직! 순간을 피해', time:TIME,
-    GOAL:1400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:48, PARK:72, HEARTY:128,
-    PULL:150, PULLX:55, RANGE:60, ZAP_R:22, PERIOD:2.3,   // 흡인력(상하/좌우)·감전 반경·사이클
-    zapT(L){ return (perf/1000 + L.phase) % this.PERIOD; },      // 0~1.5 평상 / 1.5~1.9 예고 / 1.9~ 방전
+    GOAL:1400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:54, PARK:72, HEARTY:128,
+    PULL:175, PULLX:85, RANGE:68, ZAP_R:25, PERIOD:1.9,   // 흡인력(상하/좌우)·감전 반경·사이클
+    zapT(L){ return (perf/1000 + L.phase) % this.PERIOD; },
+    telAt(){ return this.PERIOD-0.75; },  zapAt(){ return this.PERIOD-0.35; },   // 예고/방전 시점
     init(){ sv.noTimer=false; sv.bug={x:44,y:120,vy:0,flap:0,hurt:0}; sv.worldX=0; sv.court=0;
-      sv.lights=[]; let x=180, band=0;
+      sv.swat=null; sv.swatT=4.5; sv.motes=[];
+      sv.lights=[]; let x=170, band=0;
       const mk=(wx,y)=>sv.lights.push({wx, y:clamp(y,30,H-24), r:8, phase:Math.random()*this.PERIOD, dead:false});
       while(x<this.GOAL-160){
-        if(Math.random()<0.35){ const gy=64+Math.random()*120; mk(x,gy-54); mk(x,gy+54); }   // 관문: 위아래 쌍, 틈으로 통과
+        if(Math.random()<0.55){ const gy=64+Math.random()*120; mk(x,gy-46); mk(x,gy+46);      // 관문(더 자주·더 좁게)
+          if(Math.random()<0.6) sv.motes.push({wx:x, y:gy, got:false}); }                     // 틈새 한가운데 빛(유혹)
         else { band=1-band; mk(x, band? 36+Math.random()*66 : 138+Math.random()*80); }        // 지그재그 밴드
-        x+=112+Math.random()*58; } },
+        x+=94+Math.random()*44; } },
     update(dt){ const b=sv.bug;
       if(this.GOAL - sv.worldX > this.PARK) sv.worldX += this.SCROLL*dt; else sv.worldX=this.GOAL-this.PARK;
       b.vy += this.GRAV*dt;
@@ -500,12 +527,25 @@
         if(dist<this.RANGE && dist>0.5){ const k=1-dist/this.RANGE;
           b.vy += (dy/dist)*k*this.PULL*dt;                    // 상하로 빨림
           b.x  += (dx/dist)*k*this.PULLX*dt; }                 // 좌우로도 빨림 → 싸워야 함
-        const zap = this.zapT(L)>=1.9;
+        const zap = this.zapT(L)>=this.zapAt();
         if(zap && dist<this.ZAP_R && b.hurt<=0){               // 방전 순간 근처 = 감전
           b.hurt=1.2; b.vy=-60; b.x-=10; timeLeft=Math.max(0,timeLeft-2.0); shake=0.55; flash=0.2;
           for(let i=0;i<12;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'지직!'); }
         else if(dist<L.r+5 && b.hurt<=0){ b.hurt=1.0; b.vy=-40; timeLeft=Math.max(0,timeLeft-1.5); shake=0.4; flash=0.15; L.dead=true;
           for(let i=0;i<8;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'홀렸다!'); } }
+      // 빛 모트 (관문 틈새 = 리스크/보상)
+      for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX;
+        const d=Math.hypot(sx-b.x, m.y-b.y);
+        if(d<26) m.y += (b.y-m.y)*0.14;
+        if(d<14){ m.got=true; loveLight++; timeLeft=Math.min(TIME,timeLeft+2);
+          for(let i=0;i<8;i++) spawnParticle(sx,m.y,true); addFloat(sx,m.y-8,'빛 +1'); } }
+      // 파리채: 경고 동안 내 x를 조준 → 기둥으로 내리침 (좌우로 피해!)
+      if(!sv.swat){ sv.swatT-=dt; if(sv.swatT<=0) sv.swat={x:b.x, warn:0.9, act:0.35}; }
+      else if(sv.swat.warn>0){ sv.swat.warn-=dt; sv.swat.x=b.x; }        // 조준 추적
+      else if(sv.swat.act>0){ sv.swat.act-=dt;
+        if(b.hurt<=0 && Math.abs(b.x-sv.swat.x)<15){ b.hurt=1.2; b.vy=70; timeLeft=Math.max(0,timeLeft-2.0);
+          shake=0.6; flash=0.2; for(let i=0;i<12;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'찰싹!'); } }
+      else { sv.swat=null; sv.swatT=4.2+Math.random()*2.4; }
       b.vy -= b.vy*this.DRAG*dt; b.vy=clamp(b.vy,-120,110); b.y+=b.vy*dt;
       if(b.y<18){b.y=18; if(b.vy<0)b.vy=0;} if(b.y>H-14){b.y=H-14; if(b.vy>0)b.vy=0;}
       if(keys.ArrowLeft) b.x-=100*dt; if(keys.ArrowRight) b.x+=100*dt; b.x=clamp(b.x,18,94);
@@ -522,17 +562,26 @@
         for(let wy=H-4-bh; wy<H-12; wy+=10) for(let wx=bx+4; wx<bx+26; wx+=8) if(((wx+wy)|0)%3===0) rect(wx,wy,2,2,c[0]); }
       rect(0,H-6,W,1,c[1]);
       for(const L of sv.lights){ if(L.dead) continue; const sx=L.wx-sv.worldX; if(sx<-26||sx>W+26) continue;
-        const t=this.zapT(L), telegraph=t>=1.5&&t<1.9, zap=t>=1.9;
+        const t=this.zapT(L), telegraph=t>=this.telAt()&&t<this.zapAt(), zap=t>=this.zapAt();
         rect(sx-1,L.y-1,3,3,c[1]);                                             // 불빛 코어
         if(zap){                                                               // 방전: 큰 링 + 번개 가시
           circleOutline(sx,L.y,this.ZAP_R); circleOutline(sx,L.y,this.ZAP_R-4);
           for(let k=0;k<8;k++){ const a=k/8*Math.PI*2+perf/50;
             line(sx+Math.cos(a)*6, L.y+Math.sin(a)*6, sx+Math.cos(a)*(this.ZAP_R-2), L.y+Math.sin(a)*(this.ZAP_R-2)); } }
         else if(telegraph){ if(Math.floor(perf/60)%2===0){ circleOutline(sx,L.y,L.r+3);   // 예고: 빠른 깜빡 + 수축 링
-            circleOutline(sx,L.y, L.r+3 + (1.9-t)*28); } }
+            circleOutline(sx,L.y, L.r+3 + (this.zapAt()-t)*28); } }
         else { const fl=Math.floor(perf/300)%2===0; circleOutline(sx,L.y,L.r+(fl?3:1)); } // 평상: 느긋한 후광
         const dx=b.x-sx, dy=b.y-L.y, dist=Math.hypot(dx,dy);                   // 빨아들이는 중이면 유혹의 실선
         if(dist<this.RANGE && dist>1) for(let tt=0.25;tt<0.92;tt+=0.16) rect(sx+dx*tt, L.y+dy*tt, 1,1, c[1]); }
+      // 빛 모트
+      for(const m of sv.motes){ if(m.got) continue; const sx=m.wx-sv.worldX; if(sx<-6||sx>W+6) continue;
+        if(Math.floor(perf/150)%2===0){ circleOutline(sx,m.y,3); rect(sx,m.y,1,1,c[1]); } else circleOutline(sx,m.y,2); }
+      // 파리채: 경고(점선 기둥+!) → 내리침(그물망 기둥)
+      if(sv.swat){ const sx=sv.swat.x;
+        if(sv.swat.warn>0){ if(Math.floor(perf/110)%2===0){ dashRect(sx-13,16,26,H-32); text('!', sx, 20, 10, true); } }
+        else if(sv.swat.act>0){ rect(sx-14,14,28,2,c[1]); rect(sx-14,H-18,28,2,c[1]);
+          rect(sx-14,14,2,H-32,c[1]); rect(sx+12,14,2,H-32,c[1]);
+          for(let yy=20;yy<H-20;yy+=6) for(let xx=sx-10;xx<=sx+10;xx+=6) rect(xx,yy,1,1,c[1]); } }
       const gsx=this.GOAL-sv.worldX;
       if(gsx<W+30){ drawHeart(gsx,this.HEARTY,c[1]); if(Math.floor(perf/300)%2===0) circleOutline(gsx,this.HEARTY,7);
         if(this.GOAL-sv.worldX<=this.PARK){ if(sv.court>0){ const rr=Math.max(3,11-sv.court*7); circleOutline(gsx,this.HEARTY,rr);
