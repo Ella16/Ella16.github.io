@@ -228,7 +228,7 @@
     if(txt[0]==='빛') sfx('coin');
     else if(txt==='사랑!'||txt==='너다!'||txt==='탈출!') sfx('good');
     else if(txt==='♥') sfx('heart');
-    else if(txt.indexOf('초')>=0||txt==='새다!'||txt==='거미줄!'||txt==='홀렸다!'||txt==='아냐…'||txt==='피해라!') sfx('hit'); }
+    else if(txt.indexOf('초')>=0||txt==='새다!'||txt==='거미줄!'||txt==='홀렸다!'||txt==='지직!'||txt==='아냐…'||txt==='피해라!') sfx('hit'); }
   function updateEffects(dt){
     for(const p of particles){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; }
     particles=particles.filter(p=>p.life>0);
@@ -479,18 +479,32 @@
   //  STAGE 3 : 도시의 밤 (불빛의 유혹) — 가로 활공, 불빛이 끌어당김
   // ========================================================
   const s3 = {
-    name:'STAGE 3  도시', objective:'거짓 불빛은 함정 — 사랑에게로', time:TIME,
-    GOAL:1400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:48, PARK:72, HEARTY:128, PULL:80,
+    name:'STAGE 3  도시', objective:'불빛은 빨아들이고, 지직! 순간을 피해', time:TIME,
+    GOAL:1400, GRAV:80, LIFT:300, DIVE:170, DRAG:2.6, SCROLL:48, PARK:72, HEARTY:128,
+    PULL:150, PULLX:55, RANGE:60, ZAP_R:22, PERIOD:2.3,   // 흡인력(상하/좌우)·감전 반경·사이클
+    zapT(L){ return (perf/1000 + L.phase) % this.PERIOD; },      // 0~1.5 평상 / 1.5~1.9 예고 / 1.9~ 방전
     init(){ sv.noTimer=false; sv.bug={x:44,y:120,vy:0,flap:0,hurt:0}; sv.worldX=0; sv.court=0;
-      sv.lights=[]; let x=190; while(x<this.GOAL-160){ sv.lights.push({wx:x, y:34+Math.random()*188, r:8, dead:false}); x+=150+Math.random()*80; } },
+      sv.lights=[]; let x=180, band=0;
+      const mk=(wx,y)=>sv.lights.push({wx, y:clamp(y,30,H-24), r:8, phase:Math.random()*this.PERIOD, dead:false});
+      while(x<this.GOAL-160){
+        if(Math.random()<0.35){ const gy=64+Math.random()*120; mk(x,gy-54); mk(x,gy+54); }   // 관문: 위아래 쌍, 틈으로 통과
+        else { band=1-band; mk(x, band? 36+Math.random()*66 : 138+Math.random()*80); }        // 지그재그 밴드
+        x+=112+Math.random()*58; } },
     update(dt){ const b=sv.bug;
       if(this.GOAL - sv.worldX > this.PARK) sv.worldX += this.SCROLL*dt; else sv.worldX=this.GOAL-this.PARK;
       b.vy += this.GRAV*dt;
       if(keys.ArrowUp) b.vy-=this.LIFT*dt; if(keys.ArrowDown) b.vy+=this.DIVE*dt;
       for(const L of sv.lights){ if(L.dead) continue; const sx=L.wx-sv.worldX;
+        if(sx<-70||sx>W+70) continue;
         const dy=L.y-b.y, dx=sx-b.x, dist=Math.hypot(dx,dy);
-        if(dist<50 && dist>0.5) b.vy += (dy/dist)*(1-dist/50)*this.PULL*dt;   // 불빛의 유혹(세로로 끌림)
-        if(dist<L.r+5 && b.hurt<=0){ b.hurt=1.0; b.vy=-40; timeLeft=Math.max(0,timeLeft-1.5); shake=0.4; flash=0.15; L.dead=true;
+        if(dist<this.RANGE && dist>0.5){ const k=1-dist/this.RANGE;
+          b.vy += (dy/dist)*k*this.PULL*dt;                    // 상하로 빨림
+          b.x  += (dx/dist)*k*this.PULLX*dt; }                 // 좌우로도 빨림 → 싸워야 함
+        const zap = this.zapT(L)>=1.9;
+        if(zap && dist<this.ZAP_R && b.hurt<=0){               // 방전 순간 근처 = 감전
+          b.hurt=1.2; b.vy=-60; b.x-=10; timeLeft=Math.max(0,timeLeft-2.0); shake=0.55; flash=0.2;
+          for(let i=0;i<12;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'지직!'); }
+        else if(dist<L.r+5 && b.hurt<=0){ b.hurt=1.0; b.vy=-40; timeLeft=Math.max(0,timeLeft-1.5); shake=0.4; flash=0.15; L.dead=true;
           for(let i=0;i<8;i++) spawnParticle(b.x,b.y); addFloat(b.x,b.y-14,'홀렸다!'); } }
       b.vy -= b.vy*this.DRAG*dt; b.vy=clamp(b.vy,-120,110); b.y+=b.vy*dt;
       if(b.y<18){b.y=18; if(b.vy<0)b.vy=0;} if(b.y>H-14){b.y=H-14; if(b.vy>0)b.vy=0;}
@@ -507,13 +521,18 @@
         rect(bx, H-6-bh, 30, bh, c[1]);
         for(let wy=H-4-bh; wy<H-12; wy+=10) for(let wx=bx+4; wx<bx+26; wx+=8) if(((wx+wy)|0)%3===0) rect(wx,wy,2,2,c[0]); }
       rect(0,H-6,W,1,c[1]);
-      for(const L of sv.lights){ if(L.dead) continue; const sx=L.wx-sv.worldX; if(sx<-14||sx>W+14) continue;
-        const fl=Math.floor(perf/90)%2===0;
-        rect(sx-1,L.y-1,3,3,c[1]);                                             // 위험한 불빛 코어
-        circleOutline(sx,L.y,L.r+(fl?4:2)); if(fl) circleOutline(sx,L.y,L.r);  // 깜빡이는 후광
-        for(let k=0;k<8;k++){ const a=k/8*Math.PI*2; rect(sx+Math.cos(a)*(L.r+2), L.y+Math.sin(a)*(L.r+2),1,1,c[1]); }  // 방사 가시
-        const dx=b.x-sx, dy=b.y-L.y, dist=Math.hypot(dx,dy);                   // 끌어당기는 중이면 유혹의 실선
-        if(dist<50 && dist>1) for(let t=0.25;t<0.92;t+=0.16) rect(sx+dx*t, L.y+dy*t, 1,1, c[1]); }
+      for(const L of sv.lights){ if(L.dead) continue; const sx=L.wx-sv.worldX; if(sx<-26||sx>W+26) continue;
+        const t=this.zapT(L), telegraph=t>=1.5&&t<1.9, zap=t>=1.9;
+        rect(sx-1,L.y-1,3,3,c[1]);                                             // 불빛 코어
+        if(zap){                                                               // 방전: 큰 링 + 번개 가시
+          circleOutline(sx,L.y,this.ZAP_R); circleOutline(sx,L.y,this.ZAP_R-4);
+          for(let k=0;k<8;k++){ const a=k/8*Math.PI*2+perf/50;
+            line(sx+Math.cos(a)*6, L.y+Math.sin(a)*6, sx+Math.cos(a)*(this.ZAP_R-2), L.y+Math.sin(a)*(this.ZAP_R-2)); } }
+        else if(telegraph){ if(Math.floor(perf/60)%2===0){ circleOutline(sx,L.y,L.r+3);   // 예고: 빠른 깜빡 + 수축 링
+            circleOutline(sx,L.y, L.r+3 + (1.9-t)*28); } }
+        else { const fl=Math.floor(perf/300)%2===0; circleOutline(sx,L.y,L.r+(fl?3:1)); } // 평상: 느긋한 후광
+        const dx=b.x-sx, dy=b.y-L.y, dist=Math.hypot(dx,dy);                   // 빨아들이는 중이면 유혹의 실선
+        if(dist<this.RANGE && dist>1) for(let tt=0.25;tt<0.92;tt+=0.16) rect(sx+dx*tt, L.y+dy*tt, 1,1, c[1]); }
       const gsx=this.GOAL-sv.worldX;
       if(gsx<W+30){ drawHeart(gsx,this.HEARTY,c[1]); if(Math.floor(perf/300)%2===0) circleOutline(gsx,this.HEARTY,7);
         if(this.GOAL-sv.worldX<=this.PARK){ if(sv.court>0){ const rr=Math.max(3,11-sv.court*7); circleOutline(gsx,this.HEARTY,rr);
