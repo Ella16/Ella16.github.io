@@ -68,9 +68,11 @@
   const keys = {};
   let mash = 0;   // 거미줄 탈출용 연타 카운터
   addEventListener('keydown', e => {
+    initAudio();
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) { e.preventDefault(); mash++; }
     keys[e.key] = true;
     if (e.key === 'c' || e.key === 'C') palIdx = (palIdx+1) % PALETTES.length;
+    if (e.key === 'm' || e.key === 'M') muted = !muted;
     if (e.key === ' ') pressAction();
     // ── 개발자 히든 단축키 ──
     if (e.key>='1' && e.key<='9') { const n=+e.key; if (STAGES[n]) startStage(n); }  // 해당 스테이지 즉시 이동
@@ -90,7 +92,7 @@
   // 모바일 터치 조작: 화면 버튼 → keys 상태에 매핑
   document.querySelectorAll('#pad button').forEach(btn => {
     const k = btn.getAttribute('data-k');
-    const press = e => { e.preventDefault(); mash++; if (k===' ') pressAction(); else keys[k]=true; };
+    const press = e => { e.preventDefault(); initAudio(); mash++; if (k===' ') pressAction(); else keys[k]=true; };
     const release = e => { e.preventDefault(); if (k!==' ') keys[k]=false; };
     btn.addEventListener('pointerdown', press);
     btn.addEventListener('pointerup', release);
@@ -103,7 +105,7 @@
   let stick = null;   // {ox,oy,cx,cy} 시작점(o)·현재(c) 캔버스좌표 / 안 누르면 null
   function canvasPos(e){ const r=cv.getBoundingClientRect();
     return { x:(e.clientX-r.left)/r.width*W, y:(e.clientY-r.top)/r.height*H }; }
-  function canvasDown(e){ e.preventDefault(); mash++;          // 연타 탭 = 거미줄 탈출 겸용
+  function canvasDown(e){ e.preventDefault(); initAudio(); mash++;   // 연타 탭 = 거미줄 탈출 겸용
     if(screen==='title'){ const p=canvasPos(e);                // 타이틀: 스테이지 버튼 탭하면 그 판으로
       for(const b of stageBtns()){ if(p.x>=b.x && p.x<=b.x+b.w && p.y>=b.y && p.y<=b.y+b.h){
         if(b.s<=maxCleared+1) startSelected(b.s); return; } }   // 잠긴 판은 무시
@@ -125,6 +127,27 @@
     const dz=8, dx=stick.cx-stick.ox, dy=stick.cy-stick.oy;
     keys.ArrowLeft = dx<-dz;  keys.ArrowRight = dx>dz;
     keys.ArrowUp   = dy<-dz;  keys.ArrowDown  = dy>dz; }   // 위로 밀면=상승
+
+  // ===== 사운드 (WebAudio 레트로 비프) — 무음이던 게임에 game-feel 추가 =====
+  let actx=null, muted=false;
+  function initAudio(){ try{ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended') actx.resume(); }catch(_){} }
+  function beep(freq,dur,{type='square',vol=0.14,slideTo=0,delay=0}={}){ if(!actx||muted) return;
+    const t=actx.currentTime+delay, o=actx.createOscillator(), g=actx.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,t);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur+0.02); }
+  function sfx(kind){ if(!actx||muted) return;
+    switch(kind){
+      case 'coin':  beep(660,0.06,{vol:0.13}); beep(990,0.09,{vol:0.12,delay:0.05}); break;
+      case 'hit':   beep(180,0.18,{type:'sawtooth',vol:0.18,slideTo:60}); break;
+      case 'good':  beep(520,0.07,{vol:0.14}); beep(780,0.10,{vol:0.12,delay:0.05}); break;
+      case 'heart': beep(1200,0.03,{type:'sine',vol:0.05}); break;
+      case 'start': beep(440,0.05,{vol:0.13}); beep(660,0.08,{vol:0.12,delay:0.05}); break;
+      case 'clear': [523,659,784,1047].forEach((f,i)=>beep(f,0.14,{vol:0.13,delay:i*0.09})); break;
+      case 'over':  beep(320,0.5,{type:'sawtooth',vol:0.16,slideTo:90}); break;
+    } }
 
   // ===== 공통 그리기 =====
   function pr(n){ return Math.round(n); }
@@ -201,7 +224,11 @@
   let particles=[], floats=[], shake=0, flash=0;
   function spawnParticle(x,y,up){ particles.push({x,y,vx:(Math.random()*2-1)*40,
     vy:up?-(20+Math.random()*30):(Math.random()*2-1)*40, life:0.4+Math.random()*0.4}); }
-  function addFloat(x,y,txt){ floats.push({x,y,txt,life:1.0}); }
+  function addFloat(x,y,txt){ floats.push({x,y,txt,life:1.0});
+    if(txt[0]==='빛') sfx('coin');
+    else if(txt==='사랑!'||txt==='너다!'||txt==='탈출!') sfx('good');
+    else if(txt==='♥') sfx('heart');
+    else if(txt.indexOf('초')>=0||txt==='새다!'||txt==='거미줄!'||txt==='홀렸다!'||txt==='아냐…'||txt==='피해라!') sfx('hit'); }
   function updateEffects(dt){
     for(const p of particles){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; }
     particles=particles.filter(p=>p.life>0);
@@ -223,11 +250,11 @@
   function startNewGame(){ cleared=maxCleared; loveLight=0; startStage(1); }
   function startSelected(n){ cleared=maxCleared; loveLight=0; startStage(n); }   // 스테이지 선택
   function startStage(n){ stage=n; cur=STAGES[n]; timeLeft=cur.time; introT=1.6;
-    sv={noTimer:false}; particles=[]; floats=[]; shake=0; flash=0; cur.init(); screen='play'; }
+    sv={noTimer:false}; particles=[]; floats=[]; shake=0; flash=0; cur.init(); screen='play'; sfx('start'); }
   function stageClear(){ cleared=Math.max(cleared,stage);
     if(stage>maxCleared){ maxCleared=stage; try{ localStorage.setItem('lovebug_cleared',maxCleared); }catch(_){} }
-    flash=0.3; screen='cleared'; }
-  function stageFail(reason){ sv.failMsg=reason; screen='gameover'; }
+    flash=0.3; screen='cleared'; sfx('clear'); }
+  function stageFail(reason){ sv.failMsg=reason; screen='gameover'; sfx('over'); }
 
   const INTERLUDE = {
     1: ['날개가 마르자,', '세상이 처음으로 넓어졌다.'],
@@ -502,30 +529,37 @@
   //  STAGE 4 : 군무 (수천 속에서 짝찾기) — 자유 이동, 하트 신호 주는 짝 찾기
   // ========================================================
   const s4 = {
-    name:'STAGE 4  군무', objective:'하트 신호를 주는 너를 찾아', time:TIME, ACC:320, DRG:5,
+    name:'STAGE 4  군무', objective:'신호를 주는 너 — 가까울수록 빨리 깜빡', time:TIME, ACC:340, DRG:5,
     init(){ sv.noTimer=false; sv.bug={x:W/2,y:H/2,vx:0,vy:0,flap:0,hurt:0};
-      sv.crowd=[]; const N=15;
-      for(let i=0;i<N;i++) sv.crowd.push({x:16+Math.random()*(W-32), y:22+Math.random()*(H-44),
-        vx:(Math.random()*2-1)*12, vy:(Math.random()*2-1)*12, seed:Math.random()*10});
+      sv.crowd=[]; const N=16; sv.warm=999;
+      for(let i=0;i<N;i++) sv.crowd.push({x:16+Math.random()*(W-32), y:26+Math.random()*(H-52),
+        vx:(Math.random()*2-1)*14, vy:(Math.random()*2-1)*14, seed:Math.random()*10});
       sv.crowd[(Math.random()*N)|0].real=true; },
     update(dt){ const b=sv.bug;
       if(keys.ArrowLeft)b.vx-=this.ACC*dt; if(keys.ArrowRight)b.vx+=this.ACC*dt;
       if(keys.ArrowUp)b.vy-=this.ACC*dt; if(keys.ArrowDown)b.vy+=this.ACC*dt;
-      b.vx-=b.vx*this.DRG*dt; b.vy-=b.vy*this.DRG*dt; b.vx=clamp(b.vx,-115,115); b.vy=clamp(b.vy,-115,115);
+      b.vx-=b.vx*this.DRG*dt; b.vy-=b.vy*this.DRG*dt; b.vx=clamp(b.vx,-120,120); b.vy=clamp(b.vy,-120,120);
       b.x=clamp(b.x+b.vx*dt,10,W-10); b.y=clamp(b.y+b.vy*dt,16,H-10); b.flap+=dt*7; if(b.hurt>0)b.hurt-=dt;
-      for(const m of sv.crowd){ m.x+=m.vx*dt; m.y+=m.vy*dt;
+      for(const m of sv.crowd){
+        if(m.real){ const dx=b.x-m.x, dy=b.y-m.y, d=Math.hypot(dx,dy)||1; sv.warm=d;
+          if(d<46){ m.vx-=(dx/d)*300*dt; m.vy-=(dy/d)*300*dt; }               // 가까우면 도망(밀당)
+          else { m.vx+=(Math.random()*2-1)*60*dt; m.vy+=(Math.random()*2-1)*60*dt; }
+          m.vx=clamp(m.vx,-54,54); m.vy=clamp(m.vy,-54,54); }
+        m.x+=m.vx*dt; m.y+=m.vy*dt;
         if(m.x<10||m.x>W-10){m.vx*=-1;m.x=clamp(m.x,10,W-10);} if(m.y<16||m.y>H-10){m.vy*=-1;m.y=clamp(m.y,16,H-10);}
         const d=Math.hypot(m.x-b.x,m.y-b.y);
-        if(d<9){ if(m.real){ for(let i=0;i<16;i++) spawnParticle(b.x,b.y,true); addFloat(b.x,b.y-14,'너다!'); stageClear(); return; }
-          else if(b.hurt<=0){ b.hurt=0.8; timeLeft=Math.max(0,timeLeft-1.0); shake=0.25; b.vx=-b.vx;b.vy=-b.vy; addFloat(m.x,m.y-12,'아냐…'); } } }
+        if(m.real){ if(d<12){ for(let i=0;i<18;i++) spawnParticle(b.x,b.y,true); addFloat(b.x,b.y-14,'너다!'); stageClear(); return; } }
+        else if(d<9 && b.hurt<=0){ b.hurt=0.8; timeLeft=Math.max(0,timeLeft-1.0); shake=0.25; b.vx=-b.vx*0.6;b.vy=-b.vy*0.6; addFloat(m.x,m.y-12,'아냐…'); } }
       sv.bugSX=b.x; sv.bugSY=b.y; },
     render(){ const c=C(); const b=sv.bug; rect(0,0,W,H,c[0]);
       for(const m of sv.crowd){ drawBug(m.x,m.y,(Math.floor(perf/150+m.seed)%2===0),0);
-        if(m.real && Math.floor(perf/450)%2===0) drawHeart(m.x,m.y-9,c[1]); }         // 진짜 짝의 하트 신호
-      circleOutline(b.x,b.y,7);                                                       // 플레이어 표식(고리)
+        if(m.real){ const d=Math.hypot(m.x-b.x,m.y-b.y), per=140+d*3.2;            // 가까울수록 빨리 깜빡
+          if((perf%per)<per*0.45) drawHeart(m.x,m.y-9,c[1]); } }
+      circleOutline(b.x,b.y,7);                                                     // 플레이어 표식(고리)
       drawBug(b.x,b.y,Math.floor(b.flap)%2===0,b.hurt);
       drawEffects(); drawTimer();
-      if(Math.floor(perf/500)%2===0) text('♥ 신호를 찾아', W/2, 3, 7, true); },
+      const w=sv.warm, msg = w<40?'♥ 뜨거워!': w<80?'따뜻해': w<140?'미지근': '차가워…';   // 근접 온도 힌트
+      text(msg, W/2, 3, 7, true); },
   };
 
   // ========================================================
@@ -605,7 +639,7 @@
         else dashRect(btn.x,btn.y,btn.w,btn.h); }                        // 잠김(점선)
       if(Math.floor(perf/500)%2===0) text('▶ 번호 탭해서 시작', W/2, 168, 8, true);
       text('짧은 생, 오직 사랑을 찾아서', W/2, 190, 7, true);
-      text('끌기/방향키 이동 · C 색', W/2, 206, 7, true);
+      text('끌기/방향키 이동 · C 색 · M 음소거'+(muted?' [끔]':''), W/2, 206, 7, true);
       ctx.restore(); return; }
 
     // 플레이/클리어/실패는 현재 스테이지 화면을 바탕에 그림
