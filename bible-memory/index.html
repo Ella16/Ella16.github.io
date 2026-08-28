@@ -247,6 +247,20 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .qbtnrow{display:flex;gap:9px;margin-top:2px}
 .qbtnrow .qquit{flex:0 0 96px}
 .qbtnrow .qlook{flex:0 0 122px}
+/* 성경별 보기 */
+.brseg{display:flex;width:100%;margin-bottom:10px}
+.brseg button{flex:1;font-size:13px;padding:8px 10px}
+.bkrow{display:flex;align-items:center;width:100%;text-align:left;gap:10px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:12px 15px;margin-bottom:7px;box-shadow:var(--shadow)}
+.bkrow .bk-n{font-size:15px;font-weight:800;flex:1}
+.bkrow .bk-c{font-size:12px;font-weight:800;color:var(--brand);background:var(--surface-2);
+  padding:3px 10px;border-radius:99px;flex:none}
+.chapgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:7px;margin-bottom:6px}
+.chapbtn{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:9px 6px;font-size:13px;font-weight:800;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink)}
+.chapbtn .ch-c{font-size:11px;font-weight:700;color:var(--muted)}
 .tord{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
 .tord .tord-l{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.03em}
 /* 시험 볼 구절 훑어보기 — 접었을 땐 장절만, 펼치면 제목·구절 */
@@ -425,7 +439,7 @@ const LS = {
 let learned = LS.l;
 let curColl = COLLS.find(c=>c.name===LS.coll) ? LS.coll : COLLS[0].name;
 let tab = 'memorize';
-const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, brScope:'__all', mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
+const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, brScope:'__all', brMode:'topic', brBook:null, brChap:null, mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
 function unlearnedToggle(){
   const b=el('button','tool-btn ut'+(state.unlearnedOnly?' on':''),(state.unlearnedOnly?'☑':'☐')+' 안 외운 것만');
   b.onclick=()=>{ state.unlearnedOnly=!state.unlearnedOnly; localStorage.bm_unlearned=state.unlearnedOnly?'1':''; state.lastBrowseColl=null; state.mzList=[]; render(); };
@@ -501,10 +515,106 @@ function allNodePaths(node,acc){
 }
 // 이 노드 + 모든 하위 노드 경로(한번에 펼치기용)
 function subtreePaths(node,acc){ acc.push(node.path); node.children.forEach(c=>subtreePaths(c,acc)); return acc; }
-function scopeMatch(v,scope){ return (scope==='__all'||!scope)?true:(Array.isArray(scope)?scope.every((s,i)=>v.sub[i]===s):(v.sub[0]||'전체')===scope); }
-function scopeLabel(scope){ return (scope==='__all'||!scope)?'전체':(Array.isArray(scope)?scope.join(' › '):scope); }
+// 범위는 세 가지다: '__all' / 주제 배열(['새로운 삶','교제']) / 성경 좌표({book:'로마서',chap:8})
+function scopeMatch(v,scope){
+  if(scope==='__all'||!scope) return true;
+  if(Array.isArray(scope)) return scope.every((s,i)=>v.sub[i]===s);
+  if(scope.book) return v.book===scope.book && (scope.chap==null||v.chap===scope.chap);
+  return (v.sub[0]||'전체')===scope;
+}
+function scopeLabel(scope){
+  if(scope==='__all'||!scope) return '전체';
+  if(Array.isArray(scope)) return scope.join(' › ');
+  if(scope.book) return scope.book+(scope.chap!=null?(' '+scope.chap+'장'):'');
+  return scope;
+}
+// 성경 좌표 범위는 과정을 가로지르므로 전체 구절에서 뽑는다. 같은 장절이 여러 과정에
+// 들어 있으면(요한일서 1:9 등) 한 번만 남긴다.
+function scopePool(scope){
+  if(scope && !Array.isArray(scope) && scope.book){
+    const seen=new Set();
+    return V.filter(v=>!seen.has(v.ref)&&seen.add(v.ref));
+  }
+  return collVerses();
+}
 function vTitle(v){ return (v.sub&&v.sub.length)?v.sub[v.sub.length-1]:v.ref; }
+// 성경 순서(개역한글 66권). 데이터엔 책 이름만 있어서 정렬용으로 따로 둔다.
+const BOOKS=['창세기','출애굽기','레위기','민수기','신명기','여호수아','사사기','룻기','사무엘상','사무엘하',
+'열왕기상','열왕기하','역대상','역대하','에스라','느헤미야','에스더','욥기','시편','잠언','전도서','아가',
+'이사야','예레미야','예레미야애가','에스겔','다니엘','호세아','요엘','아모스','오바댜','요나','미가','나훔',
+'하박국','스바냐','학개','스가랴','말라기','마태복음','마가복음','누가복음','요한복음','사도행전','로마서',
+'고린도전서','고린도후서','갈라디아서','에베소서','빌립보서','골로새서','데살로니가전서','데살로니가후서',
+'디모데전서','디모데후서','디도서','빌레몬서','히브리서','야고보서','베드로전서','베드로후서','요한일서',
+'요한이서','요한삼서','유다서','요한계시록'];
+const bookIdx=b=>{const i=BOOKS.indexOf(b);return i<0?999:i;};
+// '9,11' '147-148' 같은 절 표기에서 정렬용 첫 숫자를 뽑는다
+const firstVerseNo=v=>{const m=String(v.verse||'').match(/\d+/);return m?+m[0]:0;};
+// 과정을 가로질러 장절 하나당 한 번만 남긴 전체 목록
+function allVerses(){
+  const seen=new Set();
+  return V.filter(v=>!seen.has(v.ref)&&seen.add(v.ref));
+}
+// 성경별 보기: 책 → 장 → 구절
+function renderBible(root){
+  const all=allVerses();
+  const b=state.brBook, c=state.brChap;
+  if(b==null) return renderBibleBooks(root,all);
+  const inBook=all.filter(v=>v.book===b).sort((x,y)=>x.chap-y.chap||firstVerseNo(x)-firstVerseNo(y));
+  const crumb=el('div','scope-crumb',
+    `<span>📖 ${esc(b)}${c!=null?(' '+c+'장'):''} · ${inBook.filter(v=>c==null||v.chap===c).length}구절</span><button class="crumb-x">✕</button>`);
+  crumb.querySelector('.crumb-x').onclick=()=>{ if(c!=null){state.brChap=null;}else{state.brBook=null;} render(); };
+  root.appendChild(crumb);
+  root.appendChild(bibleScopeBtns(c!=null?{book:b,chap:c}:{book:b}));
+  if(c==null) return renderBibleChaps(root,b,inBook);
+  inBook.filter(v=>v.chap===c).forEach(v=>renderVerseRow(v,root,0));
+}
+function renderBibleBooks(root,all){
+  const cnt=new Map();
+  all.forEach(v=>cnt.set(v.book,(cnt.get(v.book)||0)+1));
+  const books=[...cnt.keys()].sort((x,y)=>bookIdx(x)-bookIdx(y));
+  root.appendChild(el('div','section-title',`성경 ${books.length}권 · ${all.length}구절`));
+  books.forEach(bk=>{
+    const row=el('button','bkrow',`<span class="bk-n">${esc(bk)}</span><span class="bk-c">${cnt.get(bk)}</span>`);
+    row.onclick=()=>{ state.brBook=bk; state.brChap=null; render(); };
+    root.appendChild(row);
+  });
+}
+function renderBibleChaps(root,bk,inBook){
+  const cnt=new Map();
+  inBook.forEach(v=>cnt.set(v.chap,(cnt.get(v.chap)||0)+1));
+  const chaps=[...cnt.keys()].sort((x,y)=>x-y);
+  root.appendChild(el('div','section-title',`${chaps.length}개 장`));
+  const wrap=el('div','chapgrid');
+  chaps.forEach(ch=>{
+    const b2=el('button','chapbtn',`${ch}장<span class="ch-c">${cnt.get(ch)}</span>`);
+    b2.onclick=()=>{ state.brChap=ch; render(); };
+    wrap.appendChild(b2);
+  });
+  root.appendChild(wrap);
+  root.appendChild(el('div','section-title','구절 전체'));
+  inBook.forEach(v=>renderVerseRow(v,root,0));
+}
+// 성경 좌표 범위를 그대로 암송·시험으로 넘기는 버튼
+function bibleScopeBtns(scope){
+  const row=el('div','qbtnrow');
+  const mz=el('button','btn','🎯 이 범위 암송');
+  mz.onclick=()=>{ state.mzScope=scope; state.mzList=[]; tab='memorize'; render(); };
+  const tt=el('button','btn primary','✅ 이 범위 시험');
+  tt.onclick=()=>{ TState.scope=scope; TState.started=false; TState.preview=false; tab='test'; render(); };
+  row.append(mz,tt);
+  return row;
+}
 function renderBrowse(root){
+  // 보기 방식: 주제별(과정 안 분류 트리) / 성경별(전 과정을 성경 순서로)
+  const bseg=el('div','ord-seg brseg');
+  const t1=el('button',(state.brMode==='bible'?'':'on'),'주제별');
+  t1.onclick=()=>{ state.brMode='topic'; render(); };
+  const t2=el('button',(state.brMode==='bible'?'on':''),'성경별');
+  t2.onclick=()=>{ state.brMode='bible'; render(); };
+  bseg.append(t1,t2);
+  root.appendChild(bseg);
+  if(state.brMode==='bible') return renderBible(root);
+
   const verses=collVerses();
   root.appendChild(collectionBar());
   // 과정이 바뀌면 범위·펼침 상태를 처음으로
@@ -662,8 +772,8 @@ function renderMemorize(root){
 
   const scopeArr=Array.isArray(state.mzScope)?state.mzScope:null;
   // breadcrumb for a deep (browse-selected) scope
-  if(scopeArr && scopeArr.length>1){
-    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(scopeArr))}</span><button class="crumb-x">✕</button>`);
+  if((scopeArr && scopeArr.length>1)||(state.mzScope&&!Array.isArray(state.mzScope)&&state.mzScope.book)){
+    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(state.mzScope))}</span><button class="crumb-x">✕</button>`);
     bc.querySelector('.crumb-x').onclick=()=>{state.mzScope='__all';startMz();};
     root.appendChild(bc);
   }
@@ -741,7 +851,7 @@ function renderMemorize(root){
   root.appendChild(info);
 }
 function mzScopeList(){
-  const verses=collVerses();
+  const verses=scopePool(state.mzScope);
   let list = verses.filter(v=>scopeMatch(v,state.mzScope));
   if(state.unlearnedOnly) list=list.filter(v=>!learned.has(v.id));
   return list;
@@ -792,7 +902,7 @@ function renderTest(root){
 }
 // 실제로 출제할 목록. 순서 옵션과 문항 수 옵션을 그대로 반영한다.
 function pickList(){
-  let list=collVerses().filter(v=>scopeMatch(v,TState.scope));
+  let list=scopePool(TState.scope).filter(v=>scopeMatch(v,TState.scope));
   if(LS.tshuf) shuffle(list);
   const c=LS.tcount;
   if(c && c<list.length) list=list.slice(0,c);
@@ -837,14 +947,16 @@ function renderTestPreview(root){
   root.appendChild(b2);
 }
 function renderTestMenu(root){
-  const verses=collVerses();
+  const verses=collVerses();          // 칩은 지금 과정 기준
+  const pool=scopePool(TState.scope); // 개수는 실제 출제 대상 기준
   const cats=[...buildTree(verses).keys()];
   root.appendChild(collectionBar());
   // scope selector
   root.appendChild(el('div','section-title','시험 범위'));
   const scopeArr=Array.isArray(TState.scope)?TState.scope:null;
-  if(scopeArr && scopeArr.length>1){
-    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(scopeArr))}</span><button class="crumb-x">✕</button>`);
+  const deepScope=(scopeArr&&scopeArr.length>1)||(TState.scope&&!Array.isArray(TState.scope)&&TState.scope.book);
+  if(deepScope){
+    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(TState.scope))}</span><button class="crumb-x">✕</button>`);
     bc.querySelector('.crumb-x').onclick=()=>{TState.scope='__all';render();};
     root.appendChild(bc);
   }
@@ -861,7 +973,7 @@ function renderTestMenu(root){
   twrap.appendChild(row);
   root.appendChild(twrap);
 
-  const n=verses.filter(v=>scopeMatch(v,TState.scope)).length;  // 범위 안 구절을 전부 낸다
+  const n=pool.filter(v=>scopeMatch(v,TState.scope)).length;  // 범위 안 구절을 전부 낸다
   root.appendChild(el('div','how-card',
     `<div class="hc-t">📝 참조 → 제목 · 구절</div>`+
     `<div class="hc-d">장절만 보고 <b>제목</b>과 <b>구절 전문</b>을 직접 입력 → 어절 단위 채점`+
