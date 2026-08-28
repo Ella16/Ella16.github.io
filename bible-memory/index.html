@@ -142,8 +142,15 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
   transition:transform .28s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow:auto}
 .sheet-back.show .sheet{transform:translateY(0)}
 .grip{width:40px;height:5px;background:var(--line);border-radius:9px;margin:8px auto 14px}
-.sheet .sref{font-size:20px;font-weight:800;color:var(--brand);letter-spacing:-.01em}
+.sheet .sref{font-size:18px;font-weight:800;color:var(--brand);letter-spacing:-.01em}
 .sheet .spath{font-size:12px;color:var(--muted);margin:4px 0 16px}
+/* 예: "창세기 1:1 · 천지창조" 처럼 장절과 제목을 한 줄에 나란히,
+   글자 크기도 거의 같게 둔다. 길면 다음 줄로 넘어간다. */
+.sheet .scrumb{font-size:12px;font-weight:700;color:var(--muted);margin:0 0 3px;word-break:keep-all}
+.sheet .shead{display:flex;flex-wrap:wrap;align-items:center;gap:3px 7px;margin:0 0 16px}
+.sheet .shead .spath{font-size:17px;font-weight:700;color:var(--ink);opacity:.72;
+  margin:0;letter-spacing:-.01em;word-break:keep-all}
+.sheet .shead .spath::before{content:'·';color:var(--line);margin-right:7px;font-weight:800}
 .sheet .stext{font-size:19px;line-height:1.85;letter-spacing:-.01em}
 .sheet .sactions{display:flex;gap:9px;margin-top:20px}
 .btn{border-radius:11px;padding:12px;font-weight:700;font-size:14px;flex:1;text-align:center;
@@ -158,10 +165,17 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .chip.on{background:var(--brand);color:var(--brand-ink);border-color:transparent}
 .flash{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);
   min-height:38vh;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:18px;position:relative}
-.flash .fref{font-size:22px;font-weight:800;color:var(--brand);text-align:center;letter-spacing:-.01em}
-.flash .fpath{font-size:12px;color:var(--muted);text-align:center}
-.flash .fref.hide{color:var(--muted);background:var(--surface-2);border-radius:8px;padding:3px 14px;align-self:center;letter-spacing:.15em;opacity:.7}
-.flash .fpath.hide{color:var(--muted);background:var(--surface-2);border-radius:6px;padding:2px 10px;align-self:center;letter-spacing:.12em;opacity:.7}
+/* 예: "창세기 1:1 · 천지창조" 처럼 장절과 제목을 한 줄에 나란히,
+   글자 크기도 거의 같게 둔다. 길면 다음 줄로 넘어간다. */
+.flash .fcrumb{font-size:12px;font-weight:700;color:var(--muted);text-align:center;
+  margin-bottom:-4px;word-break:keep-all}
+.flash .fhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:5px 7px;text-align:center}
+.flash .fref{font-size:18px;font-weight:800;color:var(--brand);letter-spacing:-.01em}
+.flash .fpath{font-size:17px;font-weight:700;color:var(--ink);opacity:.72;letter-spacing:-.01em;word-break:keep-all}
+.flash .fhead .fpath:not(.hide)::before{content:'·';color:var(--line);margin-right:7px;font-weight:800}
+.flash .fref.hide{color:var(--muted);font-weight:700;background:var(--surface-2);border-radius:8px;padding:3px 14px;letter-spacing:.15em;opacity:.7}
+.flash .fpath.hide{color:var(--muted);background:var(--surface-2);border-radius:8px;padding:3px 12px;letter-spacing:.12em;opacity:.7}
 .flash .ftext{display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;
   font-size:21px;line-height:1.9;padding:12px 4px;letter-spacing:-.01em;word-break:keep-all;width:100%}
 .flash .ftext .ftmain{max-width:100%}
@@ -247,6 +261,11 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .qbtnrow{display:flex;gap:9px;margin-top:2px}
 .qbtnrow .qquit{flex:0 0 96px}
 .qbtnrow .qlook{flex:0 0 122px}
+.qnav{display:flex;align-items:center;gap:9px;margin:2px 0 10px}
+.qnav button{flex:1;font-size:13px;font-weight:700;padding:9px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--line);color:var(--ink);box-shadow:var(--shadow)}
+.qnav button:disabled{opacity:.35;box-shadow:none}
+.qnav .qnav-pos{font-size:12px;font-weight:800;color:var(--muted);flex:none;min-width:62px;text-align:center}
 /* 성경별 보기 */
 .brseg{display:flex;width:100%;margin-bottom:10px}
 .brseg button{flex:1;font-size:13px;padding:8px 10px}
@@ -261,6 +280,8 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
   padding:9px 6px;font-size:13px;font-weight:800;box-shadow:var(--shadow);
   display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink)}
 .chapbtn .ch-c{font-size:11px;font-weight:700;color:var(--muted)}
+.chapbtn.on{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.chapbtn.on .ch-c{color:var(--brand-ink);opacity:.75}
 .tord{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
 .tord .tord-l{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.03em}
 /* 시험 볼 구절 훑어보기 — 접었을 땐 장절만, 펼치면 제목·구절 */
@@ -280,6 +301,7 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .qscore{text-align:center;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:12px}
 .qscore b{font-size:24px;font-weight:800;color:var(--brand)}
 .qscore .qs-sub{font-size:12px}
+.qscore .qs-ok{font-size:12px;font-weight:800;color:var(--good)}
 .gradebox{background:var(--surface);border:1px solid var(--line);border-radius:16px;
   padding:17px;margin-bottom:11px;box-shadow:var(--shadow)}
 .gradebox .gh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px}
@@ -301,6 +323,35 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .gradelegend .s-ok{background:var(--ink);opacity:.55}
 .gradelegend .s-bad{background:var(--bad)}
 .gradelegend .s-fix{background:var(--good)}
+/* 채점 결과에서 눌러 표시한 '내가 틀린 어절' */
+.diff .tk{cursor:pointer;border-radius:6px;padding:1px 3px;margin:0 -3px;
+  box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--muted) 45%,transparent)}
+.diff .tk.on{background:color-mix(in srgb,var(--bad) 20%,transparent);
+  box-shadow:inset 0 -2px 0 var(--bad)}
+/* 암송 설정(범위·안 외운 것만·가리기 모드) 한 줄로 접기 */
+.setupbar{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--surface);
+  border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:11px;box-shadow:var(--shadow)}
+.setupbar .sb-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:13px;font-weight:800}
+.setupbar .sb-x{flex:none;font-size:11.5px;font-weight:800;color:var(--muted);
+  background:var(--surface-2);border-radius:99px;padding:4px 10px}
+.setuprow{display:flex;justify-content:center;margin:0 0 12px}
+.setuprow button{font-size:11.5px;font-weight:800;color:var(--muted);background:var(--surface-2);
+  border-radius:99px;padding:5px 13px}
+/* 성경별 목록 — 장절만으로는 어느 과정·분류의 구절인지 알 수 없어 한 줄 더 붙인다 */
+.vrow.ctx{align-items:flex-start}
+.vrow .vmain{flex:1;min-width:0}
+.vrow .vtop{display:flex;align-items:baseline;gap:11px;min-width:0}
+.vrow .vctx{font-size:11.5px;font-weight:700;color:var(--accent);margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 표시 지우기 줄 — 암송 카드 아래 */
+.markrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0 0}
+.markrow button{font-size:12px;font-weight:800;color:var(--bad);background:var(--surface);
+  border:1px solid var(--line);border-radius:99px;padding:7px 13px;box-shadow:var(--shadow)}
+.tapnote{font-size:11.5px;font-weight:700;color:var(--muted);text-align:center;margin:2px 0 14px}
+/* 표시해 둔 어절 — 둘러보기·암송·시험 미리보기 본문에 그대로 남는다 */
+mark.mk{background:color-mix(in srgb,var(--bad) 18%,transparent);color:inherit;
+  border-radius:4px;padding:0 2px;box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--bad) 60%,transparent)}
 .result{text-align:center;padding:40px 20px}
 .result .big{font-size:52px;font-weight:800;color:var(--brand);letter-spacing:-.02em}
 .result .rl{color:var(--muted);margin:4px 0 24px;font-weight:700}
@@ -434,12 +485,16 @@ const LS = {
   get tshuf(){return localStorage.bm_tshuf==='1'},   // 기본은 순서대로
   set tshuf(v){localStorage.bm_tshuf=v?'1':'0'},
   get tests(){try{return JSON.parse(localStorage.bm_tests||'[]')}catch(e){return []}},
-  set tests(v){localStorage.bm_tests=JSON.stringify(v.slice(-60))}
+  set tests(v){localStorage.bm_tests=JSON.stringify(v.slice(-60))},
+  // 채점 결과에서 눌러 표시한 어절. {구절id:{x:[[어절번호,어절],…], t:[…]}} — x=구절, t=제목
+  get marks(){try{return JSON.parse(localStorage.bm_marks||'{}')}catch(e){return {}}},
+  set marks(v){localStorage.bm_marks=JSON.stringify(v)}
 };
 let learned = LS.l;
+let marks = LS.marks;
 let curColl = COLLS.find(c=>c.name===LS.coll) ? LS.coll : COLLS[0].name;
 let tab = 'memorize';
-const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, brScope:'__all', brMode:'topic', brBook:null, brChap:null, mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
+const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, brScope:'__all', brMode:'topic', brBook:null, brChap:null, mzPick:'topic', mzBook:null, mzCompact:localStorage.bm_mzcompact==='1', pgMode:'topic', mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
 function unlearnedToggle(){
   const b=el('button','tool-btn ut'+(state.unlearnedOnly?' on':''),(state.unlearnedOnly?'☑':'☐')+' 안 외운 것만');
   b.onclick=()=>{ state.unlearnedOnly=!state.unlearnedOnly; localStorage.bm_unlearned=state.unlearnedOnly?'1':''; state.lastBrowseColl=null; state.mzList=[]; render(); };
@@ -538,6 +593,140 @@ function scopePool(scope){
   return collVerses();
 }
 function vTitle(v){ return (v.sub&&v.sub.length)?v.sub[v.sub.length-1]:v.ref; }
+
+// ---------- 내가 틀린 어절 표시 ----------
+// 채점 결과에서 누른 어절을 구절별로 저장해 두고, 본문을 보여줄 때 형광펜처럼 칠한다.
+const PUNCT=/[.,!?;:"'()\[\]{}<>~·…“”‘’「」『』\-–—]/g;
+// 어절 하나를 저장·대조용으로 다듬는다. "은혜를," 와 "은혜를" 을 같게 본다.
+const chunkKey=w=>w.replace(PUNCT,'').replace(/\s+/g,'');
+// 원문에서 i번째 어절(공백 기준)의 다듬은 형태
+function markWord(str,i){ const c=String(str==null?'':str).split(/\s+/).filter(Boolean)[i]; return c==null?'':chunkKey(c); }
+function markList(v,field){ const m=marks[v.id]; return (m&&m[field])||[]; }
+function markCount(v){ const m=marks[v.id]; return m?((m.x||[]).length+(m.t||[]).length):0; }
+function hasMark(v,field,i){ return markList(v,field).some(x=>x[0]===i); }
+function toggleMark(v,field,i,word){
+  const e=marks[v.id]||(marks[v.id]={});
+  const arr=e[field]||[];
+  const at=arr.findIndex(x=>x[0]===i);
+  if(at>=0) arr.splice(at,1); else arr.push([i,word]);
+  if(arr.length) e[field]=arr; else delete e[field];
+  if(!e.x&&!e.t) delete marks[v.id];
+  LS.marks=marks;
+}
+function clearMarks(v){ delete marks[v.id]; LS.marks=marks; }
+// 여러 구절의 표시를 한번에. 지운 구절 수를 돌려준다.
+function markedIn(list){ return list.filter(v=>markCount(v)); }
+function clearMarksIn(list,label){
+  const hit=markedIn(list);
+  if(!hit.length) return 0;
+  if(!confirm(`${label}에 표시한 ${hit.length}구절을 지울까요?`)) return 0;
+  hit.forEach(v=>delete marks[v.id]);
+  LS.marks=marks;
+  return hit.length;
+}
+// 표시해 둔 어절만 <mark>로 감싼 HTML. 표시할 때 적어 둔 어절과 지금 본문의 어절이
+// 다르면(번역본을 바꾸거나 데이터를 고친 경우) 그 표시는 건너뛴다.
+function markHtml(v,field,str){
+  const m=markList(v,field);
+  const src=String(str==null?'':str);
+  if(!m.length) return esc(src);
+  const want=new Map(m);
+  let n=-1;
+  return src.split(/(\s+)/).map(part=>{
+    if(!part||/^\s+$/.test(part)) return esc(part);
+    n++;
+    const w=want.get(n);
+    return (w!=null&&w===chunkKey(part))?`<mark class="mk">${esc(part)}</mark>`:esc(part);
+  }).join('');
+}
+// 주제별/성경별 범위 고르기 — 암송·테스트가 같은 화면을 쓴다.
+// ctx: {pick,book,scope,setPick,setBook,setScope}
+// 성경별인데 책을 아직 안 골랐으면 false를 돌려준다(부르는 쪽은 거기서 멈춤).
+function scopePickerUI(root,ctx){
+  if(!ctx.noSeg){
+  const seg=el('div','ord-seg brseg');
+  const t1=el('button',(ctx.pick==='bible'?'':'on'),'주제별');
+  t1.onclick=()=>ctx.setPick('topic');
+  const t2=el('button',(ctx.pick==='bible'?'on':''),'성경별');
+  t2.onclick=()=>ctx.setPick('bible');
+  seg.append(t1,t2);
+  root.appendChild(seg);
+  }
+
+  if(ctx.pick==='bible'){
+    // 주제별의 [과정 드롭다운 + 분류 칩]과 같은 짜임 — [성경 드롭다운 + 장 칩]
+    const all=allVerses();
+    const bar=el('button','collbar',
+      `<span class="cbi">📖</span><span class="cbl">${ctx.book?esc(ctx.book):'성경 선택'}</span>`+
+      `<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>`);
+    bar.onclick=()=>openBookSheet(ctx.book,bk=>ctx.setBook(bk));
+    root.appendChild(bar);
+    if(!ctx.book){
+      root.appendChild(el('div','empty',`성경 ${new Set(all.map(v=>v.book)).size}권 · ${all.length}구절 중에서 고르세요`));
+      return false;
+    }
+    const inBook=all.filter(v=>v.book===ctx.book);
+    const chap=(ctx.scope&&!Array.isArray(ctx.scope)&&ctx.scope.chap!=null)?ctx.scope.chap:null;
+    const cnt=new Map();
+    inBook.forEach(v=>cnt.set(v.chap,(cnt.get(v.chap)||0)+1));
+    const pw=el('div','pill-wrap');
+    const pr=el('div','pill-row');
+    const ab=el('button','chip'+(chap==null?' on':''),'전체 '+inBook.length);
+    ab.onclick=()=>ctx.setScope({book:ctx.book});
+    pr.appendChild(ab);
+    [...cnt.keys()].sort((x,y)=>x-y).forEach(ch=>{
+      const cb=el('button','chip'+(chap===ch?' on':''),`${ch}장 ${cnt.get(ch)}`);
+      cb.onclick=()=>ctx.setScope({book:ctx.book,chap:ch});
+      pr.appendChild(cb);
+    });
+    pw.appendChild(pr);
+    root.appendChild(pw);
+    return true;
+  }
+
+  // 주제별 — 과정 드롭다운 + 분류 칩
+  const verses=collVerses();
+  root.appendChild(collectionBar());
+  const scopeArr=Array.isArray(ctx.scope)?ctx.scope:null;
+  if(scopeArr && scopeArr.length>1){
+    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(ctx.scope))}</span><button class="crumb-x">✕</button>`);
+    bc.querySelector('.crumb-x').onclick=()=>ctx.setScope('__all');
+    root.appendChild(bc);
+  }
+  const pwrap=el('div','pill-wrap');
+  const row=el('div','pill-row');
+  const allChip=el('button','chip'+(ctx.scope==='__all'?' on':''),'전체 '+verses.length);
+  allChip.onclick=()=>ctx.setScope('__all');
+  row.appendChild(allChip);
+  [...buildTree(verses).keys()].forEach(c=>{
+    const n=verses.filter(v=>(v.sub[0]||'전체')===c).length;
+    const ch=el('button','chip'+((scopeArr&&scopeArr[0]===c)?' on':''),esc(c)+' '+n);
+    ch.onclick=()=>ctx.setScope([c]);
+    row.appendChild(ch);
+  });
+  pwrap.appendChild(row);
+  root.appendChild(pwrap);
+  return true;
+}
+// 과정 선택 시트와 같은 모양의 성경 선택 시트
+function openBookSheet(cur,onPick){
+  const all=allVerses();
+  const cnt=new Map(), done=new Map();
+  const learnedRefs=new Set(V.filter(v=>learned.has(v.id)).map(v=>v.ref));
+  all.forEach(v=>{
+    cnt.set(v.book,(cnt.get(v.book)||0)+1);
+    if(learnedRefs.has(v.ref)) done.set(v.book,(done.get(v.book)||0)+1);
+  });
+  const s=$('#sheet');
+  s.innerHTML=`<div class="grip"></div><div class="sref" style="font-size:18px;margin-bottom:14px">성경 선택</div>`;
+  [...cnt.keys()].sort((x,y)=>bookIdx(x)-bookIdx(y)).forEach(bk=>{
+    const b=el('button','coll-opt'+(bk===cur?' on':''),
+      `<div><div class="cn">${esc(bk)}</div></div><span class="cbadge">${done.get(bk)||0}/${cnt.get(bk)}</span>`);
+    b.onclick=()=>{ closeSheet(); onPick(bk); };
+    s.appendChild(b);
+  });
+  $('#sheetBack').classList.add('show');
+}
 // 성경 순서(개역한글 66권). 데이터엔 책 이름만 있어서 정렬용으로 따로 둔다.
 const BOOKS=['창세기','출애굽기','레위기','민수기','신명기','여호수아','사사기','룻기','사무엘상','사무엘하',
 '열왕기상','열왕기하','역대상','역대하','에스라','느헤미야','에스더','욥기','시편','잠언','전도서','아가',
@@ -556,53 +745,42 @@ function allVerses(){
 }
 // 성경별 보기: 책 → 장 → 구절
 function renderBible(root){
-  const all=allVerses();
-  const b=state.brBook, c=state.brChap;
-  if(b==null) return renderBibleBooks(root,all);
-  const inBook=all.filter(v=>v.book===b).sort((x,y)=>x.chap-y.chap||firstVerseNo(x)-firstVerseNo(y));
-  const crumb=el('div','scope-crumb',
-    `<span>📖 ${esc(b)}${c!=null?(' '+c+'장'):''} · ${inBook.filter(v=>c==null||v.chap===c).length}구절</span><button class="crumb-x">✕</button>`);
-  crumb.querySelector('.crumb-x').onclick=()=>{ if(c!=null){state.brChap=null;}else{state.brBook=null;} render(); };
-  root.appendChild(crumb);
-  root.appendChild(bibleScopeBtns(c!=null?{book:b,chap:c}:{book:b}));
-  if(c==null) return renderBibleChaps(root,b,inBook);
-  inBook.filter(v=>v.chap===c).forEach(v=>renderVerseRow(v,root,0));
-}
-function renderBibleBooks(root,all){
-  const cnt=new Map();
-  all.forEach(v=>cnt.set(v.book,(cnt.get(v.book)||0)+1));
-  const books=[...cnt.keys()].sort((x,y)=>bookIdx(x)-bookIdx(y));
-  root.appendChild(el('div','section-title',`성경 ${books.length}권 · ${all.length}구절`));
-  books.forEach(bk=>{
-    const row=el('button','bkrow',`<span class="bk-n">${esc(bk)}</span><span class="bk-c">${cnt.get(bk)}</span>`);
-    row.onclick=()=>{ state.brBook=bk; state.brChap=null; render(); };
-    root.appendChild(row);
+  const scope=state.brBook?(state.brChap!=null?{book:state.brBook,chap:state.brChap}:{book:state.brBook}):'__all';
+  const ready=scopePickerUI(root,{
+    pick:'bible', book:state.brBook, scope,
+    setPick:m=>{ state.brMode=m; state.brBook=null; state.brChap=null; render(); },
+    setBook:bk=>{ state.brBook=bk; state.brChap=null; render(); },
+    setScope:sc=>{ state.brBook=sc.book; state.brChap=(sc.chap==null?null:sc.chap); render(); },
+    noSeg:true
   });
-}
-function renderBibleChaps(root,bk,inBook){
-  const cnt=new Map();
-  inBook.forEach(v=>cnt.set(v.chap,(cnt.get(v.chap)||0)+1));
-  const chaps=[...cnt.keys()].sort((x,y)=>x-y);
-  root.appendChild(el('div','section-title',`${chaps.length}개 장`));
-  const wrap=el('div','chapgrid');
-  chaps.forEach(ch=>{
-    const b2=el('button','chapbtn',`${ch}장<span class="ch-c">${cnt.get(ch)}</span>`);
-    b2.onclick=()=>{ state.brChap=ch; render(); };
-    wrap.appendChild(b2);
-  });
-  root.appendChild(wrap);
-  root.appendChild(el('div','section-title','구절 전체'));
-  inBook.forEach(v=>renderVerseRow(v,root,0));
+  if(!ready) return;
+  root.appendChild(bibleScopeBtns(scope));
+  let list=allVerses().filter(v=>scopeMatch(v,scope))
+    .sort((x,y)=>x.chap-y.chap||firstVerseNo(x)-firstVerseNo(y));
+  if(state.unlearnedOnly) list=list.filter(v=>!learned.has(v.id));
+  root.appendChild(el('div','section-title',`${esc(scopeLabel(scope))} · ${list.length}구절`));
+  list.forEach(v=>renderVerseRow(v,root,0,true));
 }
 // 성경 좌표 범위를 그대로 암송·시험으로 넘기는 버튼
 function bibleScopeBtns(scope){
+  const box=el('div');
   const row=el('div','qbtnrow');
   const mz=el('button','btn','🎯 이 범위 암송');
   mz.onclick=()=>{ state.mzScope=scope; state.mzList=[]; tab='memorize'; render(); };
   const tt=el('button','btn primary','✅ 이 범위 시험');
   tt.onclick=()=>{ TState.scope=scope; TState.started=false; TState.preview=false; tab='test'; render(); };
   row.append(mz,tt);
-  return row;
+  box.appendChild(row);
+  // 이 책·장에 표시해 둔 구절이 있으면 한번에 지우는 버튼
+  const inScope=allVerses().filter(v=>scopeMatch(v,scope)), marked=markedIn(inScope);
+  if(marked.length){
+    const mr=el('div','markrow');
+    const cb=el('button',null,`🖍 이 범위 표시 지우기 (${marked.length}구절)`);
+    cb.onclick=()=>{ if(clearMarksIn(inScope,scopeLabel(scope))) render(); };
+    mr.appendChild(cb);
+    box.appendChild(mr);
+  }
+  return box;
 }
 function renderBrowse(root){
   // 보기 방식: 주제별(과정 안 분류 트리) / 성경별(전 과정을 성경 순서로)
@@ -655,10 +833,16 @@ function renderBrowse(root){
 
   tree.children.forEach(node=>renderNode(node,root,0));
 }
-function renderVerseRow(v,parent,indentDepth){
-  const row=el('button','vrow'+(learned.has(v.id)?' done':''),
-    `<span class="vref">${esc(v.ref)}</span>`+
-    `<span class="vsnip">${esc(T(v).slice(0,40))}</span>`+
+// ctx=true면 장절 아래에 '과정 › 대분류 › 중분류 › 제목' 줄을 붙인다. 성경별 목록처럼
+// 분류 트리 밖에서 구절만 나열할 때는 이 줄이 없으면 어디 속한 구절인지 알 수 없다.
+function verseCtxText(v){
+  const coll=(COLLS.find(c=>c.name===v.coll)||{}).short||v.coll;
+  return [coll,...(v.sub||[])].filter(Boolean).join(' › ');
+}
+function renderVerseRow(v,parent,indentDepth,ctx){
+  const head=`<span class="vref">${esc(v.ref)}</span><span class="vsnip">${esc(T(v).slice(0,40))}</span>`;
+  const row=el('button','vrow'+(learned.has(v.id)?' done':'')+(ctx?' ctx':''),
+    (ctx?`<span class="vmain"><span class="vtop">${head}</span><span class="vctx">${esc(verseCtxText(v))}</span></span>`:head)+
     `<span class="vchk">✓</span>`);
   row.style.paddingLeft=(16+indentDepth*16)+'px';
   row.onclick=()=>openVerse(v);
@@ -711,23 +895,32 @@ function openVerse(v){
   const s=$('#sheet');
   const isL=learned.has(v.id);
   s.innerHTML=`<div class="grip"></div>`+
-    `<div class="sref">${esc(v.ref)}</div>`+
-    `<div class="spath">${esc([v.coll.replace(/^\S+구절\s*/,''),...v.sub].filter(Boolean).join(' › '))}</div>`+
-    `<div class="stext">${esc(T(v))}</div>`+
+    // 예: "기도 › 기도의 약속과 축복" 은 위에 작게, "요한복음 1:1 · 응답의 약속" 은 한 줄에 크게
+    ((p=>p?`<div class="scrumb">${esc(p)}</div>`:'')(
+      [v.coll.replace(/^\S+구절\s*/,''),...v.sub].filter(Boolean).slice(0,-1).join(' › ')))+
+    `<div class="shead"><div class="sref">${esc(v.ref)}</div>`+
+    `<div class="spath">${esc([v.coll.replace(/^\S+구절\s*/,''),...v.sub].filter(Boolean).slice(-1)[0]||v.ref)}</div></div>`+
+    `<div class="stext">${markHtml(v,'x',T(v))}</div>`+
     (T2(v)?`<div class="stext2">${esc(T2(v))}</div>`:'')+
     `<div class="sactions">`+
       `<button class="btn ${isL?'primary':''}" id="shL">${isL?'✓ 외움':'외웠어요'}</button>`+
       `<button class="btn ghost" id="shC">닫기</button>`+
-    `</div>`;
+    `</div>`+
+    // 테스트에서 표시해 둔 어절은 여기서 지운다
+    (markCount(v)?`<button class="btn ghost" id="shM" style="margin-top:9px;color:var(--bad)">🖍 내 표시 지우기 (${markCount(v)})</button>`:'');
   $('#shL').onclick=()=>{toggleLearn(v.id);openVerse(v);renderIfVisible();};
+  if(markCount(v)) $('#shM').onclick=()=>{clearMarks(v);openVerse(v);renderIfVisible();};
   $('#shC').onclick=closeSheet;
   $('#sheetBack').classList.add('show');
 }
 function closeSheet(){$('#sheetBack').classList.remove('show');}
 $('#sheetBack').addEventListener('click',e=>{if(e.target===$('#sheetBack'))closeSheet();});
 
+// 이 노드와 하위 노드에 든 구절 전부
+function nodeVerses(node,acc){ acc=acc||[]; acc.push(...node.verses); node.children.forEach(c=>nodeVerses(c,acc)); return acc; }
 function openScopeActions(node){
   const {t,d}=nodeStats(node);
+  const verses=nodeVerses(node), marked=markedIn(verses);
   const s=$('#sheet');
   s.innerHTML=`<div class="grip"></div>`+
     `<div class="sref" style="font-size:17px">${esc(node.name)}</div>`+
@@ -735,8 +928,10 @@ function openScopeActions(node){
     `<div class="sactions" style="flex-direction:column">`+
       `<button class="btn primary" id="scMz">🎯 이 범위 암송하기</button>`+
       `<button class="btn" id="scTt">✅ 이 범위 시험하기</button>`+
+      (marked.length?`<button class="btn ghost" id="scM" style="color:var(--bad)">🖍 이 범위 표시 지우기 (${marked.length}구절)</button>`:'')+
       `<button class="btn ghost" id="scC">닫기</button>`+
     `</div>`;
+  if(marked.length) $('#scM').onclick=()=>{ if(clearMarksIn(verses,node.name)){closeSheet();render();} };
   $('#scMz').onclick=()=>{ state.mzScope=node.pathArr; state.mzList=[]; tab='memorize'; closeSheet(); render(); };
   $('#scTt').onclick=()=>{ TState.scope=node.pathArr; TState.started=false; TState.preview=false; tab='test'; closeSheet(); render(); };
   $('#scC').onclick=closeSheet;
@@ -751,11 +946,41 @@ function renderIfVisible(){ if(tab==='browse'||tab==='progress') render(); }
 
 // ---------- MEMORIZE ----------
 function renderMemorize(root){
-  const verses=collVerses();
-  // scope chips: 전체 + categories
-  const cats=[...buildTree(verses).keys()];
   if(!state.mzScope) state.mzScope='__all';
-  root.appendChild(collectionBar());
+  if(!state.mzMode) state.mzMode='vt';
+  const modes=[['vt','구절＋제목'],['verse','구절'],['title','제목'],['ref','참조'],['first','첫글자'],['blank','빈칸'],['all','전체']];
+  const modeName=(modes.find(x=>x[0]===state.mzMode)||modes[0])[1];
+  // 범위·필터·가리기 모드는 처음에 한 번 정하고 마는 것이라 한 줄로 접어 둘 수 있다.
+  // 성경별인데 책을 아직 안 골랐을 땐 고를 데가 사라지므로 접지 않는다.
+  const needPick = state.mzPick==='bible' && !state.mzBook;
+  const compact = state.mzCompact && !needPick;
+  if(compact){
+    const sname = state.mzScope==='__all' ? collLabelText() : scopeLabel(state.mzScope);
+    const bar=el('button','setupbar',
+      `<span>🔎</span><span class="sb-t">${esc(sname)} · 🙈 ${esc(modeName)}${state.unlearnedOnly?' · ☑ 안 외운 것만':''}</span>`+
+      `<span class="sb-x">크게 하기 ⌄</span>`);
+    bar.onclick=()=>{ state.mzCompact=false; localStorage.bm_mzcompact=''; render(); };
+    root.appendChild(bar);
+  }else{
+    const ready=scopePickerUI(root,{
+      pick:state.mzPick, book:state.mzBook, scope:state.mzScope,
+      setPick:m=>{state.mzPick=m;state.mzBook=null;state.mzScope='__all';startMz();},
+      setBook:bk=>{state.mzBook=bk;state.mzScope=bk?{book:bk}:'__all';startMz();},
+      setScope:sc=>{state.mzScope=sc;startMz();}
+    });
+    if(!ready) return;
+    root.appendChild(el('div','filter-row')).appendChild(unlearnedToggle());
+    // 가릴 것(맞추기 대상) 선택 → 나머지는 보임, 카드 탭하면 정답 확인
+    root.appendChild(el('div','mode-cap','가리고 맞추기'));
+    const hb=el('div','hintbar');
+    modes.forEach(([k,label])=>{const b=el('button','hint'+(state.mzMode===k?' on':''),label);b.onclick=()=>{state.mzMode=k;state.mzReveal=false;saveResume();render();};hb.appendChild(b);});
+    root.appendChild(hb);
+    const sr=el('div','setuprow');
+    const sb=el('button',null,'⌃ 작게 하기');
+    sb.onclick=()=>{ state.mzCompact=true; localStorage.bm_mzcompact='1'; render(); };
+    sr.appendChild(sb);
+    root.appendChild(sr);
+  }
 
   // resume banner: shown when saved position differs from current view
   const rz=getResume();
@@ -770,56 +995,31 @@ function renderMemorize(root){
     root.appendChild(banner);
   }
 
-  const scopeArr=Array.isArray(state.mzScope)?state.mzScope:null;
-  // breadcrumb for a deep (browse-selected) scope
-  if((scopeArr && scopeArr.length>1)||(state.mzScope&&!Array.isArray(state.mzScope)&&state.mzScope.book)){
-    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(state.mzScope))}</span><button class="crumb-x">✕</button>`);
-    bc.querySelector('.crumb-x').onclick=()=>{state.mzScope='__all';startMz();};
-    root.appendChild(bc);
-  }
-  const pwrap=el('div','pill-wrap');
-  const row=el('div','pill-row');
-  const allChip=el('button','chip'+(state.mzScope==='__all'?' on':''),'전체 '+verses.length);
-  allChip.onclick=()=>{state.mzScope='__all';startMz();};
-  row.appendChild(allChip);
-  cats.forEach(c=>{
-    const n=verses.filter(v=>(v.sub[0]||'전체')===c).length;
-    const ch=el('button','chip'+((scopeArr&&scopeArr[0]===c)?' on':''),esc(c)+' '+n);
-    ch.onclick=()=>{state.mzScope=[c];startMz();};
-    row.appendChild(ch);
-  });
-  pwrap.appendChild(row);
-  root.appendChild(pwrap);
-  root.appendChild(el('div','filter-row')).appendChild(unlearnedToggle());
-
   buildMzList();
   if(!state.mzList.length){root.appendChild(el('div','empty',state.unlearnedOnly?'이 범위는 다 외웠어요 🎉':'구절이 없습니다.'));return;}
   if(state.mzIdx>=state.mzList.length) state.mzIdx=0;
   const v=state.mzList[state.mzIdx];
 
-  // 가릴 것(맞추기 대상) 선택 → 나머지는 보임, 카드 탭하면 정답 확인
-  if(!state.mzMode) state.mzMode='vt';
-  const modes=[['vt','구절＋제목'],['verse','구절'],['title','제목'],['ref','참조'],['first','첫글자'],['blank','빈칸'],['all','전체']];
-  root.appendChild(el('div','mode-cap','가리고 맞추기'));
-  const hb=el('div','hintbar');
-  modes.forEach(([k,label])=>{const b=el('button','hint'+(state.mzMode===k?' on':''),label);b.onclick=()=>{state.mzMode=k;state.mzReveal=false;saveResume();render();};hb.appendChild(b);});
-  root.appendChild(hb);
-
   const m=state.mzMode, rev=!!state.mzReveal;
   const showRef=rev||m!=='ref';
   const showTitle=rev||!(m==='title'||m==='vt');
   const showVerseFull=rev||!(m==='verse'||m==='first'||m==='blank'||m==='vt');
-  const title=[...v.sub].filter(Boolean).join(' › ')||v.coll;
+  // 제목은 맨 끝 소제목이 시험에서 묻는 '제목'이라 거기에만 표시를 되비춘다
+  const tparts=[...v.sub].filter(Boolean);
+  // 제목은 장절과 한 줄에 크게 두고, 그 위 상위 경로는 작은 머리글로 뺀다
+  const titleHtml=tparts.length?markHtml(v,'t',tparts[tparts.length-1]):esc(v.coll);
+  const crumb=tparts.slice(0,-1).join(' › ');
   let verseHtml;
-  if(showVerseFull) verseHtml=esc(T(v));
+  if(showVerseFull) verseHtml=markHtml(v,'x',T(v));
   else if(m==='first') verseHtml=renderHintText(T(v),1);
   else if(m==='blank') verseHtml=renderHintText(T(v),2);
   else verseHtml='<span class="fl">✧ 구절을 떠올려 보세요 ✧</span>';
   const par=(showVerseFull&&T2(v))?`<div class="ftext2">${esc(T2(v))}</div>`:'';
   const card=el('div','flash');
   card.style.touchAction='pan-y';
-  card.innerHTML=`<div class="fref${showRef?'':' hide'}">${showRef?esc(v.ref):'참조 ?'}</div>`+
-    `<div class="fpath${showTitle?'':' hide'}">${showTitle?esc(title):'제목 ?'}</div>`+
+  card.innerHTML=(showTitle&&crumb?`<div class="fcrumb">${esc(crumb)}</div>`:'')+
+    `<div class="fhead"><div class="fref${showRef?'':' hide'}">${showRef?esc(v.ref):'참조 ?'}</div>`+
+    `<div class="fpath${showTitle?'':' hide'}">${showTitle?titleHtml:'제목 ?'}</div></div>`+
     `<div class="ftext"><div class="ftmain">${verseHtml}</div>${par}</div>`;
   let _sx=0,_sy=0,_st=0;
   card.addEventListener('pointerdown',e=>{_sx=e.clientX;_sy=e.clientY;_st=Date.now();});
@@ -838,6 +1038,25 @@ function renderMemorize(root){
   lb.onclick=()=>{toggleLearn(v.id);saveResume();render();};
   nav.append(prev,lb,next);
   root.appendChild(nav);
+
+  // 이 구절 / 이 범위에 표시해 둔 어절 지우기 (표시가 있을 때만)
+  const scopeAll=scopePool(state.mzScope).filter(x=>scopeMatch(x,state.mzScope));
+  const scopeMarked=markedIn(scopeAll);
+  if(markCount(v)||scopeMarked.length){
+    const mr=el('div','markrow');
+    if(markCount(v)){
+      const one=el('button',null,`🖍 이 구절 표시 지우기 (${markCount(v)})`);
+      one.onclick=()=>{ clearMarks(v); render(); };
+      mr.appendChild(one);
+    }
+    if(scopeMarked.length){
+      const sname=state.mzScope==='__all'?collLabelText():scopeLabel(state.mzScope);
+      const many=el('button',null,`🖍 ${sname} 표시 지우기 (${scopeMarked.length}구절)`);
+      many.onclick=()=>{ if(clearMarksIn(scopeAll,sname)) render(); };
+      mr.appendChild(many);
+    }
+    root.appendChild(mr);
+  }
 
   const info=el('div','mz-info');
   const cnt=el('span','cnt',(state.mzIdx+1)+' / '+state.mzList.length);
@@ -893,7 +1112,7 @@ function renderHintText(text,mode){
 
 // ---------- TEST ----------
 // 참조(장절)만 보여주고 제목과 구절을 직접 입력받은 뒤, 어절 단위로 대조해 채점한다.
-const TState={started:false,preview:false,scope:'__all',list:[],idx:0,score:0,graded:null,
+const TState={started:false,preview:false,pick:'topic',bBook:null,scope:'__all',ans:[],list:[],idx:0,score:0,graded:null,
   draft:{title:'',text:''},pvOpen:new Set(),pvAll:false};
 function renderTest(root){
   if(TState.preview){ renderTestPreview(root); return; }
@@ -926,7 +1145,7 @@ function renderTestPreview(root){
     const card=el('div','pvcard'+(open?' open':''),
       `<div class="pv-h"><span class="pv-n">${i+1}</span><span class="pv-ref">${esc(v.ref)}</span></div>`);
     const body=()=>el('div','pv-body',
-      `<div class="pv-t">${esc(vTitle(v))}</div><div class="pv-x">${esc(T(v))}</div>`+
+      `<div class="pv-t">${markHtml(v,'t',vTitle(v))}</div><div class="pv-x">${markHtml(v,'x',T(v))}</div>`+
       (T2(v)?`<div class="pv-x2">${esc(T2(v))}</div>`:''));
     if(open) card.appendChild(body());
     // 목록이 길어 다시 그리면 맨 위로 튀므로, 한 줄 여닫기는 그 자리에서 처리한다
@@ -947,33 +1166,15 @@ function renderTestPreview(root){
   root.appendChild(b2);
 }
 function renderTestMenu(root){
-  const verses=collVerses();          // 칩은 지금 과정 기준
-  const pool=scopePool(TState.scope); // 개수는 실제 출제 대상 기준
-  const cats=[...buildTree(verses).keys()];
-  root.appendChild(collectionBar());
-  // scope selector
-  root.appendChild(el('div','section-title','시험 범위'));
-  const scopeArr=Array.isArray(TState.scope)?TState.scope:null;
-  const deepScope=(scopeArr&&scopeArr.length>1)||(TState.scope&&!Array.isArray(TState.scope)&&TState.scope.book);
-  if(deepScope){
-    const bc=el('div','scope-crumb',`<span>🎯 ${esc(scopeLabel(TState.scope))}</span><button class="crumb-x">✕</button>`);
-    bc.querySelector('.crumb-x').onclick=()=>{TState.scope='__all';render();};
-    root.appendChild(bc);
-  }
-  const twrap=el('div','pill-wrap');
-  const row=el('div','pill-row');
-  const allC=el('button','chip'+(TState.scope==='__all'?' on':''),'전체 '+verses.length);
-  allC.onclick=()=>{TState.scope='__all';render();};
-  row.appendChild(allC);
-  cats.forEach(c=>{
-    const ch=el('button','chip'+((scopeArr&&scopeArr[0]===c)?' on':''),esc(c));
-    ch.onclick=()=>{TState.scope=[c];render();};
-    row.appendChild(ch);
+  const ready=scopePickerUI(root,{
+    pick:TState.pick, book:TState.bBook, scope:TState.scope,
+    setPick:m=>{TState.pick=m;TState.bBook=null;TState.scope='__all';render();},
+    setBook:bk=>{TState.bBook=bk;TState.scope=bk?{book:bk}:'__all';render();},
+    setScope:sc=>{TState.scope=sc;render();}
   });
-  twrap.appendChild(row);
-  root.appendChild(twrap);
+  if(!ready) return;
 
-  const n=pool.filter(v=>scopeMatch(v,TState.scope)).length;  // 범위 안 구절을 전부 낸다
+  const n=scopePool(TState.scope).filter(v=>scopeMatch(v,TState.scope)).length;  // 범위 안 구절을 전부 낸다
   root.appendChild(el('div','how-card',
     `<div class="hc-t">📝 참조 → 제목 · 구절</div>`+
     `<div class="hc-d">장절만 보고 <b>제목</b>과 <b>구절 전문</b>을 직접 입력 → 어절 단위 채점`+
@@ -1026,24 +1227,35 @@ function renderTestMenu(root){
 }
 function startTest(list){
   list=list||pickList();  // 구절 보기에서 넘어오면 방금 훑어본 그 목록 그대로
-  Object.assign(TState,{started:true,preview:false,list,idx:0,score:0,graded:null,draft:{title:'',text:''}});
+  Object.assign(TState,{started:true,preview:false,list,idx:0,ans:[],savedAt:null});
   render();
 }
 function endTest(){
-  const t=LS.tests;t.push({coll:curColl,mode:'type',scope:scopeLabel(TState.scope),score:Math.round(TState.score*10)/10,total:TState.list.length,at:Date.now()});LS.tests=t;
+  // 결과 화면에서 뒤로 돌아가 점수를 고치고 다시 끝낼 수 있으니, 기록은 새로 쌓지 말고 고쳐 쓴다
+  const t=LS.tests;
+  const rec={coll:curColl,mode:'type',scope:scopeLabel(TState.scope),score:Math.round(totalScore()*10)/10,
+    total:TState.list.length,at:TState.savedAt||Date.now()};
+  const i=TState.savedAt?t.findIndex(x=>x.at===TState.savedAt):-1;
+  if(i>=0) t[i]=rec; else { t.push(rec); TState.savedAt=rec.at; }
+  LS.tests=t;
 }
 const fmtScore=n=>{const r=Math.round((+n||0)*10)/10;return Number.isInteger(r)?String(r):r.toFixed(1);};
 
 // --- 채점: 어절 단위 대조 ---
 // "너희가 그 은혜를" 처럼 공백으로 끊은 어절을 정답과 맞춰본다. 문장부호와 띄어쓰기 차이는 무시한다.
-function tokenize(s){
-  const n=String(s==null?'':s)
-    .replace(/[.,!?;:"'()\[\]{}<>~·…“”‘’「」『』\-–—]/g,' ')
-    .replace(/\s+/g,' ').trim();
-  return n?n.split(' '):[];
+// 정답 쪽은 어절이 원문 몇 번째 어절에서 나왔는지(src)까지 같이 들고 다닌다. 표시를 본문에
+// 되비추려면 "정답의 3번째 어절"처럼 원문 자리를 알아야 하기 때문이다.
+function tokenParts(s){
+  const out=[];
+  String(s==null?'':s).split(/\s+/).filter(Boolean).forEach((chunk,si)=>{
+    chunk.replace(PUNCT,' ').split(' ').forEach(w=>{ if(w) out.push({w,src:si}); });
+  });
+  return out;
 }
-// 정답(a)과 입력(b)의 공통 어절을 최대로 잡아 정렬한다(최장 공통 부분수열).
-function alignTokens(a,b){
+function tokenize(s){ return tokenParts(s).map(t=>t.w); }
+// 정답(aParts)과 입력(b)의 공통 어절을 최대로 잡아 정렬한다(최장 공통 부분수열).
+function alignTokens(aParts,b){
+  const a=aParts.map(t=>t.w);
   const n=a.length,m=b.length;
   const dp=[];
   for(let i=0;i<=n;i++)dp.push(new Uint16Array(m+1));
@@ -1051,12 +1263,12 @@ function alignTokens(a,b){
     dp[i][j]= a[i]===b[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
   const ops=[];let i=0,j=0;
   while(i<n&&j<m){
-    if(a[i]===b[j]){ops.push(['ok',a[i]]);i++;j++;}
-    else if(dp[i+1][j]>=dp[i][j+1]){ops.push(['miss',a[i]]);i++;}  // 정답에만 있음 = 빠뜨림
-    else {ops.push(['extra',b[j]]);j++;}                            // 입력에만 있음 = 군더더기
+    if(a[i]===b[j]){ops.push(['ok',a[i],aParts[i].src]);i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1]){ops.push(['miss',a[i],aParts[i].src]);i++;}  // 정답에만 있음 = 빠뜨림
+    else {ops.push(['extra',b[j],null]);j++;}                                     // 입력에만 있음 = 군더더기
   }
-  while(i<n){ops.push(['miss',a[i]]);i++;}
-  while(j<m){ops.push(['extra',b[j]]);j++;}
+  while(i<n){ops.push(['miss',a[i],aParts[i].src]);i++;}
+  while(j<m){ops.push(['extra',b[j],null]);j++;}
   return ops;
 }
 // 띄어쓰기만 다른 구간은 맞은 것으로 돌린다. "세계비전"과 "세계 비전", "그날이"와 "그 날이"처럼
@@ -1066,8 +1278,9 @@ function mergeSpacing(ops){
   while(i<ops.length){
     if(ops[i][0]==='ok'){out.push(ops[i]);i++;continue;}
     const start=i,miss=[],extra=[];
-    while(i<ops.length&&ops[i][0]!=='ok'){ (ops[i][0]==='miss'?miss:extra).push(ops[i][1]); i++; }
-    if(miss.length&&extra.length&&miss.join('')===extra.join('')) miss.forEach(w=>out.push(['ok',w]));
+    while(i<ops.length&&ops[i][0]!=='ok'){ (ops[i][0]==='miss'?miss:extra).push(ops[i]); i++; }
+    if(miss.length&&extra.length&&miss.map(o=>o[1]).join('')===extra.map(o=>o[1]).join(''))
+      miss.forEach(o=>out.push(['ok',o[1],o[2]]));
     else for(let k=start;k<i;k++) out.push(ops[k]);
   }
   return out;
@@ -1076,99 +1289,158 @@ function mergeSpacing(ops){
 function packOps(ops){
   const out=[];let i=0;
   while(i<ops.length){
-    if(ops[i][0]==='ok'){out.push(['ok',ops[i][1],null]);i++;continue;}
+    if(ops[i][0]==='ok'){out.push(['ok',ops[i][1],null,ops[i][2]]);i++;continue;}
     const miss=[],extra=[];
-    while(i<ops.length&&ops[i][0]!=='ok'){ (ops[i][0]==='miss'?miss:extra).push(ops[i][1]); i++; }
+    while(i<ops.length&&ops[i][0]!=='ok'){ (ops[i][0]==='miss'?miss:extra).push(ops[i]); i++; }
     const n=Math.max(miss.length,extra.length);
-    for(let k=0;k<n;k++) out.push(['sub',extra[k]||null,miss[k]||null]);
+    for(let k=0;k<n;k++) out.push(['sub', extra[k]?extra[k][1]:null, miss[k]?miss[k][1]:null, miss[k]?miss[k][2]:null]);
   }
   return out;
 }
 function gradeField(answer,input){
-  const a=tokenize(answer),b=tokenize(input);
+  const a=tokenParts(answer),b=tokenize(input);
   const ops=mergeSpacing(alignTokens(a,b));
   const hit=ops.filter(o=>o[0]==='ok').length;
   const acc=a.length?hit/a.length:(b.length?0:1);
   return {ops:packOps(ops),hit,total:a.length,acc,score:acc>=0.9?1:acc};
 }
-function diffHtml(g){
-  return g.ops.map(([k,typed,right])=>{
+// 정답에 있는 어절(빠뜨림·바꿔 씀)만 누를 수 있게 tk를 붙인다. 내가 더 쓴 군더더기는
+// 본문에 되비출 자리가 없어 누를 수 없다.
+function diffHtml(g,v,field){
+  return g.ops.map(([k,typed,right,src])=>{
     if(k==='ok') return `<span class="ok">${esc(typed)}</span>`;
-    if(typed&&right) return `<span class="sub"><span class="bad">${esc(typed)}</span><span class="fix">${esc(right)}</span></span>`;
-    if(right) return `<span class="miss">${esc(right)}</span>`;
+    const tk=src==null?'':(' tk'+(hasMark(v,field,src)?' on':''));
+    const at=src==null?'':` data-i="${src}"`;
+    if(typed&&right) return `<span class="sub${tk}"${at}><span class="bad">${esc(typed)}</span><span class="fix">${esc(right)}</span></span>`;
+    if(right) return `<span class="miss${tk}"${at}>${esc(right)}</span>`;
     return `<span class="bad">${esc(typed)}</span>`;
   }).join(' ');
 }
-function gradeBox(label,g,answer){
+function gradeBox(label,g,answer,v,field){
   const pct=Math.round(g.acc*100);
   const cls=pct>=90?'good':pct>=50?'accent':'bad';
-  return el('div','gradebox',
+  const box=el('div','gradebox',
     `<div class="gh"><b>${esc(label)}</b><span class="gp gp-${cls}">${pct}% · ${g.hit}/${g.total} 어절</span></div>`+
-    `<div class="diff">${g.ops.length?diffHtml(g):`<span class="miss">${esc(answer)}</span>`}</div>`);
+    `<div class="diff">${g.ops.length?diffHtml(g,v,field):`<span class="miss">${esc(answer)}</span>`}</div>`);
+  // 누른 어절만 그 자리에서 켜고 끈다(전체를 다시 그리면 화면이 맨 위로 튄다)
+  box.querySelectorAll('.tk').forEach(sp=>{
+    sp.onclick=()=>{
+      const i=+sp.dataset.i;
+      toggleMark(v,field,i,markWord(answer,i));
+      sp.classList.toggle('on');
+    };
+  });
+  return box;
 }
 // 구절이 본체이므로 구절 80%, 제목 20%로 문제 점수를 낸다.
 function qScore(g){ return Math.round((g.title.score*0.2+g.text.score*0.8)*100)/100; }
 
+// 문항 사이를 오가는 줄. 이미 푼 문항으로 돌아가면 그때 쓴 답과 채점이 그대로 보인다.
+function navRow(idx,list,save){
+  const row=el('div','qnav');
+  const prev=el('button',null,'← 이전');
+  prev.disabled=idx<=0;
+  prev.onclick=()=>{ if(save)save(); TState.idx--; render(); };
+  const pos=el('span','qnav-pos',`${idx+1} / ${list.length}`);
+  const next=el('button',null,'다음 →');
+  next.disabled=idx>=list.length-1;
+  next.onclick=()=>{ if(save)save(); TState.idx++; render(); };
+  row.append(prev,pos,next);
+  return row;
+}
+// 답과 채점 결과를 문항별로 들고 있어서 앞뒤로 오가도 점수가 어긋나지 않는다
+function curAns(){
+  return TState.ans[TState.idx] || (TState.ans[TState.idx]={draft:{title:'',text:''},graded:null,ok:false});
+}
+function ansScore(a){ return (a&&a.graded)?(a.ok?1:qScore(a.graded)):0; }
+function totalScore(){ return TState.ans.reduce((sum,a)=>sum+ansScore(a),0); }
 function renderQuiz(root){
   const {list,idx}=TState;
   if(idx>=list.length){ // result
-    const pct=Math.round(TState.score/list.length*100);
+    const score=totalScore();
+    const pct=Math.round(score/list.length*100);
     const box=el('div','result',
-      `<div class="big">${fmtScore(TState.score)}/${list.length}</div>`+
+      `<div class="big">${fmtScore(score)}/${list.length}</div>`+
       `<div class="rl">${pct}점 · ${pct>=80?'훌륭해요! 🎉':pct>=50?'좋아요, 조금 더! 💪':'다시 도전해봐요 🙏'}</div>`);
+    const b0=el('button','btn','← 마지막 문제 보기');b0.style.cssText='max-width:240px;margin:0 auto 10px';
+    b0.onclick=()=>{TState.idx=list.length-1;render();};
     const b1=el('button','btn primary','다시 풀기');b1.style.maxWidth='240px';b1.style.margin='0 auto 10px';b1.onclick=()=>startTest();
     const b2=el('button','btn ghost','범위 선택으로');b2.style.maxWidth='240px';b2.style.margin='0 auto';b2.onclick=()=>{TState.started=false;render();};
-    box.append(b1,b2);root.appendChild(box);return;
+    box.append(b0,b1,b2);root.appendChild(box);return;
   }
   const v=list[idx];
-  root.appendChild(el('div','quiz-head',`<span class="qx">${idx+1} / ${list.length}</span><span class="score">점수 ${fmtScore(TState.score)}</span>`));
+  const A=curAns();
+  root.appendChild(el('div','quiz-head',`<span class="qx">${idx+1} / ${list.length}</span><span class="score">점수 ${fmtScore(totalScore())}</span>`));
   root.appendChild(el('div','qbar',`<i style="width:${idx/list.length*100}%"></i>`));
   root.appendChild(el('div','qcard slim',`<div class="qref">${esc(v.ref)}</div>`));
 
-  if(!TState.graded){
+  if(!A.graded){
     const tf=el('div','ansfield','<label for="ansT">제목</label>');
-    const ti=el('input','ansin');ti.id='ansT';ti.type='text';ti.autocomplete='off';ti.value=TState.draft.title;
-    ti.oninput=()=>{TState.draft.title=ti.value;};
+    const ti=el('input','ansin');ti.id='ansT';ti.type='text';ti.autocomplete='off';ti.value=A.draft.title;
+    ti.oninput=()=>{A.draft.title=ti.value;};
     tf.appendChild(ti);root.appendChild(tf);
 
     const xf=el('div','ansfield','<label for="ansX">구절</label>');
-    const xa=el('textarea','ansta');xa.id='ansX';xa.value=TState.draft.text;
-    xa.oninput=()=>{TState.draft.text=xa.value;};
+    const xa=el('textarea','ansta');xa.id='ansX';xa.value=A.draft.text;
+    xa.oninput=()=>{A.draft.text=xa.value;};
     xf.appendChild(xa);root.appendChild(xf);
+
+    // 앞뒤로 옮겨도 쓰던 답은 그대로 남는다
+    const save=()=>{ A.draft={title:ti.value,text:xa.value}; };
+    root.appendChild(navRow(idx,list,save));
 
     const rowb=el('div','qbtnrow');
     const q=el('button','btn ghost qquit','그만두기');
-    q.onclick=()=>{TState.started=false;render();};
+    q.onclick=()=>{save();TState.started=false;render();};
     const b=el('button','btn primary','채점하기');
     b.onclick=()=>{
-      TState.draft={title:ti.value,text:xa.value};
-      TState.graded={title:gradeField(vTitle(v),TState.draft.title),text:gradeField(T(v),TState.draft.text)};
+      save();
+      A.ok=false;
+      A.graded={title:gradeField(vTitle(v),A.draft.title),text:gradeField(T(v),A.draft.text)};
       render();
     };
     rowb.append(q,b);root.appendChild(rowb);
     return;
   }
 
-  const g=TState.graded, q=qScore(g);
-  root.appendChild(el('div','qscore',`이 문제 <b>${fmtScore(q)}</b><span class="qs-sub"> / 1점</span>`));
-  root.appendChild(gradeBox('제목',g.title,vTitle(v)));
-  root.appendChild(gradeBox('구절',g.text,T(v)));
+  const g=A.graded, q=ansScore(A);
+  root.appendChild(el('div','qscore',
+    `이 문제 <b>${fmtScore(q)}</b><span class="qs-sub"> / 1점</span>`+
+    (A.ok?'<span class="qs-ok"> · 맞은 걸로 처리함</span>':'')));
+  root.appendChild(gradeBox('제목',g.title,vTitle(v),v,'t'));
+  root.appendChild(gradeBox('구절',g.text,T(v),v,'x'));
   if(idx===0) root.appendChild(el('div','gradelegend',  // 색 설명은 첫 문제에서만
     `<span class="lg"><i class="sw s-ok"></i>맞음</span>`+
     `<span class="lg"><i class="sw s-bad"></i>내가 쓴 틀린 어절</span>`+
     `<span class="lg"><i class="sw s-fix"></i>정답 어절</span>`));
+  root.appendChild(el('div','tapnote','정말 틀렸다 싶은 어절을 누르면 표시돼요 · 둘러보기와 암송 카드의 구절에도 남습니다'));
+  // TTS 받아쓰기가 잘못 알아들은 경우처럼, 채점이 틀렸다고 본 걸 사람이 뒤집는 버튼
+  root.appendChild(navRow(idx,list));
+  const brow=el('div','qbtnrow');
+  const okb=el('button','btn'+(A.ok?' on':''),A.ok?'↩ 채점대로':'✓ 맞은 걸로');
+  okb.onclick=()=>{ A.ok=!A.ok; render(); };
   const nb=el('button','btn primary',idx+1>=list.length?'결과 보기':'다음 문제');
   nb.onclick=()=>{
-    TState.score+=q;TState.idx++;TState.graded=null;TState.draft={title:'',text:''};
+    TState.idx++;
     if(TState.idx>=TState.list.length) endTest();
     render();
   };
-  root.appendChild(nb);
+  brow.append(okb,nb);
+  root.appendChild(brow);
 }
 
 // ---------- PROGRESS ----------
 function renderProgress(root){
-  root.appendChild(el('div','section-title','전체 진도'));
+  const seg=el('div','ord-seg brseg');
+  const t1=el('button',(state.pgMode==='bible'?'':'on'),'주제별');
+  t1.onclick=()=>{state.pgMode='topic';render();};
+  const t2=el('button',(state.pgMode==='bible'?'on':''),'성경별');
+  t2.onclick=()=>{state.pgMode='bible';render();};
+  seg.append(t1,t2);
+  root.appendChild(seg);
+  if(state.pgMode==='bible') return renderProgressBible(root);
+
+  root.appendChild(el('div','section-title','과정별 진도'));
   COLLS.forEach(c=>{
     const vs=V.filter(v=>v.coll===c.name);
     const done=vs.filter(v=>learned.has(v.id)).length;
@@ -1186,6 +1458,30 @@ function renderProgress(root){
   reset.style.cssText='max-width:200px;margin:22px auto 0;color:var(--bad)';
   reset.onclick=()=>{if(confirm('모든 진도를 지울까요?')){learned=new Set();LS.l=learned;render();}};
   root.appendChild(reset);
+}
+
+// 성경별 진도 — 같은 장절이 여러 과정에 있으면 어느 쪽에서든 외웠으면 외운 것으로 센다
+function renderProgressBible(root){
+  const all=allVerses();
+  const learnedRefs=new Set(V.filter(v=>learned.has(v.id)).map(v=>v.ref));
+  const stat=new Map();
+  all.forEach(v=>{
+    const o=stat.get(v.book)||{t:0,d:0};
+    o.t++; if(learnedRefs.has(v.ref)) o.d++;
+    stat.set(v.book,o);
+  });
+  root.appendChild(el('div','section-title',`성경 ${stat.size}권 진도`));
+  [...stat.keys()].sort((x,y)=>bookIdx(x)-bookIdx(y)).forEach(bk=>{
+    const {t,d}=stat.get(bk);
+    const g=el('div','progress-band');
+    g.style.cursor='pointer';
+    g.innerHTML=`<div class="pb-top"><b>${esc(bk)}</b><span class="pct">${d}/${t}</span></div>`+
+      `<div class="bar"><i style="width:${Math.round(d/t*100)}%"></i></div>`;
+    g.onclick=()=>{ state.brMode='bible'; state.brBook=bk; state.brChap=null; tab='browse'; render(); };
+    root.appendChild(g);
+  });
+  const done=[...stat.values()].reduce((a,o)=>a+o.d,0);
+  root.appendChild(el('div','pinfo',`합계 ${done} / ${all.length} 구절 (중복 장절 제외)`));
 }
 
 // ---------- collection picker (과정 선택만) ----------
@@ -1229,6 +1525,18 @@ function openSettingsSheet(){
     trow.appendChild(b);
   });
   s.appendChild(trow);
+  // 내 표시 (테스트에서 눌러 둔 틀린 어절)
+  s.appendChild(el('div','set-sec','🖍 내 표시'));
+  const allMarked=V.filter(v=>markCount(v));
+  if(allMarked.length){
+    const words=allMarked.reduce((n,v)=>n+markCount(v),0);
+    const mb=el('button','btn ghost',`표시 전체 지우기 (${allMarked.length}구절 · ${words}어절)`);
+    mb.style.color='var(--bad)';
+    mb.onclick=()=>{ if(clearMarksIn(allMarked,'전체')){ openSettingsSheet(); render(); } };
+    s.appendChild(mb);
+  }else{
+    s.appendChild(el('div','pinfo','테스트 채점 결과에서 어절을 누르면 여기에 모입니다'));
+  }
   // 번역
   const vers=D.versions||[{id:curVersion,name:'개역한글'}];
   s.appendChild(el('div','set-sec','📖 번역'));
