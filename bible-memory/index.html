@@ -221,12 +221,11 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .learnbtn.on{background:var(--good);color:#fff}
 
 /* test */
-.mode-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:8px}
-.mode-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
-  box-shadow:var(--shadow);display:flex;gap:14px;align-items:center;text-align:left;width:100%}
-.mode-card .mi{width:44px;height:44px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;font-size:22px;flex:none}
-.mode-card .mt{font-weight:800;font-size:15px}
-.mode-card .md{font-size:12.5px;color:var(--muted);margin-top:2px}
+.how-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+  box-shadow:var(--shadow);margin-bottom:10px}
+.how-card .hc-t{font-weight:800;font-size:15px;margin-bottom:6px}
+.how-card .hc-d{font-size:12.5px;line-height:1.65;color:var(--muted);word-break:keep-all}
+.how-card .hc-d b{color:var(--ink)}
 .quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .quiz-head .qx{font-size:13px;font-weight:800;color:var(--muted)}
 .quiz-head .score{font-size:13px;font-weight:800;color:var(--brand)}
@@ -236,15 +235,58 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .qprompt{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.03em;margin-bottom:10px}
 .qref{font-size:22px;font-weight:800;color:var(--brand)}
 .qtext{font-size:19px;line-height:1.85;letter-spacing:-.01em;word-break:keep-all}
-.opt{width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;
-  padding:14px 16px;margin-bottom:9px;font-size:15px;font-weight:600;box-shadow:var(--shadow);display:flex;gap:10px;align-items:center}
-.opt .ol{width:26px;height:26px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
-.opt.correct{border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--surface))}
-.opt.correct .ol{background:var(--good);color:#fff}
-.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
-.opt.wrong .ol{background:var(--bad);color:#fff}
-.reveal-box{background:var(--surface-2);border-radius:12px;padding:16px;margin:12px 0;font-size:18px;line-height:1.8;word-break:keep-all}
-.selfrow{display:flex;gap:9px;margin-top:6px}
+/* 답 입력칸 — 참조·제목·구절·버튼이 폰 한 화면에 들어오도록 낮게 */
+.qcard.slim{padding:13px 18px;margin-bottom:11px}
+.qcard.slim .qref{font-size:20px}
+.ansfield{margin-bottom:9px}
+.ansfield label{display:block;font-size:11.5px;font-weight:800;color:var(--muted);margin-bottom:4px;letter-spacing:.03em}
+.ansin,.ansta{display:block;width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:11px;
+  padding:10px 13px;font-family:inherit;font-size:16px;color:var(--ink);box-shadow:var(--shadow);line-height:1.6}
+.ansta{min-height:118px;resize:vertical;word-break:keep-all}
+.ansin:focus,.ansta:focus{outline:none;border-color:var(--brand)}
+.qbtnrow{display:flex;gap:9px;margin-top:2px}
+.qbtnrow .qquit{flex:0 0 96px}
+.qbtnrow .qlook{flex:0 0 122px}
+.tord{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
+.tord .tord-l{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.03em}
+/* 시험 볼 구절 훑어보기 — 접었을 땐 장절만, 펼치면 제목·구절 */
+.btn.on{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.pvcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:10px 14px;margin-bottom:7px;box-shadow:var(--shadow);cursor:pointer}
+.pvcard.open{padding-bottom:14px}
+.pvcard .pv-h{display:flex;align-items:baseline;gap:9px}
+.pvcard .pv-n{font-size:11px;font-weight:700;color:var(--muted);min-width:22px;flex:none}
+.pvcard .pv-ref{font-size:15px;font-weight:800;color:var(--brand)}
+.pvcard .pv-body{margin-top:8px;padding-left:31px}
+.pvcard .pv-t{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:5px}
+.pvcard .pv-x{font-size:16px;line-height:1.8;word-break:keep-all}
+.pvcard .pv-x2{font-size:14px;line-height:1.7;color:var(--muted);opacity:.85;
+  margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);word-break:normal}
+/* 채점 결과 */
+.qscore{text-align:center;font-size:14px;font-weight:700;color:var(--muted);margin-bottom:12px}
+.qscore b{font-size:24px;font-weight:800;color:var(--brand)}
+.qscore .qs-sub{font-size:12px}
+.gradebox{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:17px;margin-bottom:11px;box-shadow:var(--shadow)}
+.gradebox .gh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px}
+.gradebox .gh b{font-size:13px}
+.gradebox .gp{font-size:12px;font-weight:800;flex:none}
+.gradebox .gp-good{color:var(--good)}
+.gradebox .gp-accent{color:var(--accent)}
+.gradebox .gp-bad{color:var(--bad)}
+.diff{font-size:17px;line-height:2.05;word-break:keep-all}
+.diff .ok{color:var(--ink)}
+.diff .bad{color:var(--bad);text-decoration:line-through;text-decoration-thickness:1.5px;opacity:.8}
+.diff .fix,.diff .miss{color:var(--good);font-weight:800}
+.diff .miss{border-bottom:2px solid var(--good)}
+.diff .sub{white-space:nowrap}
+.diff .sub .fix::before{content:'→';margin:0 3px;opacity:.6;font-weight:600}
+.gradelegend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:2px 0 14px;font-size:11.5px;font-weight:700;color:var(--muted)}
+.gradelegend .lg{display:inline-flex;align-items:center;gap:5px}
+.gradelegend .sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+.gradelegend .s-ok{background:var(--ink);opacity:.55}
+.gradelegend .s-bad{background:var(--bad)}
+.gradelegend .s-fix{background:var(--good)}
 .result{text-align:center;padding:40px 20px}
 .result .big{font-size:52px;font-weight:800;color:var(--brand);letter-spacing:-.02em}
 .result .rl{color:var(--muted);margin:4px 0 24px;font-weight:700}
@@ -335,7 +377,7 @@ nav.tabs .ti{font-size:20px;line-height:1}
       <h2>네비게이토 성경 암송(TMS) 무료 웹앱</h2>
       <p><strong>네비게이토 성경 암송</strong>은 주제별로 성경 구절을 외우는 네비게이토의 검증된 암송 시스템(TMS, Topical Memory System)입니다.
       이 무료 웹앱은 <strong>개역한글</strong> 본문으로 그리스도와의 새 출발·동행, 확립, 무장 과정을 비롯해
-      5·8·60·100·180·900구절과 DEP 242구절을 주제별로 보고, 참조·제목·구절을 가리고 맞추는 힌트, 4가지 테스트, 진도 추적으로 암송하도록 돕습니다.
+      5·8·60·100·180·900구절과 DEP 242구절을 주제별로 보고, 참조·제목·구절을 가리고 맞추는 힌트, 장절만 보고 제목·구절을 직접 써서 채점받는 테스트, 진도 추적으로 암송하도록 돕습니다.
       설치 없이 휴대폰 브라우저에서 바로 쓰고, 홈 화면에 추가하면 앱처럼 오프라인에서도 열립니다.</p>
       <h3>수록 암송 구절 모음</h3>
       <ul id="seoColls">
@@ -373,13 +415,17 @@ const LS = {
   set l(s){localStorage.bm_learned=JSON.stringify([...s])},
   get coll(){return localStorage.bm_coll||COLLS[0].name},
   set coll(v){localStorage.bm_coll=v},
+  get tcount(){return +localStorage.bm_tcount||0},   // 0 = 전체
+  set tcount(v){localStorage.bm_tcount=String(v||0)},
+  get tshuf(){return localStorage.bm_tshuf==='1'},   // 기본은 순서대로
+  set tshuf(v){localStorage.bm_tshuf=v?'1':'0'},
   get tests(){try{return JSON.parse(localStorage.bm_tests||'[]')}catch(e){return []}},
   set tests(v){localStorage.bm_tests=JSON.stringify(v.slice(-60))}
 };
 let learned = LS.l;
 let curColl = COLLS.find(c=>c.name===LS.coll) ? LS.coll : COLLS[0].name;
 let tab = 'memorize';
-const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
+const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, brScope:'__all', mzScope:null, mzList:[], mzIdx:0, mzHint:0, unlearnedOnly:localStorage.bm_unlearned==='1' };
 function unlearnedToggle(){
   const b=el('button','tool-btn ut'+(state.unlearnedOnly?' on':''),(state.unlearnedOnly?'☑':'☐')+' 안 외운 것만');
   b.onclick=()=>{ state.unlearnedOnly=!state.unlearnedOnly; localStorage.bm_unlearned=state.unlearnedOnly?'1':''; state.lastBrowseColl=null; state.mzList=[]; render(); };
@@ -448,8 +494,9 @@ function nodeStats(node){
   node.children.forEach(c=>{const s=nodeStats(c);t+=s.t;d+=s.d;});
   return {t,d};
 }
-function headingPaths(node,acc){
-  node.children.forEach(c=>{ if(c.children.size>0){acc.push(c.path);headingPaths(c,acc);} });
+// 트리 안의 모든 노드 경로(한번에 다 펼치기용)
+function allNodePaths(node,acc){
+  node.children.forEach(c=>{ acc.push(c.path); allNodePaths(c,acc); });
   return acc;
 }
 // 이 노드 + 모든 하위 노드 경로(한번에 펼치기용)
@@ -459,26 +506,38 @@ function scopeLabel(scope){ return (scope==='__all'||!scope)?'전체':(Array.isA
 function vTitle(v){ return (v.sub&&v.sub.length)?v.sub[v.sub.length-1]:v.ref; }
 function renderBrowse(root){
   const verses=collVerses();
-  const done=verses.filter(v=>learned.has(v.id)).length;
-  const pct=Math.round(done/verses.length*100);
   root.appendChild(collectionBar());
-  root.appendChild(el('div','progress-band',
-    `<div class="pb-top"><b>${esc((COLLS.find(c=>c.name===curColl)||{}).short||'')}</b>`+
-    `<span class="pct">${pct}%</span></div>`+
-    `<div class="bar"><i style="width:${pct}%"></i></div>`+
-    `<div class="pinfo">${done} / ${verses.length} 구절 외움</div>`));
+  // 과정이 바뀌면 범위·펼침 상태를 처음으로
+  if(state.lastBrowseColl!==curColl){ state.openNodes=new Set(); state.brScope='__all'; state.lastBrowseColl=curColl; }
+
+  // 범위 칩 — 암송 탭과 같은 자리, 같은 모양
+  const cats=[...buildTree(verses).keys()];
+  const scopeArr=Array.isArray(state.brScope)?state.brScope:null;
+  const pwrap=el('div','pill-wrap');
+  const prow=el('div','pill-row');
+  const allChip=el('button','chip'+(state.brScope==='__all'?' on':''),'전체 '+verses.length);
+  allChip.onclick=()=>{ state.brScope='__all'; state.openNodes=new Set(); render(); };
+  prow.appendChild(allChip);
+  cats.forEach(c=>{
+    const cn=verses.filter(v=>(v.sub[0]||'전체')===c).length;
+    const ch=el('button','chip'+((scopeArr&&scopeArr[0]===c)?' on':''),esc(c)+' '+cn);
+    // 한 분류만 골랐을 땐 접힌 채로 두면 볼 게 없으므로 바로 펼쳐 준다
+    ch.onclick=()=>{ state.brScope=[c]; state.openNodes=new Set(allNodePaths(buildNTree(verses.filter(v=>scopeMatch(v,[c]))),[])); render(); };
+    prow.appendChild(ch);
+  });
+  pwrap.appendChild(prow);
+  root.appendChild(pwrap);
 
   root.appendChild(el('div','filter-row')).appendChild(unlearnedToggle());
 
-  const shown = state.unlearnedOnly ? verses.filter(v=>!learned.has(v.id)) : verses;
-  if(!shown.length){ root.appendChild(el('div','empty','이 과정을 모두 외웠어요 🎉')); return; }
+  let shown = verses.filter(v=>scopeMatch(v,state.brScope));
+  if(state.unlearnedOnly) shown=shown.filter(v=>!learned.has(v.id));
+  if(!shown.length){ root.appendChild(el('div','empty',state.unlearnedOnly?'이 범위는 다 외웠어요 🎉':'구절이 없습니다.')); return; }
   const tree=buildNTree(shown);
-  // default 대분류만: reset to all-closed when collection changes
-  if(state.lastBrowseColl!==curColl){ state.openNodes=new Set(); state.lastBrowseColl=curColl; }
 
   const tools=el('div','browse-tools');
-  const tOutline=el('button','tool-btn','⊞ 주제까지 펼치기');
-  tOutline.onclick=()=>{ state.openNodes=new Set(headingPaths(tree,[])); render(); };
+  const tOutline=el('button','tool-btn','⊞ 모두 펼치기');
+  tOutline.onclick=()=>{ state.openNodes=new Set(allNodePaths(tree,[])); render(); };
   const tCollapse=el('button','tool-btn','⊟ 모두 접기');
   tCollapse.onclick=()=>{ state.openNodes=new Set(); render(); };
   tools.append(tOutline,tCollapse);
@@ -569,7 +628,7 @@ function openScopeActions(node){
       `<button class="btn ghost" id="scC">닫기</button>`+
     `</div>`;
   $('#scMz').onclick=()=>{ state.mzScope=node.pathArr; state.mzList=[]; tab='memorize'; closeSheet(); render(); };
-  $('#scTt').onclick=()=>{ TState.scope=node.pathArr; TState.mode=null; tab='test'; closeSheet(); render(); };
+  $('#scTt').onclick=()=>{ TState.scope=node.pathArr; TState.started=false; TState.preview=false; tab='test'; closeSheet(); render(); };
   $('#scC').onclick=closeSheet;
   $('#sheetBack').classList.add('show');
 }
@@ -723,10 +782,59 @@ function renderHintText(text,mode){
 }
 
 // ---------- TEST ----------
-const TState={mode:null,scope:'__all',list:[],idx:0,score:0,answered:false};
+// 참조(장절)만 보여주고 제목과 구절을 직접 입력받은 뒤, 어절 단위로 대조해 채점한다.
+const TState={started:false,preview:false,scope:'__all',list:[],idx:0,score:0,graded:null,
+  draft:{title:'',text:''},pvOpen:new Set(),pvAll:false};
 function renderTest(root){
-  if(!TState.mode){ renderTestMenu(root); return; }
+  if(TState.preview){ renderTestPreview(root); return; }
+  if(!TState.started){ renderTestMenu(root); return; }
   renderQuiz(root);
+}
+// 실제로 출제할 목록. 순서 옵션과 문항 수 옵션을 그대로 반영한다.
+function pickList(){
+  let list=collVerses().filter(v=>scopeMatch(v,TState.scope));
+  if(LS.tshuf) shuffle(list);
+  const c=LS.tcount;
+  if(c && c<list.length) list=list.slice(0,c);
+  return list;
+}
+// 시험에 나올 구절을 장절만 쭉 훑어보는 화면. 줄을 누르면 그 구절만, '한번에 보기'는 전부 펼친다.
+function renderTestPreview(root){
+  const list=TState.list;
+  const go=()=>startTest(list);
+  const bar=el('div','qbtnrow');
+  const back=el('button','btn ghost qquit','← 범위');
+  back.onclick=()=>{TState.preview=false;render();};
+  const all=el('button','btn'+(TState.pvAll?' on':''),TState.pvAll?'🙈 접기':'👁 한번에 보기');
+  all.onclick=()=>{TState.pvAll=!TState.pvAll;TState.pvOpen=new Set();render();};
+  const b1=el('button','btn primary','✅ 시작');
+  b1.onclick=go;
+  bar.append(back,all,b1);root.appendChild(bar);
+  root.appendChild(el('div','section-title',`${esc(scopeLabel(TState.scope))} · ${list.length}문항`));
+  list.forEach((v,i)=>{
+    const open=TState.pvAll||TState.pvOpen.has(v.id);
+    const card=el('div','pvcard'+(open?' open':''),
+      `<div class="pv-h"><span class="pv-n">${i+1}</span><span class="pv-ref">${esc(v.ref)}</span></div>`);
+    const body=()=>el('div','pv-body',
+      `<div class="pv-t">${esc(vTitle(v))}</div><div class="pv-x">${esc(T(v))}</div>`+
+      (T2(v)?`<div class="pv-x2">${esc(T2(v))}</div>`:''));
+    if(open) card.appendChild(body());
+    // 목록이 길어 다시 그리면 맨 위로 튀므로, 한 줄 여닫기는 그 자리에서 처리한다
+    card.onclick=()=>{
+      if(TState.pvAll) return;
+      if(TState.pvOpen.has(v.id)){
+        TState.pvOpen.delete(v.id);card.classList.remove('open');
+        const b=card.querySelector('.pv-body'); if(b) b.remove();
+      }else{
+        TState.pvOpen.add(v.id);card.classList.add('open');card.appendChild(body());
+      }
+    };
+    root.appendChild(card);
+  });
+  const b2=el('button','btn primary',`✅ 테스트 시작 (${list.length}문항)`);
+  b2.style.marginTop='12px';
+  b2.onclick=go;
+  root.appendChild(b2);
 }
 function renderTestMenu(root){
   const verses=collVerses();
@@ -753,138 +861,197 @@ function renderTestMenu(root){
   twrap.appendChild(row);
   root.appendChild(twrap);
 
-  root.appendChild(el('div','section-title','유형 선택'));
-  const modes=[
-    ['ref2text','📝','참조 → 구절','장절을 보고 구절을 암송, 스스로 채점'],
-    ['text2ref','🔍','구절 → 참조','구절을 보고 어디 말씀인지 4지선다'],
-    ['blank','✏️','빈칸 채우기','가려진 구절을 떠올린 뒤 확인'],
-    ['title2text','📌','제목 → 구절','제목을 보고 장절·구절 떠올리기'],
-    ['text2title','🏷️','구절 → 제목','구절을 보고 제목 떠올리기']
-  ];
-  const grid=el('div','mode-grid');
-  modes.forEach(([k,ic,t,d])=>{
-    const c=el('button','mode-card',`<div class="mi">${ic}</div><div><div class="mt">${t}</div><div class="md">${d}</div></div>`);
-    c.onclick=()=>startTest(k);
-    grid.appendChild(c);
+  const n=verses.filter(v=>scopeMatch(v,TState.scope)).length;  // 범위 안 구절을 전부 낸다
+  root.appendChild(el('div','how-card',
+    `<div class="hc-t">📝 참조 → 제목 · 구절</div>`+
+    `<div class="hc-d">장절만 보고 <b>제목</b>과 <b>구절 전문</b>을 직접 입력 → 어절 단위 채점`+
+    `<br>띄어쓰기·문장부호는 채점에 반영하지 않습니다.</div>`));
+  const tord=el('div','tord','<span class="tord-l">출제 순서</span>');
+  const seg=el('span','ord-seg');
+  const ordB=el('button',(LS.tshuf?'':'on'),'📖 순서');
+  ordB.onclick=()=>{LS.tshuf=false;render();};
+  const shB=el('button',(LS.tshuf?'on':''),'🔀 섞기');
+  shB.onclick=()=>{LS.tshuf=true;render();};
+  seg.append(ordB,shB);tord.appendChild(seg);
+  root.appendChild(tord);
+
+  // 문항 수: 전체가 기본이고, 범위보다 작은 값만 고를 수 있게 한다
+  const qn=(LS.tcount&&LS.tcount<n)?LS.tcount:n;
+  const trow=el('div','tord','<span class="tord-l">문항 수</span>');
+  const cseg=el('span','ord-seg');
+  const allB=el('button',(qn===n?'on':''),`전체 ${n}`);
+  allB.onclick=()=>{LS.tcount=0;render();};
+  cseg.appendChild(allB);
+  [5,10,20,30,50].filter(c=>c<n).forEach(c=>{
+    const cb=el('button',(qn===c?'on':''),String(c));
+    cb.onclick=()=>{LS.tcount=c;render();};
+    cseg.appendChild(cb);
   });
-  root.appendChild(grid);
+  trow.appendChild(cseg);
+  root.appendChild(trow);
+
+  const brow=el('div','qbtnrow');brow.style.margin='4px 0 6px';
+  const look=el('button','btn ghost qlook','📖 구절 보기');
+  look.disabled=!n;
+  look.onclick=()=>{TState.list=pickList();TState.pvOpen=new Set();TState.pvAll=false;TState.preview=true;render();};
+  const go=el('button','btn primary',`✅ 테스트 시작 (${qn}문항)`);
+  go.disabled=!n;
+  go.onclick=()=>startTest();
+  brow.append(look,go);
+  root.appendChild(brow);
 
   const hist=LS.tests.filter(t=>t.coll===curColl).slice(-5).reverse();
   if(hist.length){
     root.appendChild(el('div','section-title','최근 기록'));
     hist.forEach(h=>{
+      const label=({type:'참조→제목·구절',ref2text:'참조→구절',text2ref:'구절→참조',blank:'빈칸',title2text:'제목→구절',text2title:'구절→제목'})[h.mode]||'테스트';
       root.appendChild(el('div','group',
         `<div style="padding:13px 16px;display:flex;justify-content:space-between;align-items:center">`+
-        `<span style="font-weight:700;font-size:14px">${({ref2text:'참조→구절',text2ref:'구절→참조',blank:'빈칸',title2text:'제목→구절',text2title:'구절→제목'})[h.mode]} · ${esc(h.scope)}</span>`+
-        `<span style="font-weight:800;color:var(--brand)">${h.score}/${h.total}</span></div>`));
+        `<span style="font-weight:700;font-size:14px">${label} · ${esc(h.scope)}</span>`+
+        `<span style="font-weight:800;color:var(--brand)">${fmtScore(h.score)}/${h.total}</span></div>`));
     });
   }
 }
-function startTest(mode){
-  const verses=collVerses();
-  let list=verses.filter(v=>scopeMatch(v,TState.scope));
-  shuffle(list);
-  list=list.slice(0,Math.min(10,list.length));
-  Object.assign(TState,{mode,list,idx:0,score:0,answered:false});
+function startTest(list){
+  list=list||pickList();  // 구절 보기에서 넘어오면 방금 훑어본 그 목록 그대로
+  Object.assign(TState,{started:true,preview:false,list,idx:0,score:0,graded:null,draft:{title:'',text:''}});
   render();
 }
 function endTest(){
-  const t=LS.tests;t.push({coll:curColl,mode:TState.mode,scope:scopeLabel(TState.scope),score:TState.score,total:TState.list.length,at:Date.now()});LS.tests=t;
+  const t=LS.tests;t.push({coll:curColl,mode:'type',scope:scopeLabel(TState.scope),score:Math.round(TState.score*10)/10,total:TState.list.length,at:Date.now()});LS.tests=t;
 }
+const fmtScore=n=>{const r=Math.round((+n||0)*10)/10;return Number.isInteger(r)?String(r):r.toFixed(1);};
+
+// --- 채점: 어절 단위 대조 ---
+// "너희가 그 은혜를" 처럼 공백으로 끊은 어절을 정답과 맞춰본다. 문장부호와 띄어쓰기 차이는 무시한다.
+function tokenize(s){
+  const n=String(s==null?'':s)
+    .replace(/[.,!?;:"'()\[\]{}<>~·…“”‘’「」『』\-–—]/g,' ')
+    .replace(/\s+/g,' ').trim();
+  return n?n.split(' '):[];
+}
+// 정답(a)과 입력(b)의 공통 어절을 최대로 잡아 정렬한다(최장 공통 부분수열).
+function alignTokens(a,b){
+  const n=a.length,m=b.length;
+  const dp=[];
+  for(let i=0;i<=n;i++)dp.push(new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)
+    dp[i][j]= a[i]===b[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
+  const ops=[];let i=0,j=0;
+  while(i<n&&j<m){
+    if(a[i]===b[j]){ops.push(['ok',a[i]]);i++;j++;}
+    else if(dp[i+1][j]>=dp[i][j+1]){ops.push(['miss',a[i]]);i++;}  // 정답에만 있음 = 빠뜨림
+    else {ops.push(['extra',b[j]]);j++;}                            // 입력에만 있음 = 군더더기
+  }
+  while(i<n){ops.push(['miss',a[i]]);i++;}
+  while(j<m){ops.push(['extra',b[j]]);j++;}
+  return ops;
+}
+// 띄어쓰기만 다른 구간은 맞은 것으로 돌린다. "세계비전"과 "세계 비전", "그날이"와 "그 날이"처럼
+// 어절을 붙이거나 떼어 쓴 경우가 여기 걸린다.
+function mergeSpacing(ops){
+  const out=[];let i=0;
+  while(i<ops.length){
+    if(ops[i][0]==='ok'){out.push(ops[i]);i++;continue;}
+    const start=i,miss=[],extra=[];
+    while(i<ops.length&&ops[i][0]!=='ok'){ (ops[i][0]==='miss'?miss:extra).push(ops[i][1]); i++; }
+    if(miss.length&&extra.length&&miss.join('')===extra.join('')) miss.forEach(w=>out.push(['ok',w]));
+    else for(let k=start;k<i;k++) out.push(ops[k]);
+  }
+  return out;
+}
+// 연달아 나온 빠뜨림·군더더기를 짝지어 "쓴 어절 → 정답 어절" 한 덩어리로 묶는다.
+function packOps(ops){
+  const out=[];let i=0;
+  while(i<ops.length){
+    if(ops[i][0]==='ok'){out.push(['ok',ops[i][1],null]);i++;continue;}
+    const miss=[],extra=[];
+    while(i<ops.length&&ops[i][0]!=='ok'){ (ops[i][0]==='miss'?miss:extra).push(ops[i][1]); i++; }
+    const n=Math.max(miss.length,extra.length);
+    for(let k=0;k<n;k++) out.push(['sub',extra[k]||null,miss[k]||null]);
+  }
+  return out;
+}
+function gradeField(answer,input){
+  const a=tokenize(answer),b=tokenize(input);
+  const ops=mergeSpacing(alignTokens(a,b));
+  const hit=ops.filter(o=>o[0]==='ok').length;
+  const acc=a.length?hit/a.length:(b.length?0:1);
+  return {ops:packOps(ops),hit,total:a.length,acc,score:acc>=0.9?1:acc};
+}
+function diffHtml(g){
+  return g.ops.map(([k,typed,right])=>{
+    if(k==='ok') return `<span class="ok">${esc(typed)}</span>`;
+    if(typed&&right) return `<span class="sub"><span class="bad">${esc(typed)}</span><span class="fix">${esc(right)}</span></span>`;
+    if(right) return `<span class="miss">${esc(right)}</span>`;
+    return `<span class="bad">${esc(typed)}</span>`;
+  }).join(' ');
+}
+function gradeBox(label,g,answer){
+  const pct=Math.round(g.acc*100);
+  const cls=pct>=90?'good':pct>=50?'accent':'bad';
+  return el('div','gradebox',
+    `<div class="gh"><b>${esc(label)}</b><span class="gp gp-${cls}">${pct}% · ${g.hit}/${g.total} 어절</span></div>`+
+    `<div class="diff">${g.ops.length?diffHtml(g):`<span class="miss">${esc(answer)}</span>`}</div>`);
+}
+// 구절이 본체이므로 구절 80%, 제목 20%로 문제 점수를 낸다.
+function qScore(g){ return Math.round((g.title.score*0.2+g.text.score*0.8)*100)/100; }
+
 function renderQuiz(root){
-  const {list,idx,mode}=TState;
+  const {list,idx}=TState;
   if(idx>=list.length){ // result
     const pct=Math.round(TState.score/list.length*100);
     const box=el('div','result',
-      `<div class="big">${TState.score}/${list.length}</div>`+
+      `<div class="big">${fmtScore(TState.score)}/${list.length}</div>`+
       `<div class="rl">${pct}점 · ${pct>=80?'훌륭해요! 🎉':pct>=50?'좋아요, 조금 더! 💪':'다시 도전해봐요 🙏'}</div>`);
-    const b1=el('button','btn primary','다시 풀기');b1.style.maxWidth='240px';b1.style.margin='0 auto 10px';b1.onclick=()=>startTest(mode);
-    const b2=el('button','btn ghost','유형 선택으로');b2.style.maxWidth='240px';b2.style.margin='0 auto';b2.onclick=()=>{TState.mode=null;render();};
+    const b1=el('button','btn primary','다시 풀기');b1.style.maxWidth='240px';b1.style.margin='0 auto 10px';b1.onclick=()=>startTest();
+    const b2=el('button','btn ghost','범위 선택으로');b2.style.maxWidth='240px';b2.style.margin='0 auto';b2.onclick=()=>{TState.started=false;render();};
     box.append(b1,b2);root.appendChild(box);return;
   }
   const v=list[idx];
-  const head=el('div','quiz-head',`<span class="qx">${idx+1} / ${list.length}</span><span class="score">점수 ${TState.score}</span>`);
-  root.appendChild(head);
+  root.appendChild(el('div','quiz-head',`<span class="qx">${idx+1} / ${list.length}</span><span class="score">점수 ${fmtScore(TState.score)}</span>`));
   root.appendChild(el('div','qbar',`<i style="width:${idx/list.length*100}%"></i>`));
+  root.appendChild(el('div','qcard slim',`<div class="qref">${esc(v.ref)}</div>`));
 
-  if(mode==='text2ref') return quizText2Ref(root,v);
-  if(mode==='blank') return quizBlank(root,v);
-  if(mode==='title2text') return quizTitle2Text(root,v);
-  if(mode==='text2title') return quizText2Title(root,v);
-  return quizRef2Text(root,v);
-}
-function selfGrade(root){
-  const wrap=el('div');wrap.innerHTML='<div class="section-title" style="text-align:center">얼마나 맞혔나요?</div>';
-  const sr=el('div','selfrow');
-  const ok=el('button','btn primary','✓ 맞음');ok.onclick=()=>nextQ(true);
-  const no=el('button','btn','✗ 틀림');no.onclick=()=>nextQ(false);
-  sr.append(no,ok);wrap.appendChild(sr);root.appendChild(wrap);
-}
-function quizTitle2Text(root,v){
-  root.appendChild(el('div','qcard',`<div class="qprompt">이 제목의 장절·구절을 떠올리세요</div><div class="qref">${esc(vTitle(v))}</div>`));
-  if(!TState.answered){ const b=el('button','btn primary','정답 보기');b.onclick=()=>{TState.answered=true;render();};root.appendChild(b); }
-  else{ root.appendChild(el('div','reveal-box',`<b style="color:var(--brand)">${esc(v.ref)}</b><br>${esc(T(v))}`)); selfGrade(root); }
-}
-function quizText2Title(root,v){
-  root.appendChild(el('div','qcard',`<div class="qprompt">이 구절의 제목은?</div><div class="qtext">${esc(T(v))}</div>`));
-  if(!TState.answered){ const b=el('button','btn primary','제목 확인');b.onclick=()=>{TState.answered=true;render();};root.appendChild(b); }
-  else{ root.appendChild(el('div','reveal-box',`<b style="color:var(--accent)">${esc(vTitle(v))}</b><br><span class="mini">${esc(v.ref)}</span>`)); selfGrade(root); }
-}
-function nextQ(correct){ if(correct)TState.score++; TState.idx++; TState.answered=false;
-  if(TState.idx>=TState.list.length) endTest(); render(); }
+  if(!TState.graded){
+    const tf=el('div','ansfield','<label for="ansT">제목</label>');
+    const ti=el('input','ansin');ti.id='ansT';ti.type='text';ti.autocomplete='off';ti.value=TState.draft.title;
+    ti.oninput=()=>{TState.draft.title=ti.value;};
+    tf.appendChild(ti);root.appendChild(tf);
 
-function quizRef2Text(root,v){
-  const card=el('div','qcard',`<div class="qprompt">이 장절의 구절을 암송하세요</div><div class="qref">${esc(v.ref)}</div>`);
-  root.appendChild(card);
-  if(!TState.answered){
-    const b=el('button','btn primary','정답 보기');b.onclick=()=>{TState.answered=true;render();};
-    root.appendChild(b);
-  }else{
-    root.appendChild(el('div','reveal-box',esc(T(v))));
-    const wrap=el('div');wrap.innerHTML='<div class="section-title" style="text-align:center">얼마나 맞혔나요?</div>';
-    const sr=el('div','selfrow');
-    const ok=el('button','btn primary','✓ 맞음');ok.onclick=()=>nextQ(true);
-    const no=el('button','btn','✗ 틀림');no.onclick=()=>nextQ(false);
-    sr.append(no,ok);wrap.appendChild(sr);root.appendChild(wrap);
+    const xf=el('div','ansfield','<label for="ansX">구절</label>');
+    const xa=el('textarea','ansta');xa.id='ansX';xa.value=TState.draft.text;
+    xa.oninput=()=>{TState.draft.text=xa.value;};
+    xf.appendChild(xa);root.appendChild(xf);
+
+    const rowb=el('div','qbtnrow');
+    const q=el('button','btn ghost qquit','그만두기');
+    q.onclick=()=>{TState.started=false;render();};
+    const b=el('button','btn primary','채점하기');
+    b.onclick=()=>{
+      TState.draft={title:ti.value,text:xa.value};
+      TState.graded={title:gradeField(vTitle(v),TState.draft.title),text:gradeField(T(v),TState.draft.text)};
+      render();
+    };
+    rowb.append(q,b);root.appendChild(rowb);
+    return;
   }
-}
-function quizText2Ref(root,v){
-  const card=el('div','qcard',`<div class="qprompt">이 구절은 어디 말씀일까요?</div><div class="qtext">${esc(T(v))}</div>`);
-  root.appendChild(card);
-  if(!TState._opts||TState._optsFor!==v.id){
-    const pool=collVerses().filter(x=>x.id!==v.id);shuffle(pool);
-    const opts=[v,...pool.slice(0,3)];shuffle(opts);
-    TState._opts=opts;TState._optsFor=v.id;
-  }
-  const letters='ABCD';
-  TState._opts.forEach((o,i)=>{
-    const b=el('button','opt',`<span class="ol">${letters[i]}</span><span>${esc(o.ref)}</span>`);
-    if(TState.answered){
-      if(o.id===v.id)b.classList.add('correct');
-      else if(TState._pick===o.id)b.classList.add('wrong');
-      b.disabled=true;
-    }else{
-      b.onclick=()=>{TState.answered=true;TState._pick=o.id;setTimeout(()=>nextQ(o.id===v.id),750);render();};
-    }
-    root.appendChild(b);
-  });
-}
-function quizBlank(root,v){
-  const card=el('div','qcard');
-  card.innerHTML=`<div class="qprompt">${esc(v.ref)}</div>`+
-    `<div class="qtext">${TState.answered?esc(T(v)):blankOut(T(v))}</div>`;
-  root.appendChild(card);
-  if(!TState.answered){
-    const b=el('button','btn primary','정답 확인');b.onclick=()=>{TState.answered=true;render();};root.appendChild(b);
-  }else{
-    const sr=el('div','selfrow');
-    const ok=el('button','btn primary','✓ 맞음');ok.onclick=()=>nextQ(true);
-    const no=el('button','btn','✗ 틀림');no.onclick=()=>nextQ(false);
-    sr.append(no,ok);root.appendChild(sr);
-  }
-}
-function blankOut(text){
-  return text.split(' ').map((w,i)=>((i*7+3)%5<2)?'<span class="blank" style="border-color:var(--accent)">'+esc(w)+'</span>':esc(w)).join(' ');
+
+  const g=TState.graded, q=qScore(g);
+  root.appendChild(el('div','qscore',`이 문제 <b>${fmtScore(q)}</b><span class="qs-sub"> / 1점</span>`));
+  root.appendChild(gradeBox('제목',g.title,vTitle(v)));
+  root.appendChild(gradeBox('구절',g.text,T(v)));
+  if(idx===0) root.appendChild(el('div','gradelegend',  // 색 설명은 첫 문제에서만
+    `<span class="lg"><i class="sw s-ok"></i>맞음</span>`+
+    `<span class="lg"><i class="sw s-bad"></i>내가 쓴 틀린 어절</span>`+
+    `<span class="lg"><i class="sw s-fix"></i>정답 어절</span>`));
+  const nb=el('button','btn primary',idx+1>=list.length?'결과 보기':'다음 문제');
+  nb.onclick=()=>{
+    TState.score+=q;TState.idx++;TState.graded=null;TState.draft={title:'',text:''};
+    if(TState.idx>=TState.list.length) endTest();
+    render();
+  };
+  root.appendChild(nb);
 }
 
 // ---------- PROGRESS ----------
@@ -918,7 +1085,7 @@ function openCollSheet(){
     const b=el('button','coll-opt'+(c.name===curColl?' on':''),
       `<div><div class="cn">${esc(c.short)}</div><div class="cc">${esc(c.name)}</div></div>`+
       `<span class="cbadge">${done}/${c.count}</span>`);
-    b.onclick=()=>{curColl=c.name;LS.coll=c.name;state.openGroups.clear();state.mzScope=null;TState.scope='__all';TState.mode=null;closeSheet();render();};
+    b.onclick=()=>{curColl=c.name;LS.coll=c.name;state.openGroups.clear();state.mzScope=null;TState.scope='__all';TState.started=false;TState.preview=false;closeSheet();render();};
     s.appendChild(b);
   });
   $('#sheetBack').classList.add('show');
