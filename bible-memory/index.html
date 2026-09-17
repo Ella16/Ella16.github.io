@@ -42,27 +42,32 @@
   --ink:#2b2925; --muted:#7d766a; --brand:#1f6f6b; --brand-ink:#fff;
   --accent:#c9822f; --good:#2e7d59; --bad:#c0523f; --shadow:0 1px 3px rgba(50,40,20,.08),0 6px 20px rgba(50,40,20,.05);
   --r:14px;
+  /* 브라우저가 글 그리기 전에 칠하는 바탕색까지 맞춘다. 이게 없으면 어두운 테마에서도
+     첫 순간 흰 화면이 번쩍인다. */
+  color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#16181a;--surface:#20242a;--surface-2:#2a2f36;--line:#333a42;
+  :root{color-scheme:dark;
+  --bg:#16181a;--surface:#20242a;--surface-2:#2a2f36;--line:#333a42;
   --ink:#e9e6df;--muted:#9aa0a8;--brand:#3fb0a8;--brand-ink:#0c1112;--accent:#e0a760;
   --good:#4cc38a;--bad:#e0715c;--shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);}
 }
 /* 선택형 다크 테마 (data-theme) */
-:root[data-theme="forest"]{--bg:#0f1a14;--surface:#16241c;--surface-2:#1e3128;--line:#294034;
+:root[data-theme="forest"]{color-scheme:dark;--bg:#0f1a14;--surface:#16241c;--surface-2:#1e3128;--line:#294034;
   --ink:#e6efe8;--muted:#93a99b;--brand:#4fbf8b;--brand-ink:#08130d;--accent:#d3a15f;
   --good:#4cc38a;--bad:#e0715c;--shadow:0 1px 3px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.4);}
-:root[data-theme="night"]{--bg:#14121f;--surface:#1e1b2e;--surface-2:#2a2540;--line:#37324f;
+:root[data-theme="night"]{color-scheme:dark;--bg:#14121f;--surface:#1e1b2e;--surface-2:#2a2540;--line:#37324f;
   --ink:#eae7f3;--muted:#a49ec2;--brand:#a78bfa;--brand-ink:#130f22;--accent:#eaa2ce;
   --good:#7bd88f;--bad:#f0808a;--shadow:0 1px 3px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.45);}
-:root[data-theme="sea"]{--bg:#0d1a1e;--surface:#14262b;--surface-2:#1c343b;--line:#274850;
+:root[data-theme="sea"]{color-scheme:dark;--bg:#0d1a1e;--surface:#14262b;--surface-2:#1c343b;--line:#274850;
   --ink:#e3eef0;--muted:#8fa9af;--brand:#3fc7c2;--brand-ink:#05191b;--accent:#6bb6e0;
   --good:#4cc3a0;--bad:#e0715c;--shadow:0 1px 3px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.4);}
-:root[data-theme="home"]{--bg:#f7f3ec;--surface:#fffdf8;--surface-2:#efe7d9;--line:#e5dcc9;
+:root[data-theme="home"]{color-scheme:light;--bg:#f7f3ec;--surface:#fffdf8;--surface-2:#efe7d9;--line:#e5dcc9;
   --ink:#3a2e25;--muted:#8a7d6d;--brand:#d17454;--brand-ink:#fff;--accent:#c07a2e;
   --good:#2e7d59;--bad:#c0523f;--shadow:0 1px 3px rgba(80,55,25,.1),0 6px 20px rgba(80,55,25,.06);}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
+html{background:var(--bg)}
 body{background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   line-height:1.6;-webkit-text-size-adjust:100%}
