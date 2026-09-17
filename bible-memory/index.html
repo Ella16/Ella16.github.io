@@ -1813,6 +1813,7 @@ function navTrack(){
     if(navKeyLast!==null && !navBacking && navSnapLast){
       navStack.push(navSnapLast);
       if(navStack.length>NAVMAX) navStack.shift();
+      topUp();
     }
     navKeyLast=k;
   }
@@ -1831,19 +1832,27 @@ function navBack(){
   if(y){ uiY=y; window.scrollTo(0,y); saveUI(); }   // render()가 맨 위로 올린 것을 보던 자리로
   return true;
 }
-// 뒤로가기를 앱이 먼저 받으려면 히스토리에 우리 몫의 칸이 한 칸 얹혀 있어야 한다.
-// 그 칸이 사라질 때(=뒤로가기) 한 단계 되돌리고 칸을 다시 얹는다.
-let exitArmed=0;
-function pushGuard(){ try{ history.pushState({bm:1},''); }catch(e){} }
+// 뒤로가기를 앱이 먼저 받으려면 히스토리에 우리 몫의 칸이 얹혀 있어야 한다. 그런데 크롬은
+// 사용자가 화면을 건드리기 전에 페이지가 만든 칸을 '건너뛰어도 되는 칸'으로 보고 뒤로가기 때
+// 그냥 지나친다. 앱을 열자마자 만든 칸은 폰에서 통째로 무시돼, 한 번만 눌러도 앱이 닫혔다.
+// 그래서 칸은 탭·키 입력 안에서만 만들고, 늘 '쌓아 둔 화면 수 + 여분 한 칸'을 채워 둔다.
+let histDepth=0;
 try{ history.replaceState({bm:0},''); }catch(e){}
-pushGuard();
-addEventListener('popstate',()=>{
-  if(navBack()){ pushGuard(); return; }
-  // 더 되돌릴 게 없는 첫 화면. 실수로 닫히지 않게 한 번 더 눌러야 나간다.
-  if(Date.now()-exitArmed<2000){ history.back(); return; }
-  exitArmed=Date.now();
+function topUp(){
+  while(histDepth<navStack.length+1){
+    histDepth++;
+    try{ history.pushState({bm:histDepth},''); }catch(e){ histDepth--; break; }
+  }
+}
+['pointerdown','touchstart','keydown'].forEach(ev=>addEventListener(ev,topUp,{capture:true,passive:true}));
+addEventListener('popstate',e=>{
+  const n=(e.state&&e.state.bm)|0;
+  if(n>histDepth){ histDepth=n; return; }   // 앞으로 가기 — 되돌릴 게 아니다
+  histDepth=n;
+  if(navBack()) return;
+  // 더 되돌릴 게 없는 첫 화면. 여기서 한 번 더 누르면 정말 나간다.
+  // (중간에 화면을 한 번 건드리면 여분 칸이 다시 채워져 또 물어본다)
   toast('한 번 더 누르면 나갑니다');
-  pushGuard();
 });
 let toastTimer=0;
 function toast(msg){
