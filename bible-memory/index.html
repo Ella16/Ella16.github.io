@@ -149,6 +149,11 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .sheet-back{position:fixed;inset:0;background:rgba(20,16,8,.5);z-index:40;display:flex;
   align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .sheet-back.show{opacity:1;pointer-events:auto}
+/* 잠깐 떴다 사라지는 알림 한 줄 (하단 탭 위) */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 74px);
+  z-index:60;max-width:80%;background:rgba(20,16,8,.88);color:#fff;font-size:13px;font-weight:700;
+  padding:9px 16px;border-radius:999px;text-align:center;opacity:0;pointer-events:none;transition:opacity .18s}
+.toast.show{opacity:1}
 .sheet{background:var(--surface);width:100%;max-width:640px;border-radius:20px 20px 0 0;
   padding:8px 20px calc(env(safe-area-inset-bottom) + 20px);transform:translateY(100%);
   transition:transform .28s cubic-bezier(.2,.8,.2,1);max-height:88vh;overflow:auto}
@@ -463,6 +468,7 @@ nav.tabs button.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 
 </div>
 
 <div class="sheet-back" id="sheetBack"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="data.js"></script>
 <script>
@@ -554,6 +560,7 @@ function render(){
   else renderProgress(v);
   window.scrollTo(0,0); uiY=0;
   saveUI();
+  navTrack();
 }
 
 // ---------- BROWSE (nested accordion) ----------
@@ -1165,20 +1172,24 @@ const TABS=['memorize','browse','test','progress'];
 // 브라우저가 새로고침 때 스크롤을 자기 마음대로 되돌리면 복원한 자리를 덮어쓴다. 스크롤은 우리가 챙긴다.
 try{ if('scrollRestoration' in history) history.scrollRestoration='manual'; }catch(e){}
 let uiRestoring=false, uiY=0, uiTimer=0;
+// 지금 보고 있는 화면 한 장. 앱을 껐다 켤 때(bm_ui)와 뒤로가기가 같은 장을 쓴다.
+function snapshot(){
+  return {
+    tab, coll:curColl, y:uiY,
+    browse:{mode:state.brMode,scope:state.brScope,book:state.brBook,chap:state.brChap,open:[...state.openNodes],show:state.show,vopen:[...state.vOpen]},
+    mz:{pick:state.mzPick,book:state.mzBook,scope:state.mzScope,idx:state.mzIdx,show:state.mzShow,hint:state.mzHintKind,shuffled:!!state.mzShuffled,ids:(state.mzList||[]).map(v=>v.id)},
+    test:{started:TState.started,idx:TState.idx}
+  };
+}
 function saveUI(){
   if(uiRestoring) return;
-  try{
-    localStorage.bm_ui=JSON.stringify({
-      tab, coll:curColl, y:uiY,
-      browse:{mode:state.brMode,scope:state.brScope,book:state.brBook,chap:state.brChap,open:[...state.openNodes],show:state.show,vopen:[...state.vOpen]},
-      mz:{pick:state.mzPick,book:state.mzBook,scope:state.mzScope,idx:state.mzIdx,show:state.mzShow,hint:state.mzHintKind,shuffled:!!state.mzShuffled,ids:(state.mzList||[]).map(v=>v.id)}
-    });
-  }catch(e){}
+  try{ localStorage.bm_ui=JSON.stringify(snapshot()); }catch(e){}
 }
 // 스크롤은 계속 바뀌므로 한 박자 늦춰 저장한다.
 addEventListener('scroll',()=>{
   if(uiRestoring) return;
   uiY=window.scrollY|0;
+  if(navSnapLast) navSnapLast.y=uiY;   // 뒤로 돌아왔을 때 보던 자리까지 되살리려고
   if(uiTimer) return;
   uiTimer=setTimeout(()=>{uiTimer=0;saveUI();},400);
 },{passive:true});
@@ -1190,6 +1201,37 @@ function restoreMzList(ids){
   state.mzList = ordered.length===list.length ? ordered : list.slice();
   if(state.mzIdx>=state.mzList.length) state.mzIdx=0;
 }
+// 찍어 둔 장을 그대로 펼친다. 되돌려야 할 스크롤 높이만 돌려주고, 화면 그리기는 부르는 쪽이 한다.
+// withTest: 풀던 시험 안으로도 돌아갈지. 뒤로가기는 그대로 돌아가고, 앱을 새로 열 때는 버린다.
+function applyUI(u,withTest){
+  if(u.coll && COLLS.some(c=>c.name===u.coll)){ curColl=u.coll; LS.coll=u.coll; }
+  const b=u.browse||{};
+  state.brMode=(b.mode==='bible'?'bible':'topic');
+  state.brScope=b.scope||'__all'; state.brBook=b.book||null;
+  state.brChap=(b.chap==null?null:b.chap);
+  state.openNodes=new Set(b.open||[]);
+  const w=b.show||{};
+  state.show={ref:w.ref!==false,title:w.title!==false,text:w.text!==false};
+  state.vOpen=new Set(b.vopen||[]);
+  state.lastBrowseColl=curColl;   // 되살린 펼침 상태를 renderBrowse가 초기화하지 않게
+  const m=u.mz||{};
+  state.mzPick=(m.pick==='bible'?'bible':'topic'); state.mzBook=m.book||null;
+  state.mzScope=m.scope||'__all';
+  // 예전 판의 가리기 모드 한 글자를 세 조각으로 옮긴다
+  const OLD={vt:[1,0,0,''],verse:[1,1,0,''],title:[1,0,1,''],ref:[0,1,1,''],all:[0,0,0,''],
+    first:[1,1,0,'first'],blank:[1,1,0,'blank']};
+  if(m.show){ state.mzShow={ref:!!m.show.ref,title:!!m.show.title,text:!!m.show.text}; state.mzHintKind=m.hint||''; }
+  else { const o=OLD[m.mode]||OLD.vt; state.mzShow={ref:!!o[0],title:!!o[1],text:!!o[2]}; state.mzHintKind=o[3]; }
+  state.mzShuffled=!!m.shuffled; state.mzIdx=m.idx||0; state.mzReveal=false;
+  restoreMzList(m.ids);
+  // 풀던 시험을 되살리려면 그때 뽑아 둔 문항 목록이 아직 손에 있어야 한다.
+  const t=u.test||{};
+  if(withTest && t.started && TState.list && TState.list.length){ TState.started=true; TState.idx=t.idx|0; }
+  else TState.started=false;
+  tab=TABS.includes(u.tab)?u.tab:'memorize';
+  if(tab==='test' && !TState.started) tab='browse';   // 시험은 없는데 시험 화면만 남은 값
+  return u.y|0;
+}
 function restoreUI(){
   let u=null;
   try{ u=JSON.parse(localStorage.bm_ui||'null'); }catch(e){}
@@ -1197,33 +1239,8 @@ function restoreUI(){
   if(!u) return false;
   let y=0;
   uiRestoring=true;
-  try{
-    if(u.coll && COLLS.some(c=>c.name===u.coll)){ curColl=u.coll; LS.coll=u.coll; }
-    const b=u.browse||{};
-    state.brMode=(b.mode==='bible'?'bible':'topic');
-    state.brScope=b.scope||'__all'; state.brBook=b.book||null;
-    state.brChap=(b.chap==null?null:b.chap);
-    state.openNodes=new Set(b.open||[]);
-    const w=b.show||{};
-    state.show={ref:w.ref!==false,title:w.title!==false,text:w.text!==false};
-    state.vOpen=new Set(b.vopen||[]);
-    state.lastBrowseColl=curColl;   // 되살린 펼침 상태를 renderBrowse가 초기화하지 않게
-    const m=u.mz||{};
-    state.mzPick=(m.pick==='bible'?'bible':'topic'); state.mzBook=m.book||null;
-    state.mzScope=m.scope||'__all';
-    // 예전 판의 가리기 모드 한 글자를 세 조각으로 옮긴다
-    const OLD={vt:[1,0,0,''],verse:[1,1,0,''],title:[1,0,1,''],ref:[0,1,1,''],all:[0,0,0,''],
-      first:[1,1,0,'first'],blank:[1,1,0,'blank']};
-    if(m.show){ state.mzShow={ref:!!m.show.ref,title:!!m.show.title,text:!!m.show.text}; state.mzHintKind=m.hint||''; }
-    else { const o=OLD[m.mode]||OLD.vt; state.mzShow={ref:!!o[0],title:!!o[1],text:!!o[2]}; state.mzHintKind=o[3]; }
-    state.mzShuffled=!!m.shuffled; state.mzIdx=m.idx||0; state.mzReveal=false;
-    restoreMzList(m.ids);
-    // 풀던 시험은 되살리지 않는다. 채점 중간 상태로 다시 열리면 헷갈린다.
-    TState.started=false;
-    tab=TABS.includes(u.tab)?u.tab:'memorize';
-    if(tab==='test') tab='browse';   // 예전 판이 남긴 값
-    y=u.y|0;
-  }catch(e){ uiRestoring=false; return false; }
+  // 채점 중간 상태로 다시 열리면 헷갈리니, 앱을 새로 열 때는 풀던 시험을 버린다.
+  try{ y=applyUI(u,false); }catch(e){ uiRestoring=false; return false; }
   uiRestoring=false;
   render();
   // render()는 화면을 맨 위로 돌리고 uiY도 0으로 만든다. 저장해 둔 자리는 그 전에 따로 챙겨 뒀다가 여기서 되돌린다.
@@ -1772,6 +1789,64 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='ArrowLeft'){e.preventDefault();mzGo(-1);}
   else if(e.key===' '||e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();mzReveal();}
 });
+
+// ---------- 뒤로가기 ----------
+// 이 앱은 페이지가 하나라, 화면을 옮겨도 브라우저 히스토리는 그대로다. 그냥 두면 뒤로가기 한 번에
+// 페이지를 벗어나 앱이 닫힌다. 그래서 파고든 단계를 우리가 직접 쌓아 두고 한 장씩 되돌린다.
+// 예: 둘러보기 → 성경별 → 요한복음 → 3장이면, 뒤로가기 세 번에 처음 화면으로 오고 거기서 또 누르면 종료.
+const NAVMAX=50;
+let navStack=[], navKeyLast=null, navSnapLast=null, navBacking=false;
+// 되돌릴 만한 '단계'인지 가리는 열쇠. 암송 카드 넘기기·구절 펼치기처럼 잦은 것은 일부러 뺐다.
+// 이게 바뀔 때만 직전 화면을 한 장 쌓는다.
+function navKey(){
+  return JSON.stringify([tab,curColl,state.brMode,state.brScope,state.brBook,state.brChap,
+    [...state.openNodes].sort(), state.mzScope, TState.started, TState.started?TState.idx:0]);
+}
+function navTrack(){
+  const k=navKey();
+  if(k!==navKeyLast){
+    if(navKeyLast!==null && !navBacking && navSnapLast){
+      navStack.push(navSnapLast);
+      if(navStack.length>NAVMAX) navStack.shift();
+    }
+    navKeyLast=k;
+  }
+  navSnapLast=snapshot();
+}
+// 한 단계 되돌린다. 되돌릴 게 있었으면 true.
+function navBack(){
+  // 시트가 떠 있으면 시트부터 닫는다. 시트는 화면을 옮긴 게 아니라 위에 얹힌 것이라 스택에 없다.
+  if($('#sheetBack').classList.contains('show')){ closeSheet(); return true; }
+  if(!navStack.length) return false;
+  const u=navStack.pop();
+  let y=0;
+  navBacking=true;
+  try{ y=applyUI(u,true); render(); }
+  finally{ navBacking=false; }
+  if(y){ uiY=y; window.scrollTo(0,y); saveUI(); }   // render()가 맨 위로 올린 것을 보던 자리로
+  return true;
+}
+// 뒤로가기를 앱이 먼저 받으려면 히스토리에 우리 몫의 칸이 한 칸 얹혀 있어야 한다.
+// 그 칸이 사라질 때(=뒤로가기) 한 단계 되돌리고 칸을 다시 얹는다.
+let exitArmed=0;
+function pushGuard(){ try{ history.pushState({bm:1},''); }catch(e){} }
+try{ history.replaceState({bm:0},''); }catch(e){}
+pushGuard();
+addEventListener('popstate',()=>{
+  if(navBack()){ pushGuard(); return; }
+  // 더 되돌릴 게 없는 첫 화면. 실수로 닫히지 않게 한 번 더 눌러야 나간다.
+  if(Date.now()-exitArmed<2000){ history.back(); return; }
+  exitArmed=Date.now();
+  toast('한 번 더 누르면 나갑니다');
+  pushGuard();
+});
+let toastTimer=0;
+function toast(msg){
+  const t=$('#toast'); if(!t) return;
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),1900);
+}
 
 // 열 때 마지막으로 보던 화면 그대로
 (function initView(){ if(!restoreUI()) render(); })();
