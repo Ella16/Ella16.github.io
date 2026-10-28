@@ -229,7 +229,7 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .acc-head .acc-exp:active{opacity:1;background:var(--accent);color:#fff}
 .acc-head .acc-go svg,.acc-head .acc-exp svg{display:block;width:15px;height:15px}
 .acc-head.leaf{cursor:default}
-.acc-head.leaf .at{color:var(--accent);font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-head.leaf .at{color:var(--accent);font-weight:700;flex:1;min-width:0;word-break:keep-all;overflow-wrap:anywhere}
 .scope-crumb{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 12px;margin-bottom:10px;font-size:13px;font-weight:700}
 .scope-crumb>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent)}
 .scope-crumb .crumb-x{flex:none;width:26px;height:26px;border-radius:7px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:12px}
@@ -237,7 +237,7 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .group>.acc-head{border-top:none}
 .acc-head .caret{transition:transform .2s;color:var(--muted);flex:none}
 .acc-head.open>.caret{transform:rotate(90deg)}
-.acc-head .at{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-head .at{flex:1;min-width:0;word-break:keep-all;overflow-wrap:anywhere}   /* 제목은 자르지 않고 줄을 바꾼다 */
 .acc-head .ac{font-size:11.5px;color:var(--muted);font-weight:700;background:var(--surface-2);padding:2px 8px;border-radius:99px;flex:none}
 .acc-head.d1{font-size:14px}
 .acc-head.d1 .at{color:var(--brand)}
@@ -556,7 +556,7 @@ function collectionBar(){
   b.onclick=openCollSheet;
   return b;
 }
-function render(){
+function render(keepY){
   const navTab = tab==='test' ? 'browse' : tab;   // 테스트는 둘러보기에서 들어온 화면
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===navTab));
   const v=$('#viewInner'); v.innerHTML='';
@@ -564,7 +564,7 @@ function render(){
   else if(tab==='memorize') renderMemorize(v);
   else if(tab==='test') renderTest(v);
   else renderProgress(v);
-  window.scrollTo(0,0); uiY=0;
+  if(!keepY){ window.scrollTo(0,0); uiY=0; }
   saveUI();
   navTrack();
 }
@@ -966,6 +966,15 @@ function refreshCounts(){
     b.textContent=d+'/'+t;
   });
 }
+// 분류 머리글을 여닫을 땐 화면을 맨 위로 보내지 않는다. 누른 머리글이 화면의 같은 높이에 남도록
+// 다시 그린 뒤 그만큼만 스크롤을 맞춘다(위쪽에 열린 분류가 있어도 누른 자리에서 아래로만 펼쳐진다).
+function renderKeep(head){
+  const path=head.dataset.path, top=head.getBoundingClientRect().top;
+  render(true);
+  const h=[...document.querySelectorAll('#viewInner .acc-head')].find(x=>x.dataset.path===path);
+  if(h) window.scrollBy(0,h.getBoundingClientRect().top-top);
+  uiY=window.scrollY|0; if(navSnapLast) navSnapLast.y=uiY; saveUI();
+}
 function renderNode(node,parent,depth){
   const {t,d}=nodeStats(node);
   const hasKids=node.children.size>0;
@@ -990,12 +999,13 @@ function renderNode(node,parent,depth){
   const head=el('button','acc-head d'+depth+(isOpen?' open':''),
     CARET+`<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span>`+expBtn+`<span class="acc-go" title="이 범위 암송·시험">${TICON(PENCIL)}</span>`);
   head.style.paddingLeft=(15+depth*16)+'px';
+  head.dataset.path=node.path;
   head.querySelector('.ac')._node=node;
-  head.onclick=()=>{ isOpen?state.openNodes.delete(node.path):state.openNodes.add(node.path); render(); };
+  head.onclick=()=>{ isOpen?state.openNodes.delete(node.path):state.openNodes.add(node.path); renderKeep(head); };
   if(hasKids) head.querySelector('.acc-exp').onclick=e=>{ e.stopPropagation();
     const paths=subtreePaths(node,[]); const allOpen=paths.every(p=>state.openNodes.has(p));
     if(allOpen) paths.forEach(p=>state.openNodes.delete(p)); else paths.forEach(p=>state.openNodes.add(p));
-    render();
+    renderKeep(head);
   };
   head.querySelector('.acc-go').onclick=e=>{ e.stopPropagation(); openScopeActions(node); };
   if(depth===0){
@@ -1769,8 +1779,9 @@ if($('#hStat')) $('#hStat').onclick=openSettingsSheet;          // 헤더 통계
 async function loadStats(){
   if(location.protocol.indexOf('http')!==0) return;            // file://은 스킵
   const day=cntDay();
-  // 방문: 설치앱(홈화면 PWA)에선 카운트 안 함 + 브라우저도 하루 1회만
-  const vNew = !isStandalone() && localStorage.bm_vday!==day;
+  // 방문: 이미 다운로드(설치)한 사람은 앱으로 열든 브라우저로 열든 카운트 안 함 + 브라우저도 하루 1회만
+  if(isStandalone()) localStorage.bm_installed='1';   // 앱으로 한 번 열었으면 이 기기는 설치한 것으로 기억
+  const vNew = localStorage.bm_installed!=='1' && localStorage.bm_vday!==day;
   const vKind = vNew?'hit':'get'; if(vNew) localStorage.bm_vday=day;
   const [va,vt,ia,it]=await Promise.all([
     cntCall(vKind,'visits'), cntCall(vKind,'visits-'+day),
