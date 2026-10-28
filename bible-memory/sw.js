@@ -1,4 +1,4 @@
-const CACHE = 'malssum-v55';
+const CACHE = 'malssum-v56';
 const ASSETS = ['./', './index.html', './data.js', './manifest.webmanifest', './icon.svg',
   './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png'];
 self.addEventListener('install', e => {
