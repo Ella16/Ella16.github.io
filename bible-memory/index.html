@@ -984,7 +984,7 @@ function renderNode(node,parent,depth){
   if(!hasKids && (depth>0 || !state.show.title)){
     if(state.show.title){
       const head=el('div','acc-head leaf d'+depth,
-        `<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span><span class="acc-go" title="이 범위 암송·시험">${TICON(PENCIL)}</span>`);
+        `<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span><span class="acc-go" title="이 범위 시험">${TICON(PENCIL)}</span>`);
       head.style.paddingLeft=(15+depth*16+22)+'px';
       head.querySelector('.ac')._node=node;
       head.querySelector('.acc-go').onclick=e=>{ e.stopPropagation(); openScopeActions(node); };
@@ -997,7 +997,7 @@ function renderNode(node,parent,depth){
   const expOn=hasKids && subtreePaths(node,[]).every(p=>state.openNodes.has(p));
   const expBtn=hasKids?`<span class="acc-exp" title="이 아래 전부 펼치기">${TICON(expOn?EXP_IN:EXP_OUT)}</span>`:'';
   const head=el('button','acc-head d'+depth+(isOpen?' open':''),
-    CARET+`<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span>`+expBtn+`<span class="acc-go" title="이 범위 암송·시험">${TICON(PENCIL)}</span>`);
+    CARET+`<span class="at">${esc(node.name)}</span><span class="ac">${d}/${t}</span>`+expBtn+`<span class="acc-go" title="이 범위 시험">${TICON(PENCIL)}</span>`);
   head.style.paddingLeft=(15+depth*16)+'px';
   head.dataset.path=node.path;
   head.querySelector('.ac')._node=node;
@@ -1050,13 +1050,11 @@ function openScopeActions(node){
     `<div class="sref" style="font-size:17px">${esc(node.name)}</div>`+
     `<div class="spath">${esc(node.pathArr.join(' › '))} · ${t}구절 · ${d} 외움</div>`+
     `<div class="sactions" style="flex-direction:column">`+
-      `<button class="btn primary" id="scMz">🎯 이 범위 암송하기</button>`+
-      `<button class="btn" id="scTt">✅ 이 범위 시험하기</button>`+
+      `<button class="btn primary" id="scTt">✅ 이 범위 시험하기</button>`+
       (marked.length?`<button class="btn ghost" id="scM" style="color:var(--bad)">🖍 이 범위 표시 지우기 (${marked.length}구절)</button>`:'')+
       `<button class="btn ghost" id="scC">닫기</button>`+
     `</div>`;
   if(marked.length) $('#scM').onclick=()=>clearMarksIn(verses,node.name,render);
-  $('#scMz').onclick=()=>{ state.mzScope=node.pathArr; state.mzList=[]; tab='memorize'; closeSheet(); render(); };
   $('#scTt').onclick=()=>openTestSetup(node.pathArr,node.name);
   $('#scC').onclick=closeSheet;
   $('#sheetBack').classList.add('show');
