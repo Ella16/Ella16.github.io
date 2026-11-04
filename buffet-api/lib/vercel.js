@@ -5,6 +5,7 @@ const handle = createApp({
   store: blobStore,
   salt: process.env.BUFFET_SALT,
   adminPassword: process.env.BUFFET_ADMIN_PASSWORD,
+  cronSecret: process.env.CRON_SECRET,
   allowedOrigins: (process.env.ALLOWED_ORIGINS || 'https://ella16.github.io').split(',').map(s => s.trim()),
 });
 

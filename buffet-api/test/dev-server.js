@@ -6,13 +6,18 @@ import path from 'node:path';
 import { createApp } from '../lib/app.js';
 import { fsStore } from '../lib/store-fs.js';
 import { blobStore } from '../lib/store-blob.js';
+import * as realGeo from '../lib/geo.js';
 
 const root = path.resolve(process.argv[2] || './.local-blob');
 const API = Number(process.env.API_PORT || 8788), WEB = Number(process.env.WEB_PORT || 8787);
 const site = path.resolve(new URL('../..', import.meta.url).pathname);
 // STORE=blob 이면 실제 Vercel Blob (BLOB_READ_WRITE_TOKEN 필요)
 const store = process.env.STORE === 'blob' ? blobStore : fsStore(root, `http://localhost:${API}/blob`);
-const handle = createApp({ store, salt: 'test', adminPassword: process.env.ADMIN || 'test-admin', allowedOrigins: [`http://localhost:${WEB}`] });
+// FAKE_GEO=1 이면 주소 검색 대신 역에서 동쪽 400m 로 둔다 (주소에 '없는' 이 들어가면 못 찾은 것으로)
+const geo = process.env.FAKE_GEO ? { ...realGeo,
+  geocode: async (a, st) => /없는/.test(a) ? null : { lat: st.lat, lng: st.lng + 400 / (111320 * Math.cos(st.lat * Math.PI / 180)) },
+  walkFrom: async (st, pt) => ({ meters: Math.round(realGeo.haversine(st, pt) * 1.25), via: 'route' }) } : realGeo;
+const handle = createApp({ geo, cronSecret: 'dev', store, salt: 'test', adminPassword: process.env.ADMIN || 'test-admin', allowedOrigins: [`http://localhost:${WEB}`] });
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.xml': 'application/xml' };
 
 http.createServer(async (req, res) => {

@@ -2,7 +2,13 @@
 
 `buffet/` 화면이 쓰는 서버. Vercel 함수 + Vercel Blob 저장소. 데이터베이스는 따로 없다.
 
-- `api/*.js` — Vercel 함수 입구 (days, day, post, comment, like, report, admin)
+- 역(`lib/stations.js`) → 그 역 근처 뷔페 → 날짜별 메뉴 글 구조
+- 뷔페를 등록할 때 주소로 위치를 찾고(`lib/geo.js`), 역에서 걷는 거리를 OSM 도보 길찾기로 재서 분당 67m 로 도보 시간을 낸다.
+  주소를 못 찾거나 역에서 2.5km 넘게 떨어진 곳이 나오면 사용자가 도보 시간을 직접 적는다.
+  Vercel 환경 변수 `KAKAO_REST_KEY` 를 넣으면 카카오 주소 검색을 먼저 써서 더 정확해진다(없으면 OpenStreetMap Nominatim).
+- 지난 메뉴는 7일까지만 보이고, 매일 01:20(한국 시간) Vercel Cron 이 `/api/cleanup` 으로 그보다 오래된 글·사진을 지운다(`CRON_SECRET` 필요). 뷔페는 지우지 않는다.
+
+- `api/*.js` — Vercel 함수 입구 (stations, days, day, buffet, reportBuffet, post, comment, like, report, admin, cleanup)
 - `lib/app.js` — 실제 처리. 저장 경로 규칙은 파일 맨 위 주석에 있다
 - `lib/store-blob.js` — Vercel Blob, `lib/store-fs.js` — 시험용 로컬 폴더
 
@@ -10,7 +16,7 @@
 
 ```bash
 npm ci && npm test                 # API 단위 시험
-node test/dev-server.js /tmp/blob  # http://localhost:8787/buffet/ (config.js 의 apiBase 를 http://localhost:8788 로 바꿔서 확인)
+FAKE_GEO=1 node test/dev-server.js /tmp/blob  # http://localhost:8787/buffet/ (config.js 의 apiBase 를 http://localhost:8788 로 바꿔서 확인)
 ```
 
 실제 Blob 으로 시험: `vercel env pull` 후 `set -a; . ./.env.local; set +a; NODE_USE_ENV_PROXY=1 STORE=blob node test/dev-server.js`
