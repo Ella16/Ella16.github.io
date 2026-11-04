@@ -2,5 +2,5 @@
 // apiBase 가 비어 있으면 앱은 "준비 중" 화면을 보여 준다.
 window.BUFFET_CONFIG = {
   name: '우리동네 한식뷔페',
-  apiBase: '',
+  apiBase: 'https://buffet-api.vercel.app',
 };

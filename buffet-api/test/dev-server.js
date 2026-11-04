@@ -5,11 +5,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createApp } from '../lib/app.js';
 import { fsStore } from '../lib/store-fs.js';
+import { blobStore } from '../lib/store-blob.js';
 
 const root = path.resolve(process.argv[2] || './.local-blob');
 const API = Number(process.env.API_PORT || 8788), WEB = Number(process.env.WEB_PORT || 8787);
 const site = path.resolve(new URL('../..', import.meta.url).pathname);
-const store = fsStore(root, `http://localhost:${API}/blob`);
+// STORE=blob 이면 실제 Vercel Blob (BLOB_READ_WRITE_TOKEN 필요)
+const store = process.env.STORE === 'blob' ? blobStore : fsStore(root, `http://localhost:${API}/blob`);
 const handle = createApp({ store, salt: 'test', adminPassword: process.env.ADMIN || 'test-admin', allowedOrigins: [`http://localhost:${WEB}`] });
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.xml': 'application/xml' };
 

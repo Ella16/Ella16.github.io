@@ -13,7 +13,14 @@ npm ci && npm test                 # API 단위 시험
 node test/dev-server.js /tmp/blob  # http://localhost:8787/buffet/ (config.js 의 apiBase 를 http://localhost:8788 로 바꿔서 확인)
 ```
 
-## 처음 배포 (아직 안 함)
+실제 Blob 으로 시험: `vercel env pull` 후 `set -a; . ./.env.local; set +a; NODE_USE_ENV_PROXY=1 STORE=blob node test/dev-server.js`
+
+## 배포 (2026-11-04 완료)
+
+Vercel 개인 팀 `zalakabula-6485s-projects` 의 프로젝트 `buffet-api` → https://buffet-api.vercel.app (서울 icn1).
+Blob 스토어 `buffet-menu` (public, icn1). 관리자 비밀번호는 Vercel 환경 변수 `BUFFET_ADMIN_PASSWORD`.
+
+### 처음 배포할 때 했던 순서
 
 필요한 접속: api.vercel.com, vercel.com, *.vercel-storage.com. 토큰은 환경 변수 `VERCEL_TOKEN`.
 
