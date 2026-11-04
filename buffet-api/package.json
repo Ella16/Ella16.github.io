@@ -1,0 +1,19 @@
+{
+  "name": "buffet-api",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/blob": "2.8.2"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  }
+}
