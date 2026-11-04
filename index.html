@@ -103,7 +103,7 @@
     .program-card.feature-food h3 { color: #fbf1e3; font-family: "Gowun Batang", serif; font-size: 21px; }
     .program-card.feature-food p { color: #e2cfb6; max-width: 80%; }
     .program-card.feature-food .tag { background: rgba(215,154,43,.2); color: #f0c46e; }
-    .ff-eyebrow { display: block; font-size: 11px; letter-spacing: .22em; color: #d79a2b; font-weight: 700; margin-bottom: 4px; }
+    .ff-eyebrow { display: block; font-size: 12px; letter-spacing: .06em; color: #d79a2b; font-weight: 700; margin-bottom: 4px; }
     .ff-cta { display: inline-block; margin-top: 12px; background: #b3261e; color: #fffaf2; font-weight: 800; font-size: 14px; border-radius: 999px; padding: 7px 14px; }
     .ff-emoji { position: absolute; right: 14px; top: 50%; transform: translateY(-50%) rotate(-8deg); font-size: 64px; opacity: .9; }
     @media (max-width: 480px) { .ff-emoji { top: 14px; transform: rotate(-8deg); font-size: 40px; } .program-card.feature-food h3, .ff-eyebrow { padding-right: 52px; } .program-card.feature-food p { max-width: none; } }
@@ -149,8 +149,8 @@
     <div class="programs">
       <a class="program-card feature-food" href="buffet/">
         <span class="ff-emoji" aria-hidden="true">🍚</span>
-        <span class="ff-eyebrow">TODAY'S MENU · NEW</span>
-        <h3><span data-i18n="buffet_title">오늘 한식뷔페 메뉴</span><span class="tag" data-i18n="buffet_tag">웹앱 · 역별 게시판</span></h3>
+        <span class="ff-eyebrow" data-i18n="buffet_eyebrow">오늘의 메뉴 · 새로 나왔어요</span>
+        <h3><span data-i18n="buffet_title">우리동네 한식뷔페</span><span class="tag" data-i18n="buffet_tag">웹앱 · 역별 게시판</span></h3>
         <p data-i18n="buffet_desc">회사 근처 역을 고르면 그 근처 한식뷔페의 오늘 메뉴를 사진과 글로 볼 수 있는 게시판. 역에서 걸어서 몇 분인지도 함께 보여 줍니다.</p>
         <span class="ff-cta" data-i18n="buffet_cta">오늘 메뉴 보러 가기 →</span>
       </a>
@@ -219,7 +219,8 @@
       arcade_tag: { en: 'Web mini-games', ko: '웹 미니게임' },
       arcade_desc:{ en: 'Pixel mini-games you can play right in the browser. First up: A Lovebug’s Love — a short life, spent only seeking love.',
                     ko: '브라우저에서 바로 즐기는 픽셀 미니게임 모음. 첫 게임: 러브버그의 사랑 — 짧은 생, 오직 사랑을 찾아서.' },
-      buffet_title:{ en: 'Today’s Korean Buffet Menu', ko: '오늘 한식뷔페 메뉴' },
+      buffet_title:{ en: 'Neighborhood Korean Buffet', ko: '우리동네 한식뷔페' },
+      buffet_eyebrow:{ en: 'Today’s menu · New', ko: '오늘의 메뉴 · 새로 나왔어요' },
       buffet_tag:{ en: 'Web app · By station', ko: '웹앱 · 역별 게시판' },
       buffet_cta:{ en: 'See today’s menus →', ko: '오늘 메뉴 보러 가기 →' },
       buffet_desc:{ en: 'Pick the station near your office and see today’s menus at nearby Korean buffets, posted with photos by people who ate there — plus how many minutes’ walk from the station.',

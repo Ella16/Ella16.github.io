@@ -1,6 +1,6 @@
 {
-  "name": "우리동네 한식뷔페 · 오늘 메뉴",
-  "short_name": "오늘 메뉴",
+  "name": "우리동네 한식뷔페",
+  "short_name": "우리동네 한식뷔페",
   "description": "동네 한식뷔페 오늘 메뉴를 사진과 글로 함께 올리는 게시판",
   "start_url": "./index.html",
   "scope": "./",

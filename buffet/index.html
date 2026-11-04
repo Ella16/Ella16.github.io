@@ -10,7 +10,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>오늘 한식뷔페 메뉴</title>
+<title>우리동네 한식뷔페</title>
 <script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,7 +54,7 @@
     padding: calc(14px + env(safe-area-inset-top)) 0 0;
   }
   .title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .eyebrow { margin: 0; font-size: 11px; letter-spacing: .22em; color: var(--gold); font-weight: 700; }
+  .eyebrow { margin: 0; font-size: 12px; letter-spacing: .08em; color: var(--gold); font-weight: 700; }
   h1 { margin: 0; font: 700 23px/1.25 var(--serif); letter-spacing: -0.01em; }
   .sub { color: var(--wood-muted); font-size: 13px; margin: 2px 0 0; }
   .station-btn { display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,240,220,.35); background: rgba(255,240,220,.08); color: var(--wood-ink); border-radius: 999px; padding: 7px 13px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; }
@@ -80,7 +80,7 @@
   .card img.photo { display: block; width: 100%; max-height: 380px; object-fit: cover; border-radius: 12px; background: var(--line); margin-bottom: 12px; }
   .meta { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 13px; }
   .meta b { color: var(--ink); font-weight: 700; }
-  .label { font-size: 11px; letter-spacing: .2em; color: var(--red); font-weight: 800; margin: 12px 0 4px; }
+  .label { font-size: 12px; letter-spacing: .06em; color: var(--red); font-weight: 800; margin: 12px 0 4px; }
   ul.menu { list-style: none; padding: 0; margin: 0 0 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; }
   ul.menu li { font: 400 17px/1.5 var(--serif); overflow-wrap: anywhere; padding-left: 14px; position: relative; }
   ul.menu li::before { content: ""; position: absolute; left: 1px; top: .72em; width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
@@ -153,7 +153,7 @@
 <div class="wrap">
   <header>
     <div class="title">
-      <div><p class="eyebrow">TODAY'S MENU</p><h1 id="shop"></h1><p class="sub" id="todayLabel"></p></div>
+      <div><p class="eyebrow">오늘의 메뉴</p><h1 id="shop"></h1><p class="sub" id="todayLabel"></p></div>
       <button class="station-btn" id="stationBtn" type="button" aria-haspopup="dialog">📍 <span id="stationName">역 고르기</span> ▾</button>
     </div>
     <nav role="tablist">
@@ -225,7 +225,7 @@
   'use strict';
   const CFG = window.BUFFET_CONFIG || {};
   const API = String(CFG.apiBase || '').replace(/\/+$/, '');
-  const APP = CFG.name || '오늘 한식뷔페 메뉴';
+  const APP = CFG.name || '우리동네 한식뷔페';
   const $ = s => document.querySelector(s);
   const main = $('#main');
 
