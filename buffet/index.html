@@ -141,10 +141,10 @@
   .skeleton { height: 160px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line); margin-bottom: 14px; animation: pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 50% { opacity: .5; } }
   @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
-  .ad { margin: 18px 0 0; text-align: center; }
-  .ad .slot { display: flex; justify-content: center; min-height: 140px; }
-  .ad iframe { border: 0; max-width: 100%; border-radius: 10px; }
-  .ad p { font-size: 11px; color: var(--muted); margin: 6px 0 0; }
+  .adcard .slot { display: flex; justify-content: center; min-height: 140px; padding: 12px 8px 4px; }
+  .adcard iframe { border: 0; max-width: 100%; border-radius: 10px; }
+  .adcard .adnote { font-size: 11px; color: var(--muted); margin: 4px 16px 12px; text-align: center; }
+  .adtag { display: inline-block; border: 1px solid var(--muted); color: var(--muted); border-radius: 4px; padding: 0 5px; font-size: 11px; font-weight: 700; margin-right: 6px; }
   @media (max-width: 360px) { ul.menu { grid-template-columns: 1fr; } }
 </style>
 
@@ -161,11 +161,15 @@
       <button role="tab" id="tabPast" aria-selected="false">지난 7일</button>
     </nav>
   </header>
-  <main id="main" aria-live="polite"></main>
-  <aside class="ad" id="ad" hidden>
-    <div class="slot" id="adSlot"></div>
-    <p>이 페이지의 일부 링크는 쿠팡 파트너스 활동의 일환으로, 구매 시 일정액의 수수료를 제공받을 수 있습니다.</p>
-  </aside>
+  <main id="main">
+    <div id="mTop" aria-live="polite"></div>
+    <section class="buffet adcard" id="adCard" hidden aria-label="광고">
+      <div class="bhead"><div><h2>오늘 같이 보면 좋은 먹거리</h2><div class="addr"><span class="adtag">광고</span>쿠팡 파트너스</div></div></div>
+      <div class="slot" id="adSlot"></div>
+      <p class="adnote">이 광고는 쿠팡 파트너스 활동의 일환으로, 구매 시 일정액의 수수료를 제공받을 수 있습니다.</p>
+    </section>
+    <div id="mRest"></div>
+  </main>
   <footer>
     누구나 올리는 게시판이에요. 이상한 글은 신고해 주세요 (신고 3건이면 숨겨져요).<br>
     메뉴는 7일 동안만 보이고 그 뒤에는 지워져요. 도보 시간은 지도 길찾기로 잰 어림값이에요.<br>
@@ -227,7 +231,15 @@
   const API = String(CFG.apiBase || '').replace(/\/+$/, '');
   const APP = CFG.name || '우리동네 한식뷔페';
   const $ = s => document.querySelector(s);
-  const main = $('#main');
+  const mTop = $('#mTop'), mRest = $('#mRest'), adCard = $('#adCard');
+  let adReady = false, wantAd = false;
+  // 광고 칸은 그대로 두고 앞뒤 목록만 바꾼다. 광고를 떼었다 붙이면 광고가 처음부터 다시 불려 와서다.
+  function show(top, rest = [], withAd = false) {
+    mTop.replaceChildren(...top.filter(Boolean));
+    mRest.replaceChildren(...rest.filter(Boolean));
+    wantAd = withAd;
+    adCard.hidden = !(wantAd && adReady);
+  }
 
   // 화면에 넣는 글은 모두 textContent 로만 넣는다 (스크립트가 든 글도 글자로만 보이게).
   function el(tag, attrs, ...kids) {
@@ -329,7 +341,7 @@
   $('#stationSearch').oninput = e => drawStations(e.target.value);
 
   // ── 그리기 ───────────────────────────────
-  function skeleton() { main.replaceChildren(el('div', { class: 'skeleton' }), el('div', { class: 'skeleton' })); }
+  function skeleton() { show([el('div', { class: 'skeleton' }), el('div', { class: 'skeleton' })]); }
   function adminBar() {
     if (!admin) return null;
     return el('div', { class: 'admin-bar' }, '관리자 모드 · 숨겨진 것도 보여요',
@@ -419,8 +431,8 @@
         : await api(`day?station=${encodeURIComponent(station)}&date=${date}` + (bust ? '&t=' + bust : ''));
     } catch (err) {
       if (admin && /비밀번호/.test(err.message)) { admin = null; ss.set('buffet-admin', null); }
-      main.replaceChildren(el('div', { class: 'empty' }, el('strong', { text: '메뉴를 불러오지 못했어요' }), err.message,
-        el('div', { style: 'margin-top:14px' }, el('button', { class: 'btn', type: 'button', text: '다시 시도', onclick: () => render() }))));
+      show([el('div', { class: 'empty' }, el('strong', { text: '메뉴를 불러오지 못했어요' }), err.message,
+        el('div', { style: 'margin-top:14px' }, el('button', { class: 'btn', type: 'button', text: '다시 시도', onclick: () => render() })))]);
       return;
     }
     lastDay = data;
@@ -436,17 +448,21 @@
     } else {
       // 오늘 메뉴가 올라온 곳을 먼저, 그다음은 가까운 순
       const order = [...data.buffets].sort((a, b) => (byBuffet.get(b.id).length > 0) - (byBuffet.get(a.id).length > 0) || a.walkMin - b.walkMin);
-      kids.push(...order.map(b => buffetSection(b, byBuffet.get(b.id), date, isToday)));
-      if (isToday) kids.push(el('button', { class: 'btn ghost addbuffet', type: 'button', onclick: openBuffet }, `＋ ${stationName(station)} 근처 뷔페 추가`));
+      const sections = order.map(b => buffetSection(b, byBuffet.get(b.id), date, isToday));
+      // 광고는 두 번째 뷔페 바로 뒤에 (뷔페가 하나뿐이면 그 뒤에)
+      kids.push(...sections.slice(0, 2));
+      const rest = sections.slice(2);
+      if (isToday) rest.push(el('button', { class: 'btn ghost addbuffet', type: 'button', onclick: openBuffet }, `＋ ${stationName(station)} 근처 뷔페 추가`));
+      return show(kids, rest, true);
     }
-    main.replaceChildren(...kids.filter(Boolean));
+    show(kids, [], true);
   }
 
   async function renderPast() {
     let data;
-    try { data = await api('days'); } catch (err) { main.replaceChildren(el('div', { class: 'empty' }, el('strong', { text: '목록을 불러오지 못했어요' }), err.message)); return; }
+    try { data = await api('days'); } catch (err) { show([el('div', { class: 'empty' }, el('strong', { text: '목록을 불러오지 못했어요' }), err.message)]); return; }
     const dates = data.dates.filter(d => d !== data.today);
-    main.replaceChildren(...[adminBar(),
+    show([adminBar(),
       el('p', { class: 'hint', style: 'margin:0 0 10px', text: `${stationName(station)} · 지난 메뉴는 7일까지만 볼 수 있어요` }),
       el('ul', { class: 'days' }, dates.map(d => el('li', {}, el('button', { type: 'button', onclick: () => { view = 'day'; viewDate = d; render(); } },
         el('span', { text: prettyDate(d) }), el('span', { 'aria-hidden': 'true', text: '›' })))))].filter(Boolean));
@@ -463,14 +479,14 @@
     $('#todayLabel').textContent = prettyDate(kstToday());
     if (!API) {
       $('#writeBtn').hidden = true;
-      main.replaceChildren(el('div', { class: 'empty' }, el('strong', { text: '준비 중이에요' }), '곧 열어요.'));
+      show([el('div', { class: 'empty' }, el('strong', { text: '준비 중이에요' }), '곧 열어요.')]);
       return;
     }
     if (!station || !stations.some(s => s.id === station)) {
       $('#writeBtn').hidden = true;
       $('#stationName').textContent = '역 고르기';
-      main.replaceChildren(el('div', { class: 'empty' }, el('strong', { text: '회사 근처 역을 골라 주세요' }),
-        '그 역 근처 한식뷔페의 오늘 메뉴를 보여 드려요.', el('div', { style: 'margin-top:14px' }, el('button', { class: 'btn', type: 'button', onclick: openStations }, '📍 역 고르기'))));
+      show([el('div', { class: 'empty' }, el('strong', { text: '회사 근처 역을 골라 주세요' }),
+        '그 역 근처 한식뷔페의 오늘 메뉴를 보여 드려요.', el('div', { style: 'margin-top:14px' }, el('button', { class: 'btn', type: 'button', onclick: openStations }, '📍 역 고르기')))]);
       return;
     }
     $('#stationName').textContent = stationName(station);
@@ -587,16 +603,18 @@
   // 쿠팡 위젯은 document.write 로 그려서, srcdoc iframe 안에서 읽히는 순간 실행되게 한다 (bible-memory 와 같은 방식)
   function loadAd() {
     const AD = CFG.coupang || {};
-    if (!AD.id || location.protocol !== 'https:' || !navigator.onLine || $('#adSlot').dataset.loaded) return;
-    $('#adSlot').dataset.loaded = '1';
-    const W = Math.min(360, Math.max(280, document.querySelector('.wrap').clientWidth - 32)), H = 140;
+    const slot = $('#adSlot');
+    if (!AD.id || (location.protocol !== 'https:' && location.hostname !== 'localhost') || !navigator.onLine || slot.dataset.loaded) return;
+    slot.dataset.loaded = '1';
+    const W = Math.min(360, Math.max(280, mTop.clientWidth - 16)), H = 140;
     const f = el('iframe', { title: '쿠팡 파트너스 광고', scrolling: 'no', loading: 'lazy', width: String(W), height: String(H) });
     f.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden}</style></head><body>'
       + '<script src="https://ads-partners.coupang.com/g.js"><\/script>'
       + '<script>new PartnersCoupang.G(' + JSON.stringify({ id: AD.id, template: 'carousel', trackingCode: AD.trackingCode, width: String(W), height: String(H), tsource: '' }) + ');<\/script>'
       + '</body></html>';
-    $('#adSlot').append(f);
-    $('#ad').hidden = false;
+    slot.append(f);
+    adReady = true;
+    adCard.hidden = !wantAd;
   }
   window.addEventListener('online', loadAd);
 
@@ -608,12 +626,12 @@
     $('#todayLabel').textContent = prettyDate(kstToday());
     if (API) {
       if (!stations.length) skeleton();
+      loadAd();
       try { await loadStations(); }
-      catch (e) { main.replaceChildren(el('div', { class: 'empty' }, el('strong', { text: '불러오지 못했어요' }), e.message)); return; }
+      catch (e) { show([el('div', { class: 'empty' }, el('strong', { text: '불러오지 못했어요' }), e.message)]); return; }
     }
     if (station && stations.some(s => s.id === station)) setStation(station);
     render();
-    loadAd();
   })();
 })();
 </script>
