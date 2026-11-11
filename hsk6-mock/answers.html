@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HSK 6급 모의고사 해설지</title>
+<meta name="description" content="HSK 6급 모의고사(축소판) 정답·해설·듣기 대본과 문항별 단어표(병음·뜻·HSK 급수).">
+<meta name="theme-color" content="#0E6B58">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 해설지: 위에 정답 한눈표, 아래로 문항 묶음마다 지문 → 문항·해설 → 단어표 */
+:root{
+  --paper:#EEF1EE; --sheet:#FFFFFF; --ink:#1B2422; --muted:#5D6A66; --line:#D6DDD9;
+  --jade:#0E6B58; --jade-soft:#E0EEE9; --ok:#157A3D; --ok-soft:#E3F3E8; --ng:#B42318; --ng-soft:#FBE7E5; --mark:#FFF1B8; --mark-ink:#1B2422;
+  --l6:#7A3E9D; --l6-soft:#F1E6F7; --l5:#0E6B58; --l5-soft:#E0EEE9; --lx:#8A5A00; --lx-soft:#FBF0D9;
+  --zh:"Noto Serif SC","Songti SC","SimSun",serif;
+  --ui:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#101513; --sheet:#182020; --ink:#E4EBE8; --muted:#97A6A1; --line:#2B3634;
+  --jade:#56C2A6; --jade-soft:#163830; --ok:#5BD58A; --ok-soft:#14301F; --ng:#F2847A; --ng-soft:#3A1916; --mark:#4A4012; --mark-ink:#F4EBC8;
+  --l6:#C9A0E6; --l6-soft:#2E1F38; --l5:#56C2A6; --l5-soft:#163830; --lx:#E8B860; --lx-soft:#352812; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#101513; --sheet:#182020; --ink:#E4EBE8; --muted:#97A6A1; --line:#2B3634;
+  --jade:#56C2A6; --jade-soft:#163830; --ok:#5BD58A; --ok-soft:#14301F; --ng:#F2847A; --ng-soft:#3A1916; --mark:#4A4012; --mark-ink:#F4EBC8;
+  --l6:#C9A0E6; --l6-soft:#2E1F38; --l5:#56C2A6; --l5-soft:#163830; --lx:#E8B860; --lx-soft:#352812; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--sheet);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:10px}
+.brand{font-family:var(--zh);font-weight:700;font-size:18px;margin-right:auto;text-decoration:none;color:var(--ink)}
+.brand small{font-family:var(--ui);font-weight:500;font-size:12px;color:var(--muted);margin-left:6px}
+.btn{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:6px 13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--jade)}
+.btn.on{background:var(--jade);border-color:var(--jade);color:var(--sheet)}
+.btn:focus-visible,a:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+nav.jump{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px}
+nav.jump a{font-size:13px;color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;white-space:nowrap}
+nav.jump a:hover{background:var(--paper);color:var(--ink)}
+main{padding-block:22px 40px}
+h1{font-family:var(--zh);font-size:26px;margin:0 0 6px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 18px;max-width:65ch}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+.card>h2{font-family:var(--zh);font-size:19px;margin:0 0 4px}
+.sec-title{font-family:var(--zh);font-size:22px;margin:30px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.how{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+/* 정답 한눈표 */
+.keygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.keygrid a{display:flex;justify-content:space-between;align-items:center;padding:6px 9px;border:1px solid var(--line);border-radius:6px;text-decoration:none;color:var(--ink);font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.keygrid a b{color:var(--jade)}
+.keygrid a.ng{border-color:var(--ng);background:var(--ng-soft)}
+.keygrid a.ng b{color:var(--ng)}
+.keygrid a.ok{border-color:var(--ok)}
+.mine-note{font-size:13px;color:var(--muted);margin-top:10px}
+/* 지문 */
+.passage{font-family:var(--zh);font-size:16.5px;line-height:1.95;background:var(--paper);border-radius:8px;padding:14px 16px;margin:10px 0 14px}
+.passage p{margin:0 0 .55em}.passage p:last-child{margin:0}
+.passage .spk{font-family:var(--ui);font-size:12px;color:var(--muted);margin-right:6px}
+.passage .shared{display:grid;gap:4px}
+.passage .shared b{font-family:var(--mono);font-size:13px;margin-right:8px}
+mark{background:var(--mark);color:var(--mark-ink);padding:0 1px;border-radius:2px}
+.blank{display:inline-block;min-width:2.4em;border-bottom:1.5px solid var(--ink);text-align:center;font-family:var(--mono);font-size:13px;color:var(--jade)}
+.fill{color:var(--jade);font-weight:600;border-bottom:1.5px solid var(--jade)}
+.tag{display:inline-block;font-family:var(--ui);font-size:11.5px;letter-spacing:.04em;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 6px;margin-right:6px;vertical-align:2px}
+/* 문항 */
+.q{border-top:1px dashed var(--line);padding-top:12px;margin-top:12px;display:grid;gap:6px;scroll-margin-top:110px}
+.qhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.qn{font-family:var(--mono);font-size:13px;color:var(--jade);min-width:2em}
+.qt{font-family:var(--zh);font-size:16px}
+.mineis{font-size:12px;border-radius:999px;padding:1px 8px}
+.mineis.ok{background:var(--ok-soft);color:var(--ok)}.mineis.ng{background:var(--ng-soft);color:var(--ng)}
+.opts{display:grid;gap:4px;padding-left:2.6em;font-family:var(--zh);font-size:15px}
+.opts div{display:flex;gap:8px}
+.opts .l{font-family:var(--mono);font-size:12.5px;width:1.2em;color:var(--muted)}
+.opts .ans{color:var(--ok);font-weight:600}.opts .ans .l{color:var(--ok)}
+.opts .mine{color:var(--ng);text-decoration:line-through}
+.ex{margin-left:2.6em;font-size:14px;background:var(--jade-soft);border-radius:8px;padding:8px 12px}
+.ex .k{font-weight:600;color:var(--jade);margin-right:6px}
+/* 단어표 */
+.vocab{margin-top:14px}
+.vocab summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--jade);list-style:none;display:flex;gap:8px;align-items:center}
+.vocab summary::-webkit-details-marker{display:none}
+.vocab summary::before{content:"▸";transition:transform .15s}
+.vocab[open] summary::before{transform:rotate(90deg)}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:6px;margin-top:10px}
+.w{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:baseline;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);min-width:0}
+.w .h{font-family:var(--zh);font-size:17px;font-weight:600}
+.w .p{font-size:12.5px;color:var(--muted);font-style:italic;min-width:0;overflow-wrap:anywhere}
+.w .m{grid-column:1/-1;font-size:13.5px}
+.lv{font-size:11px;font-weight:600;border-radius:4px;padding:1px 6px;white-space:nowrap}
+.lv.l6{background:var(--l6-soft);color:var(--l6)}.lv.l5{background:var(--l5-soft);color:var(--l5)}.lv.lx{background:var(--lx-soft);color:var(--lx)}.lv.l4{background:var(--paper);color:var(--muted)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.filters span{font-size:13px;color:var(--muted);margin-right:4px}
+body[data-lv="6"] .w:not([data-lv="6"]){display:none}
+body[data-lv="5"] .w:not([data-lv="5"]){display:none}
+body[data-lv="x"] .w:not([data-lv="x"]){display:none}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+/* 쓰기 */
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px}
+.two h3{font-size:14px;margin:0 0 6px}
+/* 광고 */
+.adzone{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:grid;justify-items:center;gap:6px}
+.ad-frame{border:0;max-width:100%;display:block}
+.ad-disc{font-size:11.5px;color:var(--muted);margin:0;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <a class="brand" href="./">汉语水平考试 六级<small>해설지</small></a>
+      <a class="btn" href="./">← 시험지</a>
+    </div>
+    <nav class="jump" aria-label="부분으로 이동">
+      <a href="#key">정답표</a><a href="#part-L1">听力 一</a><a href="#part-L2">听力 二</a><a href="#part-L3">听力 三</a>
+      <a href="#part-R1">阅读 一</a><a href="#part-R2">阅读 二</a><a href="#part-R3">阅读 三</a><a href="#part-R4">阅读 四</a><a href="#write">书写</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>HSK 6급 모의고사 해설지</h1>
+  <p class="lead">문항마다 정답 근거가 되는 문장을 지문에 노랗게 칠해 두었습니다. 문항 묶음 아래 단어표에는 HSK 5·6급 단어와 급수 밖 단어를 병음·뜻과 함께 모았습니다. 같은 브라우저에서 시험을 제출했다면 내 답도 함께 보입니다.</p>
+
+  <div class="card" id="key">
+    <h2>정답 한눈표</h2>
+    <div class="keygrid" id="keygrid"></div>
+    <p class="mine-note" id="minenote"></p>
+  </div>
+
+  <div class="card">
+    <h2>단어 보기</h2>
+    <div class="filters" role="group" aria-label="단어 급수 거르기">
+      <span>급수</span>
+      <button class="btn on" data-lv="all">전체</button>
+      <button class="btn" data-lv="6">6급</button>
+      <button class="btn" data-lv="5">5급</button>
+      <button class="btn" data-lv="x">급수 밖</button>
+      <button class="btn" id="openall">단어표 모두 펼치기</button>
+    </div>
+    <div class="legend"><span><span class="lv l6">6급</span> HSK 6급 단어</span><span><span class="lv l5">5급</span> HSK 5급 단어</span><span><span class="lv lx">급수 밖</span> HSK 단어표에 없는 낱말·성어·숙어</span><span><span class="lv l4">4급</span> 이하는 뜻이 헷갈리기 쉬운 것만</span></div>
+    <p class="mine-note" id="vstat"></p>
+  </div>
+
+  <div id="body"></div>
+
+  <div id="adFooter" class="adzone" hidden>
+    <div id="adSlot"></div>
+    <p class="ad-disc">쿠팡 파트너스 활동의 일환으로, 이를 통해 일정액의 수수료를 제공받을 수 있습니다.</p>
+  </div>
+</main>
+
+<script src="data.js"></script>
+<script src="vocab.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const L='ABCDE';
+let mine={};try{const s=JSON.parse(localStorage.getItem('hsk6-mock-v1')||'null');if(s&&s.graded)mine=s.ans||{}}catch(e){}
+const hasMine=Object.keys(mine).length>0;
+
+// 해설의 "…" 안 중국어를 지문에서 찾아 칠한다
+function keyPhrases(qs){
+  const out=[];
+  qs.forEach(q=>{(q.ex.match(/"([^"]+)"/g)||[]).forEach(m=>{m.slice(1,-1).split(/…|\.\.\./).forEach(p=>{p=p.trim();if(/[一-鿿]/.test(p)&&p.length>=2)out.push(p)})})});
+  return out.sort((a,b)=>b.length-a.length);
+}
+function markText(t,phr){
+  let h=esc(t);
+  phr.forEach(p=>{const e=esc(p);if(h.includes(e)&&!h.includes('<mark>'+e))h=h.split(e).join('<mark>'+e+'</mark>')});
+  return h;
+}
+function lvTag(lv){return lv===6?'<span class="lv l6">6급</span>':lv===5?'<span class="lv l5">5급</span>':lv==null?'<span class="lv lx">급수 밖</span>':'<span class="lv l4">'+lv+'급</span>'}
+function lvKey(lv){return lv===6?'6':lv===5?'5':lv==null?'x':'4'}
+function vocabHtml(key){
+  const rows=VOCAB[key];if(!rows||!rows.length)return'';
+  return '<details class="vocab"><summary>단어 '+rows.length+'개</summary><div class="vgrid">'+rows.map(([w,p,m,lv])=>
+    '<div class="w" data-lv="'+lvKey(lv)+'"><span class="h">'+esc(w)+'</span><span class="p">'+esc(p)+'</span>'+lvTag(lv)+'<span class="m">'+esc(m)+'</span></div>').join('')+'</div></details>';
+}
+function groupKey(g){const a=g.qs[0].id,b=g.qs[g.qs.length-1].id;return a===b?String(a):a+'-'+b}
+
+let html='',keyCells='';
+let curSec='';
+PARTS.forEach(p=>{
+  if(p.sec!==curSec){curSec=p.sec;html+='<h2 class="sec-title">'+(p.sec==='listen'?'听力 · 듣기':'阅读 · 독해')+'</h2>'}
+  html+='<div class="card" id="part-'+p.key+'"><h2>'+(p.sec==='listen'?'听力 ':'阅读 ')+p.title+'</h2><p class="how">'+esc(p.how)+'</p>';
+  p.groups.forEach(g=>{
+    const phr=keyPhrases(g.qs);
+    // R2 는 문제 문장에 빈칸, R3 은 지문에 빈칸 → 정답을 채워 보여 준다
+    if(g.audio){
+      html+='<div class="passage"><span class="tag">대본</span>'+g.audio.map(([v,t])=>'<p>'+(g.audio.length>1?'<span class="spk">'+(v==='f'?'女':'男')+'</span>':'')+markText(t,phr)+'</p>').join('')+'</div>';
+    }
+    if(g.passage){
+      html+='<div class="passage"><span class="tag">지문</span>'+g.passage.map(t=>{
+        let h=markText(t,phr);
+        if(g.shared)h=h.replace(/\[(\d+)\]/g,(m,n)=>{const q=g.qs.find(x=>x.id==n);return '<span class="blank">'+n+'</span> <span class="fill">'+L[q.a]+' '+esc(g.shared[q.a])+'</span>'});
+        return '<p>'+h+'</p>'}).join('')+'</div>';
+    }
+    if(g.shared)html+='<div class="passage shared">'+g.shared.map((s,i)=>'<div><b>'+L[i]+'</b>'+esc(s)+'</div>').join('')+'</div>';
+    g.qs.forEach(q=>{
+      const my=mine[q.id],right=my===q.a;
+      keyCells+='<a href="#Q'+q.id+'" class="'+(hasMine?(right?'ok':'ng'):'')+'"><span>'+q.id+'</span><b>'+L[q.a]+'</b></a>';
+      const list=g.shared?null:q.opts;
+      let qt=q.q?esc(q.q):'';
+      if(p.key==='R2'){const parts=q.opts[q.a].split(/\s+|　/).filter(Boolean);qt=esc(q.q).replace(/\[(\d)\]/g,(m,n)=>'<span class="fill">'+esc(parts[n-1]||'')+'</span>')}
+      if(p.key==='R1')qt='틀린 문장 고르기';
+      if(g.shared)qt='빈칸 '+q.id;
+      html+='<div class="q" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+q.id+'</span><span class="qt">'+qt+'</span>'+
+        (hasMine?'<span class="mineis '+(right?'ok':'ng')+'">'+(my==null?'안 풂':right?'맞음':'내 답 '+L[my])+'</span>':'')+'</div>';
+      if(list)html+='<div class="opts">'+list.map((o,i)=>'<div class="'+(i===q.a?'ans':'')+(hasMine&&i===my&&!right?' mine':'')+'"><span class="l">'+L[i]+'</span><span>'+esc(o)+'</span></div>').join('')+'</div>';
+      html+='<div class="ex"><span class="k">정답 '+L[q.a]+'</span>'+q.ex+'</div></div>';
+    });
+    html+=vocabHtml(groupKey(g));
+  });
+  html+='</div>';
+});
+// 쓰기
+html+='<h2 class="sec-title" id="write">书写 · 쓰기</h2><div class="card"><h2>41 缩写</h2><p class="how">원문 '+STORY.join('').replace(/\s/g,'').length+'자를 '+MODEL.slice(1).join('').replace(/\s/g,'').length+'자로 줄인 모범 답안입니다. 사건 순서(접시 사건 → 요리사 → 가게 인수 → 분점 → 춘절 방문)를 그대로 따르고, 대화는 간접 화법으로 바꿨습니다.</p>'+
+ '<div class="two"><div><h3>원문</h3><div class="passage">'+STORY.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div></div>'+
+ '<div><h3>모범 답안</h3><div class="passage"><p style="text-align:center;font-weight:700">'+esc(MODEL[0])+'</p>'+MODEL.slice(1).map(t=>'<p>'+esc(t)+'</p>').join('')+'</div></div></div>'+vocabHtml('41')+'</div>';
+$('#body').innerHTML=html;
+$('#keygrid').innerHTML=keyCells;
+if(hasMine){const ok=Object.entries(mine).filter(([id,a])=>{for(const p of PARTS)for(const g of p.groups)for(const q of g.qs)if(q.id==id)return q.a===a;return false}).length;$('#minenote').textContent='이 브라우저에서 제출한 답 기준: 40문항 중 '+ok+'개 맞음. 빨간 칸이 틀린 문항입니다.'}
+else $('#minenote').textContent='시험지에서 제출하면 여기에 내 답과 틀린 문항이 표시됩니다.';
+const all=Object.values(VOCAB).flat();const c=k=>all.filter(r=>lvKey(r[3])===k).length;
+$('#vstat').textContent='전체 '+all.length+'개 · 6급 '+c('6')+' · 5급 '+c('5')+' · 급수 밖 '+c('x')+' · 4급 '+c('4')+'. 급수는 HSK 2.0(6급 체계) 단어표 기준입니다.';
+
+document.querySelectorAll('.filters [data-lv]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.filters [data-lv]').forEach(x=>x.classList.toggle('on',x===b));
+  if(b.dataset.lv==='all')delete document.body.dataset.lv;else document.body.dataset.lv=b.dataset.lv;
+  if(b.dataset.lv!=='all')document.querySelectorAll('details.vocab').forEach(d=>d.open=true);
+});
+let opened=false;
+$('#openall').onclick=()=>{opened=!opened;document.querySelectorAll('details.vocab').forEach(d=>d.open=opened);$('#openall').textContent=opened?'단어표 모두 접기':'단어표 모두 펼치기'};
+
+// 쿠팡 파트너스 (온라인 + http 일 때만, 최하단). 위젯은 document.write 라 srcdoc iframe 안에서 돌린다.
+function loadCoupangAd(){
+  const foot=$('#adFooter'),slot=$('#adSlot');
+  if(location.protocol.indexOf('http')!==0)return;
+  if(!navigator.onLine){foot.hidden=true;return}
+  foot.hidden=false;if(slot.dataset.loaded)return;slot.dataset.loaded='1';
+  const W=320,H=140;
+  const doc='<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden}</style></head><body>'
+    +'<script src="https://ads-partners.coupang.com/g.js"><\/script>'
+    +'<script>new PartnersCoupang.G({"id":1008876,"template":"carousel","trackingCode":"AF3789214","width":"'+W+'","height":"'+H+'","tsource":""});<\/script></body></html>';
+  const f=document.createElement('iframe');f.className='ad-frame';f.title='쿠팡 파트너스 광고';f.setAttribute('scrolling','no');f.loading='lazy';f.width=W;f.height=H;f.srcdoc=doc;slot.appendChild(f);
+}
+loadCoupangAd();
+addEventListener('online',loadCoupangAd);addEventListener('offline',()=>{$('#adFooter').hidden=true});
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
