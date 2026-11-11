@@ -384,24 +384,26 @@ addEventListener('online',loadCoupangAd);addEventListener('offline',()=>{$('#adF
 let deferredPrompt=null,swWaiting=null;
 const dlBtn=$('#dlBtn');
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
-const installed=()=>{try{return isStandalone()||localStorage.hsk6_installed==='1'}catch(e){return isStandalone()}};
+// 설치 여부는 지금 앱 창으로 열렸는지로만 본다. 저장해 둔 표시는 앱을 지워도 남아서 버튼이 '최신'에 갇힌다.
+const installed=isStandalone;
+try{localStorage.removeItem('hsk6_installed')}catch(e){}
 function updateDlBtn(){
   if(location.protocol.indexOf('http')!==0){dlBtn.hidden=true;return}
   dlBtn.hidden=false;
-  if(!installed()){$('#dlLabel').textContent='앱 설치';dlBtn.dataset.mode='install';dlBtn.disabled=false;return}
+  if(!installed()&&!swWaiting){$('#dlLabel').textContent='앱 설치';dlBtn.dataset.mode='install';dlBtn.disabled=false;return}
   $('#dlLabel').textContent=swWaiting?'업데이트':'최신';dlBtn.dataset.mode='update';dlBtn.disabled=!swWaiting;
 }
 dlBtn.onclick=async()=>{
   if(dlBtn.dataset.mode==='install'&&deferredPrompt){
     deferredPrompt.prompt();
-    try{const {outcome}=await deferredPrompt.userChoice;if(outcome==='accepted')localStorage.hsk6_installed='1'}catch(e){}
+    try{await deferredPrompt.userChoice}catch(e){}
     deferredPrompt=null;updateDlBtn();
   }else if(dlBtn.dataset.mode==='install'){
     alert('브라우저 메뉴에서 "홈 화면에 추가"를 누르면 앱처럼 설치돼요. (아이폰 사파리는 공유 버튼 → 홈 화면에 추가)');
   }else{if(swWaiting){try{swWaiting.postMessage({type:'SKIP_WAITING'});return}catch(e){}}location.reload()}
 };
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;updateDlBtn()});
-addEventListener('appinstalled',()=>{try{localStorage.hsk6_installed='1'}catch(e){}deferredPrompt=null;updateDlBtn()});
+addEventListener('appinstalled',()=>{deferredPrompt=null;updateDlBtn()});
 updateDlBtn();
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
   let reloaded=false;const had=!!navigator.serviceWorker.controller;
