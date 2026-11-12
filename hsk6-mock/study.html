@@ -125,7 +125,7 @@ nav.tabs .dd.on .ddb{border-color:var(--jade);color:var(--ink);font-weight:600}
 textarea.memo{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);resize:vertical}
 .copybar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:6px 0 18px}
 .copybar .msg{font-size:13.5px;color:var(--muted)}
-tr.cur-unused td{background:var(--jade-soft)}
+tr.go.cur td,tr.go.cur:hover td{background:var(--jade-soft)}
 .words{margin-top:6px;border-top:1px solid var(--line);padding-top:8px}
 .words .wh{font-size:12px;color:var(--muted);margin-bottom:4px}
 .words dl{margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 14px}
@@ -253,7 +253,7 @@ function renderGuide(){
     const started=n||Object.keys(st.ans).some(id=>id.split('-')[0]==x.n);
     const go=fin?1:(DAYS.find(d=>!st.graded[gk(x.n,d.n)])||DAYS[0]).n;
     const s='<span class="cgo"><button class="btn sm" data-go="'+x.n+'-'+go+'">'+(fin?'다시':started?'이어서':'시작')+'</button>'+(fin?'<span class="ok big" title="7일 마침">✓</span>':'')+'</span>';
-    return '<tr class="go" data-c="'+x.n+'"><td class="nw"><b>코스 '+x.n+'</b><br><small class="src">Day '+((x.n-1)*7+1)+'~'+(x.n*7)+'</small></td><td>'+esc(x.theme)+'</td><td>'+esc(x.level)+'</td><td>'+s+'</td></tr>'}).join('');
+    return '<tr class="go'+(x.n===course?' cur':'')+'" data-c="'+x.n+'"><td class="nw"><b>코스 '+x.n+'</b><br><small class="src">Day '+((x.n-1)*7+1)+'~'+(x.n*7)+'</small></td><td>'+esc(x.theme)+'</td><td>'+esc(x.level)+'</td><td>'+s+'</td></tr>'}).join('');
   const sched=DAYS.map(d=>{
     const qs=qsOf(course,d.n),w=wrongOf(course,d.n).length,g=st.graded[gk(course,d.n)];
     const s=g?'<span class="st done">'+(qs.length-w)+'/'+qs.length+' 맞음</span>':'<span class="st">'+qs.filter(q=>st.ans[q.id]!==undefined).length+'/'+qs.length+'</span>';
