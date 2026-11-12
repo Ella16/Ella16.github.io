@@ -94,19 +94,6 @@
       font-size: 11px;
       vertical-align: middle;
     }
-    .program-card.feature-food {
-      position: relative; overflow: hidden;
-      background: #3b2519 radial-gradient(rgba(255,230,200,.07) 1px, transparent 1px) 0 0/14px 14px;
-      border-color: #3b2519; color: #fbf1e3; padding: 22px 22px 20px;
-    }
-    .program-card.feature-food:hover { border-color: #d79a2b; }
-    .program-card.feature-food h3 { color: #fbf1e3; font-family: "Gowun Batang", serif; font-size: 21px; }
-    .program-card.feature-food p { color: #e2cfb6; max-width: 80%; }
-    .program-card.feature-food .tag { background: rgba(215,154,43,.2); color: #f0c46e; }
-    .ff-eyebrow { display: block; font-size: 12px; letter-spacing: .06em; color: #d79a2b; font-weight: 700; margin-bottom: 4px; }
-    .ff-cta { display: inline-block; margin-top: 12px; background: #b3261e; color: #fffaf2; font-weight: 800; font-size: 14px; border-radius: 999px; padding: 7px 14px; }
-    .ff-emoji { position: absolute; right: 14px; top: 50%; transform: translateY(-50%) rotate(-8deg); font-size: 64px; opacity: .9; }
-    @media (max-width: 480px) { .ff-emoji { top: 14px; transform: rotate(-8deg); font-size: 40px; } .program-card.feature-food h3, .ff-eyebrow { padding-right: 52px; } .program-card.feature-food p { max-width: none; } }
     .program-card.soon { opacity: .6; }
     .picks {
       background: #fffbeb;
@@ -147,13 +134,6 @@
   <section>
     <h2 data-i18n="h_programs">프로그램</h2>
     <div class="programs">
-      <a class="program-card feature-food" href="buffet/">
-        <span class="ff-emoji" aria-hidden="true">🍚</span>
-        <span class="ff-eyebrow" data-i18n="buffet_eyebrow">오늘의 메뉴 · 새로 나왔어요</span>
-        <h3><span data-i18n="buffet_title">우리동네 한식뷔페</span><span class="tag" data-i18n="buffet_tag">웹앱 · 역별 게시판</span></h3>
-        <p data-i18n="buffet_desc">회사 근처 역을 고르면 그 근처 한식뷔페의 오늘 메뉴를 사진과 글로 볼 수 있는 게시판. 역에서 걸어서 몇 분인지도 함께 보여 줍니다.</p>
-        <span class="ff-cta" data-i18n="buffet_cta">오늘 메뉴 보러 가기 →</span>
-      </a>
       <div class="program-card">
         <h3>DashMacro<span class="tag" data-i18n="dash_tag">Chrome 확장 · 웹스토어 출시</span></h3>
         <p data-i18n="dash_desc">유저스크립트를 등록해 원하는 사이트에서 자동 실행하는 매크로 매니저.
@@ -226,12 +206,6 @@
       arcade_tag: { en: 'Web mini-games', ko: '웹 미니게임' },
       arcade_desc:{ en: 'Pixel mini-games you can play right in the browser. First up: A Lovebug’s Love — a short life, spent only seeking love.',
                     ko: '브라우저에서 바로 즐기는 픽셀 미니게임 모음. 첫 게임: 러브버그의 사랑 — 짧은 생, 오직 사랑을 찾아서.' },
-      buffet_title:{ en: 'Neighborhood Korean Buffet', ko: '우리동네 한식뷔페' },
-      buffet_eyebrow:{ en: 'Today’s menu · New', ko: '오늘의 메뉴 · 새로 나왔어요' },
-      buffet_tag:{ en: 'Web app · By station', ko: '웹앱 · 역별 게시판' },
-      buffet_cta:{ en: 'See today’s menus →', ko: '오늘 메뉴 보러 가기 →' },
-      buffet_desc:{ en: 'Pick the station near your office and see today’s menus at nearby Korean buffets, posted with photos by people who ate there — plus how many minutes’ walk from the station.',
-                    ko: '회사 근처 역을 고르면 그 근처 한식뷔페의 오늘 메뉴를 사진과 글로 볼 수 있는 게시판. 역에서 걸어서 몇 분인지도 함께 보여 줍니다.' },
       next_title:{ en: 'Next program', ko: '다음 프로그램' },
       next_desc: { en: 'In the works. New programs will show up here.', ko: '준비 중입니다. 새 프로그램이 나오면 여기에 추가됩니다.' },
       h_picks:   { en: 'Recommended', ko: '추천 아이템' },
