@@ -104,6 +104,9 @@ tr.go{cursor:pointer}tr.go:hover td{background:var(--paper)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .tabs select{font:inherit;font-size:13.5px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);margin-right:4px}
 td.nw{white-space:nowrap}
+.cgo{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.btn.sm{padding:4px 12px;font-size:13px}
+.ok.big{font-size:16px}
 nav.tabs{align-items:center}
 .dd{flex:none}
 .ddb,nav.tabs .ddb{font:inherit;font-size:13.5px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);cursor:pointer;white-space:nowrap;margin-right:4px;display:inline-flex;gap:4px;align-items:center}
@@ -122,7 +125,7 @@ nav.tabs .dd.on .ddb{border-color:var(--jade);color:var(--ink);font-weight:600}
 textarea.memo{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);resize:vertical}
 .copybar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:6px 0 18px}
 .copybar .msg{font-size:13.5px;color:var(--muted)}
-tr.cur td{background:var(--jade-soft)}
+tr.cur-unused td{background:var(--jade-soft)}
 .words{margin-top:6px;border-top:1px solid var(--line);padding-top:8px}
 .words .wh{font-size:12px;color:var(--muted);margin-bottom:4px}
 .words dl{margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 14px}
@@ -246,8 +249,11 @@ function renderGuide(){
   const cc=curCourse();
   const crs=COURSES.map(x=>{
     const n=doneDays(x.n),fin=st.graded[gk(x.n,7)];
-    const s=fin?'<span class="st done">7일 마침</span>':n?'<span class="st">'+n+'/7일</span>':x.n===cc?'<span class="st">지금 코스</span>':'<span class="st"></span>';
-    return '<tr class="go'+(x.n===course?' cur':'')+'" data-c="'+x.n+'"><td class="nw"><b>코스 '+x.n+'</b><br><small class="src">Day '+((x.n-1)*7+1)+'~'+(x.n*7)+'</small></td><td>'+esc(x.theme)+'</td><td>'+esc(x.level)+'</td><td>'+s+'</td></tr>'}).join('');
+    // 마친 코스만 초록 ✓. 버튼: 안 푼 코스는 시작, 하다 만 코스는 이어서(채점 안 한 첫 날), 마친 코스는 다시(Day 1)
+    const started=n||Object.keys(st.ans).some(id=>id.split('-')[0]==x.n);
+    const go=fin?1:(DAYS.find(d=>!st.graded[gk(x.n,d.n)])||DAYS[0]).n;
+    const s='<span class="cgo"><button class="btn sm" data-go="'+x.n+'-'+go+'">'+(fin?'다시':started?'이어서':'시작')+'</button>'+(fin?'<span class="ok big" title="7일 마침">✓</span>':'')+'</span>';
+    return '<tr class="go" data-c="'+x.n+'"><td class="nw"><b>코스 '+x.n+'</b><br><small class="src">Day '+((x.n-1)*7+1)+'~'+(x.n*7)+'</small></td><td>'+esc(x.theme)+'</td><td>'+esc(x.level)+'</td><td>'+s+'</td></tr>'}).join('');
   const sched=DAYS.map(d=>{
     const qs=qsOf(course,d.n),w=wrongOf(course,d.n).length,g=st.graded[gk(course,d.n)];
     const s=g?'<span class="st done">'+(qs.length-w)+'/'+qs.length+' 맞음</span>':'<span class="st">'+qs.filter(q=>st.ans[q.id]!==undefined).length+'/'+qs.length+'</span>';
@@ -257,7 +263,7 @@ function renderGuide(){
   '<h1>HSK 6급 틀린 문장 고르기(病句) 70일</h1>'+
   '<p class="lead">7일 코스 10개, 모두 700문항입니다. 코스마다 Day 1~6에 오류 유형을 하루 하나씩 10문항 풀고, Day 7에 실전 10문항으로 마무리합니다. Day 7을 채점하면 다음 코스가 시작되고, 뒤 코스로 갈수록 주제가 바뀌고 문장이 어려워집니다. 채점하면 정답, 틀린 이유, 고친 문장, 네 문장에 나온 어려운 단어(병음·뜻)가 열리고, 틀린 문항은 오답 노트에 모입니다. 답은 이 브라우저에 저장됩니다.</p>'+
   '<div class="part"><h2>코스 10개</h2><p class="src">줄을 누르면 그 코스의 7일 일정이 아래에 나옵니다.</p>'+
-  '<div class="tbl"><table><thead><tr><th>코스</th><th>주제</th><th>난이도</th><th>진행</th></tr></thead><tbody>'+crs+'</tbody></table></div>'+
+  '<div class="tbl"><table><thead><tr><th>코스</th><th>주제</th><th>난이도</th><th></th></tr></thead><tbody>'+crs+'</tbody></table></div>'+
   '<div class="row"><button class="btn primary" id="startBtn"></button></div></div>'+
   '<div class="part"><h2>코스 '+course+' 일정 · '+esc(C.theme)+'</h2><p class="src">줄을 누르면 그날로 갑니다. 마지막 칸은 채점 결과(채점 전에는 고른 문항 수)입니다.</p>'+
   '<div class="tbl"><table><thead><tr><th>일차</th><th>오류 유형</th><th>할 일</th><th>권장 시간</th><th>진행</th></tr></thead><tbody>'+sched+'</tbody></table></div></div>'+
@@ -274,6 +280,7 @@ function renderGuide(){
   sb.textContent=allDone?'오답 노트 보기':(Object.keys(st.ans).length?'이어서 하기 · 코스 '+cc+' Day '+nd.n:'코스 1 Day 1 시작');
   sb.onclick=()=>allDone?show('wrong'):openDay(cc,nd.n);
   $('#v-guide').querySelectorAll('tr.go[data-c]').forEach(r=>r.onclick=()=>{course=+r.dataset.c;show('guide')});
+  $('#v-guide').querySelectorAll('button[data-go]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [c,d]=b.dataset.go.split('-').map(Number);openDay(c,d)});
   $('#v-guide').querySelectorAll('tr.go[data-d]').forEach(r=>r.onclick=()=>openDay(course,+r.dataset.d));
 }
 

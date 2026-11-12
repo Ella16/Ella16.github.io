@@ -1,5 +1,5 @@
 // 고칠 때마다 CACHE 버전을 올린다. 그래야 설치한 앱에 '업데이트' 버튼이 켜진다.
-const CACHE = 'hsk6-v7';
+const CACHE = 'hsk6-v8';
 const ASSETS = ['./', './index.html', './exam.html', './study.html', './bingju-data.js', './bingju-c01.js', './bingju-c02.js', './bingju-c03.js', './bingju-c04.js', './bingju-c05.js', './bingju-c06.js', './bingju-c07.js', './bingju-c08.js', './bingju-c09.js', './bingju-c10.js',
   './answers.html', './data.js', './vocab.js', './audio/chapters.js',
   './audio/hsk6-listening.mp3', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
