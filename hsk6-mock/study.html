@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>病句 7일 정복</title>
-<meta name="description" content="HSK 6급 틀린 문장 고르기(病句) 7일 프로그램. 하루에 오류 유형 하나, 연습 30문항과 실전 10문항, 바로 채점하고 고친 문장까지.">
+<title>病句 70일 정복</title>
+<meta name="description" content="HSK 6급 틀린 문장 고르기(病句) 70일 프로그램. 7일 코스 10개, 하루 10문항, 채점하면 고친 문장과 어려운 단어까지.">
 <meta name="theme-color" content="#0E6B58">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -102,6 +102,34 @@ tr.go{cursor:pointer}tr.go:hover td{background:var(--paper)}
 .ad-frame{border:0;max-width:100%;display:block}
 .ad-disc{font-size:11.5px;color:var(--muted);margin:0;text-align:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.tabs select{font:inherit;font-size:13.5px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);margin-right:4px}
+td.nw{white-space:nowrap}
+nav.tabs{align-items:center}
+.dd{flex:none}
+.ddb,nav.tabs .ddb{font:inherit;font-size:13.5px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);cursor:pointer;white-space:nowrap;margin-right:4px;display:inline-flex;gap:4px;align-items:center}
+nav.tabs .ddb{border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);padding:5px 10px}
+nav.tabs .dd.on .ddb{border-color:var(--jade);color:var(--ink);font-weight:600}
+.ddb .car{font-size:11px;color:var(--muted);margin-left:2px}
+.ddm{position:fixed;z-index:50;min-width:220px;max-width:calc(100vw - 16px);overflow-y:auto;background:var(--sheet);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px}
+.ddm button,nav.tabs .ddm button{display:flex;gap:6px;align-items:center;width:100%;text-align:left;font:inherit;font-size:14px;padding:9px 12px;border:0;background:none;color:var(--ink);border-radius:6px;cursor:pointer;white-space:nowrap}
+.ddm button:hover{background:var(--paper)}
+.ddm button.cur,nav.tabs .ddm button.cur{background:var(--jade-soft);font-weight:600}
+.ddm hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.ok{color:var(--ok);font-size:12px;font-weight:700;margin-left:2px}
+.ddm .cnt,.ddb .cnt{font-family:var(--mono);font-size:11.5px;color:var(--ng);margin-left:4px}
+.mbtn{margin-left:auto;font:inherit;font-size:12px;padding:2px 10px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--muted);cursor:pointer}
+.mbtn.has{border-color:var(--jade);color:var(--jade)}
+textarea.memo{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);resize:vertical}
+.copybar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:6px 0 18px}
+.copybar .msg{font-size:13.5px;color:var(--muted)}
+tr.cur td{background:var(--jade-soft)}
+.words{margin-top:6px;border-top:1px solid var(--line);padding-top:8px}
+.words .wh{font-size:12px;color:var(--muted);margin-bottom:4px}
+.words dl{margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 14px}
+.words dl>div{display:flex;gap:8px;align-items:baseline}
+.words dt{font-family:var(--zh);font-size:16px;font-weight:600;white-space:nowrap}
+.words dd{margin:0;font-size:13.5px}
+.words .py{font-family:var(--mono);font-size:12.5px;color:var(--jade)}
 </style>
 </head>
 <body>
@@ -109,7 +137,7 @@ tr.go{cursor:pointer}tr.go:hover td{background:var(--paper)}
 <header class="top">
   <div class="wrap">
     <div class="bar">
-      <a class="brand" href="./">病句 七天<small>틀린 문장 고르기</small></a>
+      <a class="brand" href="./">病句 七十天<small>틀린 문장 고르기</small></a>
       <button class="btn" id="timeBtn" hidden>시간 재기</button>
       <div class="clock" id="clock" hidden>00:00</div>
       <a class="btn" href="./">← 처음</a>
@@ -133,70 +161,127 @@ tr.go{cursor:pointer}tr.go:hover td{background:var(--paper)}
 const L='ABCD';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NC=COURSES.length;
 // 권장 시간(초). Day 1~3 은 제한 없음
-const LIMIT={4:450,5:450,6:300,7:720};
-const QS={};DAYS.forEach(d=>d.qs.forEach(q=>{q.day=d.n;QS[q.id]=q}));
+const LIMIT={4:900,5:900,6:600,7:720};
 
-// ───────── 저장: ans 문항별 고른 답, graded 채점한 날, retry 오답 다시 풀기에서 고른 답 ─────────
-const KEY='hsk6-bingju-v1';
-let st={ans:{},graded:{},retry:{}};
+// ───────── 문항: 코스마다 bingju-cNN.js 를 필요할 때 불러온다 ─────────
+const BJ=window.BJ||(window.BJ={});
+const QS={},indexed={};
+function indexCourse(c){
+  if(indexed[c]||!BJ[c])return;indexed[c]=1;
+  BJ[c].forEach((qs,di)=>qs.forEach((q,i)=>{q.c=c;q.day=di+1;q.no=i+1;q.id=c+'-'+(di+1)+'-'+(i+1);QS[q.id]=q}));
+}
+const loading={};
+function load(c){
+  if(BJ[c]){indexCourse(c);return Promise.resolve()}
+  return loading[c]||(loading[c]=new Promise((res,rej)=>{
+    const s=document.createElement('script');s.src='bingju-c'+String(c).padStart(2,'0')+'.js';
+    s.onload=()=>{indexCourse(c);BJ[c]?res():rej()};s.onerror=()=>{delete loading[c];rej()};document.head.appendChild(s)}));
+}
+const qsOf=(c,d)=>BJ[c]?BJ[c][d-1]:[];
+
+// ───────── 저장: ans 문항별 고른 답, graded '코스-일차'별 채점 시각, retry 오답 다시 풀기에서 고른 답 ─────────
+const KEY='hsk6-bingju-v2';
+let st={ans:{},graded:{},retry:{},memo:{}};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)st=Object.assign(st,s)}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
-const wrongOf=d=>st.graded[d.n]?d.qs.filter(q=>st.ans[q.id]!==q.a):[];
-// 오답 노트에 남은 문항: 채점에서 틀렸고, 다시 풀어 아직 못 맞힌 것
-const openWrong=()=>DAYS.flatMap(wrongOf).filter(q=>st.retry[q.id]!==q.a);
+const gk=(c,d)=>c+'-'+d;
+const wrongOf=(c,d)=>st.graded[gk(c,d)]?qsOf(c,d).filter(q=>st.ans[q.id]!==q.a):[];
+const gradedCourses=()=>[...new Set(Object.keys(st.graded).map(k=>+k.split('-')[0]))].sort((a,b)=>a-b);
+// 지금 코스: Day 7 을 아직 채점하지 않은 첫 코스. 7일을 마치면 다음 코스가 시작된다
+const curCourse=()=>{for(let c=1;c<=NC;c++)if(!st.graded[gk(c,7)])return c;return NC};
+const doneDays=c=>DAYS.filter(d=>st.graded[gk(c,d.n)]).length;
+// 오답 노트에 남은 문항: 채점에서 틀렸고, 다시 풀어 아직 못 맞힌 것 (불러온 코스만)
+const allWrong=()=>gradedCourses().flatMap(c=>DAYS.flatMap(d=>wrongOf(c,d.n)));
+const openWrong=()=>allWrong().filter(q=>st.retry[q.id]!==q.a);
 
-let view='guide',day=1;
+let view='guide',course=curCourse(),day=1;
+// 직접 그리는 드롭다운: 아이폰 기본 드롭다운은 글자 색(초록 ✓)을 못 바꿔서 쓴다.
+// 목록은 화면에 고정(position:fixed)해서 가로로 넘기는 탭 줄에 잘리지 않게 한다.
+const OK='<span class="ok" title="마침">✓</span>';
+function dd(id,label,items){
+  return '<div class="dd" id="'+id+'"><button class="ddb" aria-haspopup="listbox" aria-expanded="false">'+label+'<span class="car">▾</span></button>'+
+    '<div class="ddm" role="listbox" hidden>'+items.map(it=>it.sep?'<hr>':'<button role="option" data-k="'+it.k+'"'+(it.cur?' class="cur" aria-selected="true"':'')+'>'+it.html+'</button>').join('')+'</div></div>';
+}
+function closeDD(){document.querySelectorAll('.ddm').forEach(m=>{m.hidden=true;m.previousElementSibling.setAttribute('aria-expanded','false')})}
+function bindDD(id,onPick){
+  const el=document.getElementById(id),b=el.querySelector('.ddb'),m=el.querySelector('.ddm');
+  b.onclick=e=>{e.stopPropagation();const open=m.hidden;closeDD();if(!open)return;
+    const r=b.getBoundingClientRect();m.style.left=Math.max(8,Math.min(r.left,innerWidth-m.offsetWidth-8))+'px';m.style.top=(r.bottom+4)+'px';
+    m.hidden=false;b.setAttribute('aria-expanded','true');
+    m.style.left=Math.max(8,Math.min(r.left,innerWidth-m.offsetWidth-8))+'px';m.style.maxHeight=(innerHeight-r.bottom-16)+'px';
+    const c=m.querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'})};
+  m.querySelectorAll('button[data-k]').forEach(x=>x.onclick=e=>{e.stopPropagation();closeDD();onPick(x.dataset.k)});
+}
+addEventListener('click',closeDD);addEventListener('scroll',closeDD,{passive:true});addEventListener('resize',closeDD);
+const courseWrong=c=>DAYS.flatMap(d=>wrongOf(c,d.n));
 function tabs(){
-  const t=[['guide','안내']].concat(DAYS.map(d=>['d'+d.n,'Day '+d.n])).concat([['wrong','오답 노트']]);
-  const n=openWrong().length;
-  $('#tabs').innerHTML=t.map(([k,lab])=>{
-    const sel=k==='guide'?view==='guide':k==='wrong'?view==='wrong':(view==='day'&&'d'+day===k);
-    const d=k[0]==='d'&&DAYS[+k.slice(1)-1];
-    const mark=d&&st.graded[d.n]?'<span class="dot" title="채점함"></span>':k==='wrong'&&n?'<span class="cnt">'+n+'</span>':'';
-    return '<button role="tab" data-k="'+k+'" aria-selected="'+sel+'">'+lab+mark+'</button>'}).join('');
-  $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;k[0]==='d'?openDay(+k.slice(1)):show(k)});
+  const n=openWrong().length,cw=courseWrong(course).filter(q=>st.retry[q.id]!==q.a).length;
+  const cItems=COURSES.map(x=>({k:x.n,cur:x.n===course,html:'코스 '+x.n+' · '+esc(x.theme)+(st.graded[gk(x.n,7)]?OK:'')}));
+  const dItems=DAYS.map(d=>({k:'d'+d.n,cur:view==='day'&&day===d.n,html:'Day '+d.n+' · '+esc(d.title)+(st.graded[gk(course,d.n)]?OK:'')}))
+    .concat([{sep:1},{k:'cw',cur:view==='cwrong',html:'코스 '+course+' 오답 모아보기'+(cw?'<span class="cnt">'+cw+'</span>':'')}]);
+  const dLab=view==='day'?'Day '+day+(st.graded[gk(course,day)]?OK:''):view==='cwrong'?'코스 오답':'Day';
+  $('#tabs').innerHTML=dd('ddCourse','코스 '+course+(st.graded[gk(course,7)]?OK:''),cItems)+
+    dd('ddDay',dLab,dItems)+
+    '<button role="tab" data-k="guide" aria-selected="'+(view==='guide')+'">안내</button>'+
+    '<button role="tab" data-k="wrong" aria-selected="'+(view==='wrong')+'">오답 노트'+(n?'<span class="cnt">'+n+'</span>':'')+'</button>';
+  $('#tabs').querySelectorAll('button[role=tab]').forEach(b=>b.onclick=()=>show(b.dataset.k));
+  $('#ddDay').classList.toggle('on',view==='day'||view==='cwrong');
+  bindDD('ddCourse',k=>{course=+k;view==='day'?openDay(course,day):view==='cwrong'?show('cwrong'):show('guide')});
+  bindDD('ddDay',k=>k==='cw'?show('cwrong'):openDay(course,+k.slice(1)));
 }
-function show(v){
+function remember(){try{sessionStorage.setItem(KEY+'-tab',view==='day'?'d'+course+'-'+day:view==='guide'?'g'+course:view==='cwrong'?'w'+course:'wrong')}catch(e){}}
+async function show(v){
   view=v;stopTimer();
-  ['guide','day','wrong'].forEach(k=>$('#v-'+k).hidden=k!==v);
-  if(v==='guide')renderGuide();if(v==='wrong')renderWrong();
-  tabs();paintTimeBtn();scrollTo(0,0);
-  try{sessionStorage.setItem(KEY+'-tab',v==='day'?'d'+day:v)}catch(e){}
+  try{if(v==='wrong')await Promise.all(gradedCourses().map(load));else await load(course)}catch(e){alert('문항 파일을 불러오지 못했습니다. 인터넷 연결을 확인하세요.');return}
+  ['guide','day','wrong'].forEach(k=>$('#v-'+k).hidden=k!==(v==='cwrong'?'wrong':v));
+  if(v==='guide')renderGuide();if(v==='wrong')renderWrong();if(v==='cwrong')renderWrong(course);if(v==='day')renderDay();
+  tabs();paintTimeBtn();scrollTo(0,0);remember();
 }
-function openDay(n){day=n;renderDay();show('day')}
+function openDay(c,n){course=c;day=n;show('day')}
 
 // ───────── 안내 ─────────
 function renderGuide(){
+  const cc=curCourse();
+  const crs=COURSES.map(x=>{
+    const n=doneDays(x.n),fin=st.graded[gk(x.n,7)];
+    const s=fin?'<span class="st done">7일 마침</span>':n?'<span class="st">'+n+'/7일</span>':x.n===cc?'<span class="st">지금 코스</span>':'<span class="st"></span>';
+    return '<tr class="go'+(x.n===course?' cur':'')+'" data-c="'+x.n+'"><td class="nw"><b>코스 '+x.n+'</b><br><small class="src">Day '+((x.n-1)*7+1)+'~'+(x.n*7)+'</small></td><td>'+esc(x.theme)+'</td><td>'+esc(x.level)+'</td><td>'+s+'</td></tr>'}).join('');
   const sched=DAYS.map(d=>{
-    const w=wrongOf(d).length,g=st.graded[d.n];
-    const s=g?'<span class="st done">'+(d.qs.length-w)+'/'+d.qs.length+' 맞음</span>':'<span class="st">'+Object.keys(st.ans).filter(id=>QS[id].day===d.n).length+'/'+d.qs.length+'</span>';
+    const qs=qsOf(course,d.n),w=wrongOf(course,d.n).length,g=st.graded[gk(course,d.n)];
+    const s=g?'<span class="st done">'+(qs.length-w)+'/'+qs.length+' 맞음</span>':'<span class="st">'+qs.filter(q=>st.ans[q.id]!==undefined).length+'/'+qs.length+'</span>';
     return '<tr class="go" data-d="'+d.n+'"><td><b>Day '+d.n+'</b></td><td>'+esc(d.full)+'</td><td>'+esc(d.todo)+'</td><td>'+esc(d.time)+'</td><td>'+s+'</td></tr>'}).join('');
+  const C=COURSES[course-1];
   $('#v-guide').innerHTML=
-  '<h1>HSK 6급 틀린 문장 고르기(病句) 7일 정복</h1>'+
-  '<p class="lead">하루에 오류 유형 하나를 익히고, 7일째에 실전 10문항으로 마무리합니다. 문항마다 네 문장 중 어법상 틀린 문장 1개를 고릅니다. 채점하면 정답, 틀린 이유, 고친 문장이 열리고, 틀린 문항은 오답 노트에 모입니다. 답은 이 브라우저에 저장됩니다.</p>'+
-  '<div class="part"><h2>7일 일정</h2><p class="src">줄을 누르면 그날로 갑니다. 마지막 칸은 채점 결과(채점 전에는 고른 문항 수)입니다.</p>'+
-  '<div class="tbl"><table><thead><tr><th>일차</th><th>오류 유형</th><th>할 일</th><th>권장 시간</th><th>진행</th></tr></thead><tbody>'+sched+'</tbody></table></div>'+
+  '<h1>HSK 6급 틀린 문장 고르기(病句) 70일</h1>'+
+  '<p class="lead">7일 코스 10개, 모두 700문항입니다. 코스마다 Day 1~6에 오류 유형을 하루 하나씩 10문항 풀고, Day 7에 실전 10문항으로 마무리합니다. Day 7을 채점하면 다음 코스가 시작되고, 뒤 코스로 갈수록 주제가 바뀌고 문장이 어려워집니다. 채점하면 정답, 틀린 이유, 고친 문장, 네 문장에 나온 어려운 단어(병음·뜻)가 열리고, 틀린 문항은 오답 노트에 모입니다. 답은 이 브라우저에 저장됩니다.</p>'+
+  '<div class="part"><h2>코스 10개</h2><p class="src">줄을 누르면 그 코스의 7일 일정이 아래에 나옵니다.</p>'+
+  '<div class="tbl"><table><thead><tr><th>코스</th><th>주제</th><th>난이도</th><th>진행</th></tr></thead><tbody>'+crs+'</tbody></table></div>'+
   '<div class="row"><button class="btn primary" id="startBtn"></button></div></div>'+
+  '<div class="part"><h2>코스 '+course+' 일정 · '+esc(C.theme)+'</h2><p class="src">줄을 누르면 그날로 갑니다. 마지막 칸은 채점 결과(채점 전에는 고른 문항 수)입니다.</p>'+
+  '<div class="tbl"><table><thead><tr><th>일차</th><th>오류 유형</th><th>할 일</th><th>권장 시간</th><th>진행</th></tr></thead><tbody>'+sched+'</tbody></table></div></div>'+
   '<div class="part"><h2>풀이 순서 (매일 같음)</h2>'+
   '<p>① 각 보기의 주어·술어·목적어만 뽑아 연결해 봅니다. ② 그래도 안 보이면 수식어·관련사·숫자 표현을 확인합니다.</p>'+
-  '<p class="src">권장 시간은 이 프로그램이 정한 기준입니다. 실제 시험은 독해 50문항을 50분에 풀어야 합니다. 중의성(歧义, 두 가지 뜻으로 읽히는 문장), 성어·어휘 뜻 오용, 문장부호 오류는 7일 과정에 넣지 않았습니다.</p></div>'+
+  '<p class="src">권장 시간은 이 프로그램이 정한 기준입니다. 실제 시험은 독해 50문항을 50분에 풀어야 합니다. 중의성(歧义, 두 가지 뜻으로 읽히는 문장), 성어·어휘 뜻 오용, 문장부호 오류는 이 과정에 넣지 않았습니다.</p></div>'+
   '<div class="part"><h2>시험 버전 확인</h2>'+
   '<p>HSK 3.0 6급 필기에는 틀린 문장 고르기가 없습니다. 이 유형은 HSK 2.0 6급 독해 1부분 51~60번(10문항)에 있으므로, 이 과정은 HSK 2.0 6급 기준입니다. 응시할 시험이 3.0으로 접수됐다면 이 과정은 필요 없습니다. 접수 화면에서 버전을 먼저 확인하세요.</p>'+
   '<div class="tbl"><table><thead><tr>'+VERSIONS[0].map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+
   VERSIONS.slice(1).map(r=>'<tr>'+r.map((c,i)=>'<td>'+(i===0?'<b>'+esc(c)+'</b>':esc(c))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'+
   '<p class="src" style="margin-top:10px">출처: <a href="https://pandarin.net/wp-content/uploads/2025/12/HSK6%E7%BA%A7%E8%80%83%E8%AF%95%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A0%B7%E9%A2%98.pdf" target="_blank" rel="noopener">新版 HSK 6급 考试结构与样题</a> · <a href="https://www.digmandarin.com/wp-content/uploads/2022/05/H61004.pdf" target="_blank" rel="noopener">HSK 2.0 6급 기출 H61004</a> · <a href="https://studycli.org/zh-CN/hsk/hsk-levels-guide/" target="_blank" rel="noopener">HSK 等级与过渡情况</a></p></div>';
-  const next=DAYS.find(d=>!st.graded[d.n]);
-  const sb=$('#startBtn');sb.textContent=next?(Object.keys(st.ans).length?'이어서 하기 · Day '+next.n:'Day 1 시작'):'오답 노트 보기';
-  sb.onclick=()=>next?openDay(next.n):show('wrong');
-  $('#v-guide').querySelectorAll('tr.go').forEach(r=>r.onclick=()=>openDay(+r.dataset.d));
+  const allDone=st.graded[gk(NC,7)],nd=DAYS.find(d=>!st.graded[gk(cc,d.n)]);
+  const sb=$('#startBtn');
+  sb.textContent=allDone?'오답 노트 보기':(Object.keys(st.ans).length?'이어서 하기 · 코스 '+cc+' Day '+nd.n:'코스 1 Day 1 시작');
+  sb.onclick=()=>allDone?show('wrong'):openDay(cc,nd.n);
+  $('#v-guide').querySelectorAll('tr.go[data-c]').forEach(r=>r.onclick=()=>{course=+r.dataset.c;show('guide')});
+  $('#v-guide').querySelectorAll('tr.go[data-d]').forEach(r=>r.onclick=()=>openDay(course,+r.dataset.d));
 }
 
 // ───────── 문항 하나 ─────────
 function qHTML(q,mode){
   // mode: 'day' 그날 풀기, 'wrong' 오답 다시 풀기
   const pick=mode==='wrong'?st.retry[q.id]:st.ans[q.id];
-  const done=mode==='wrong'?pick!==undefined:!!st.graded[q.day];
+  const done=mode==='wrong'?pick!==undefined:!!st.graded[gk(q.c,q.day)];
   const name=mode+'-'+q.id;
   const opts=q.o.map((t,i)=>{
     const cls=done?(i===q.a?' right':i===pick?' wrong':''):'';
@@ -205,65 +290,102 @@ function qHTML(q,mode){
   if(done){
     const ok=pick===q.a;
     ex='<div class="ex"><div class="k"><span class="res '+(ok?'ok':'ng')+'">'+(pick===undefined?'안 고름':ok?'맞음':'틀림')+'</span><span>정답 <b>'+L[q.a]+'</b></span><span class="tag">'+esc(q.type)+'</span></div>'+
-       '<div>'+esc(q.why)+'</div><div class="fix">'+esc(q.fix)+'</div></div>';
+       '<div>'+esc(q.why)+'</div><div class="fix">'+esc(q.fix)+'</div>'+
+       (q.words&&q.words.length?'<div class="words"><div class="wh">어려운 단어</div><dl>'+q.words.map(w=>'<div><dt>'+esc(w[0])+'</dt><dd><span class="py">'+esc(w[1])+'</span> '+esc(w[2])+'</dd></div>').join('')+'</dl></div>':'')+'</div>';
   }
-  return '<div class="q'+(done?' graded':'')+'" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+(q.day===7?q.id+'번':q.id)+'</span>'+(mode==='wrong'?'<span class="from">Day '+q.day+' · '+esc(DAYS[q.day-1].title)+'</span>':'')+'</div><div class="opts">'+opts+'</div>'+ex+'</div>';
+  const memo=st.memo[q.id]||'';
+  return '<div class="q'+(done?' graded':'')+'" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+(q.day===7?(50+q.no)+'번':q.no+'번')+'</span>'+(mode==='wrong'?'<span class="from">코스 '+q.c+' · Day '+q.day+' · '+esc(DAYS[q.day-1].title)+'</span>':'')+
+    '<button class="mbtn'+(memo?' has':'')+'" data-id="'+q.id+'">메모'+(memo?' ✎':'')+'</button></div><div class="opts">'+opts+'</div>'+ex+
+    '<textarea class="memo" data-id="'+q.id+'" rows="2" placeholder="이 문항 메모 (자동 저장)"'+(memo?'':' hidden')+'>'+esc(memo)+'</textarea></div>';
 }
 
 // ───────── 하루 ─────────
 function renderDay(){
-  const d=DAYS[day-1],g=!!st.graded[d.n];
-  const prevWrong=DAYS.filter(x=>x.n<d.n).flatMap(wrongOf).filter(q=>st.retry[q.id]!==q.a);
-  const answered=d.qs.filter(q=>st.ans[q.id]!==undefined).length;
-  let h='<h1>Day '+d.n+' · '+esc(d.title)+'</h1>'+
-  '<div class="meta"><span>할 일 <b>'+esc(d.todo)+'</b></span><span>권장 시간 <b>'+esc(d.time)+'</b></span></div>';
+  const d=DAYS[day-1],c=course,qs=qsOf(c,d.n),g=!!st.graded[gk(c,d.n)];
+  const prevWrong=DAYS.filter(x=>x.n<d.n).flatMap(x=>wrongOf(c,x.n)).filter(q=>st.retry[q.id]!==q.a);
+  const answered=qs.filter(q=>st.ans[q.id]!==undefined).length;
+  let h='<h1>코스 '+c+' · Day '+d.n+' · '+esc(d.title)+'</h1>'+
+  '<div class="meta"><span>주제 <b>'+esc(COURSES[c-1].theme)+'</b></span><span>할 일 <b>'+esc(d.todo)+'</b></span><span>권장 시간 <b>'+esc(d.time)+'</b></span></div>';
   if(d.intro)h+='<p class="lead">'+esc(d.intro)+'</p>';
-  if(d.n>1)h+=prevWrong.length?'<div class="prev"><span>앞 날 틀린 문항</span><span class="ids">'+prevWrong.map(q=>q.id).join(' · ')+'</span><button class="btn" id="toWrong">오답 노트에서 다시 풀기</button></div>'
-    :(DAYS.some(x=>x.n<d.n&&st.graded[x.n])?'<div class="prev"><span>앞 날 틀린 문항이 남아 있지 않습니다.</span></div>':'');
+  if(d.n>1)h+=prevWrong.length?'<div class="prev"><span>이 코스 앞 날 틀린 문항</span><span class="ids">'+prevWrong.map(q=>'D'+q.day+'-'+q.no).join(' · ')+'</span><button class="btn" id="toWrong">코스 오답 모아보기에서 다시 풀기</button></div>'
+    :(DAYS.some(x=>x.n<d.n&&st.graded[gk(c,x.n)])?'<div class="prev"><span>이 코스 앞 날 틀린 문항이 남아 있지 않습니다.</span></div>':'');
   h+='<div class="part"><h2>규칙 표</h2><div class="tbl"><table><thead><tr><th>오류 형태</th><th>찾는 방법</th></tr></thead><tbody>'+
     d.rules.map(r=>'<tr><td><b>'+esc(r[0])+'</b></td><td>'+esc(r[1])+'</td></tr>').join('')+'</tbody></table></div></div>';
-  h+=d.qs.map(q=>qHTML(q,'day')).join('');
+  h+=qs.map(q=>qHTML(q,'day')).join('');
   if(g){
-    const ok=d.qs.length-wrongOf(d).length;
-    h+='<div class="part"><div class="row"><span class="score">'+ok+'<small> / '+d.qs.length+' 맞음</small></span>'+
-      (d.n<7?'<button class="btn primary" id="nextBtn">Day '+(d.n+1)+' 로</button>':'<button class="btn primary" id="nextBtn">오답 노트 보기</button>')+
-      '<button class="btn" id="resetBtn">이 날 다시 풀기</button></div></div>';
+    const ok=qs.length-wrongOf(c,d.n).length;
+    const nextLab=d.n<7?'Day '+(d.n+1)+' 로':c<NC?'코스 '+(c+1)+' 시작 · '+esc(COURSES[c].theme):'오답 노트 보기';
+    h+='<div class="part"><div class="row"><span class="score">'+ok+'<small> / '+qs.length+' 맞음</small></span>'+
+      '<button class="btn primary" id="nextBtn">'+nextLab+'</button><button class="btn" id="resetBtn">이 날 다시 풀기</button></div>'+
+      (d.n===7&&c<NC?'<p class="src" style="margin-top:10px">코스 '+c+'을 마쳤습니다. 다음 코스는 주제가 바뀌고 문장이 조금 더 어려워집니다.</p>':'')+'</div>';
   }else{
-    h+='<div class="part"><div class="row"><button class="btn primary" id="gradeBtn">채점</button><span class="msg" id="gmsg">'+answered+' / '+d.qs.length+' 문항 고름</span></div></div>';
+    h+='<div class="part"><div class="row"><button class="btn primary" id="gradeBtn">채점</button><span class="msg" id="gmsg">'+answered+' / '+qs.length+' 문항 고름</span></div></div>';
   }
+  h+=copyBar(qs);
   const box=$('#v-day');box.innerHTML=h;
-  box.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{const id=r.name.slice(4);st.ans[id]=+r.value;save();
-    const n=d.qs.filter(q=>st.ans[q.id]!==undefined).length;$('#gmsg').textContent=n+' / '+d.qs.length+' 문항 고름';armed=false;$('#gradeBtn').textContent='채점'});
   let armed=false;
+  box.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{const id=r.name.slice(4);st.ans[id]=+r.value;save();
+    const n=qs.filter(q=>st.ans[q.id]!==undefined).length;$('#gmsg').textContent=n+' / '+qs.length+' 문항 고름';armed=false;$('#gradeBtn').textContent='채점'});
   if($('#gradeBtn'))$('#gradeBtn').onclick=()=>{
-    const left=d.qs.filter(q=>st.ans[q.id]===undefined).length;
+    const left=qs.filter(q=>st.ans[q.id]===undefined).length;
     if(left&&!armed){armed=true;$('#gradeBtn').textContent=left+'문항을 안 골랐습니다. 그래도 채점';return}
-    st.graded[d.n]=Date.now();save();stopTimer();renderDay();tabs();paintTimeBtn();
-    const first=wrongOf(d)[0];document.getElementById('Q'+(first?first.id:d.qs[0].id)).scrollIntoView({block:'center'});
+    st.graded[gk(c,d.n)]=Date.now();save();stopTimer();renderDay();tabs();paintTimeBtn();
+    const first=wrongOf(c,d.n)[0];document.getElementById('Q'+(first?first.id:qs[0].id)).scrollIntoView({block:'center'});
   };
-  if($('#nextBtn'))$('#nextBtn').onclick=()=>d.n<7?openDay(d.n+1):show('wrong');
+  if($('#nextBtn'))$('#nextBtn').onclick=()=>d.n<7?openDay(c,d.n+1):c<NC?openDay(c+1,1):show('wrong');
   let armed2=false;
   if($('#resetBtn'))$('#resetBtn').onclick=e=>{
     if(!armed2){armed2=true;e.target.textContent='한 번 더 누르면 이 날 답이 지워집니다';return}
-    d.qs.forEach(q=>{delete st.ans[q.id];delete st.retry[q.id]});delete st.graded[d.n];save();renderDay();tabs();paintTimeBtn();scrollTo(0,0);
+    qs.forEach(q=>{delete st.ans[q.id];delete st.retry[q.id]});delete st.graded[gk(c,d.n)];save();renderDay();tabs();paintTimeBtn();scrollTo(0,0);
   };
-  if($('#toWrong'))$('#toWrong').onclick=()=>show('wrong');
+  if($('#toWrong'))$('#toWrong').onclick=()=>show('cwrong');
 }
 
 // ───────── 오답 노트 ─────────
-function renderWrong(){
-  const all=DAYS.flatMap(wrongOf);
+function renderWrong(c){
+  const all=c?courseWrong(c):allWrong();
   const open=all.filter(q=>st.retry[q.id]!==q.a),fixed=all.filter(q=>st.retry[q.id]===q.a);
-  let h='<h1>오답 노트</h1><p class="lead">채점에서 틀린 문항을 다시 풉니다. 고르면 바로 정답과 해설이 나오고, 맞힌 문항은 다음에 들어올 때 아래 \'다시 풀어 맞힌 문항\'으로 내려갑니다. 틀리면 \'다시\'를 눌러 또 풀 수 있습니다.</p>';
-  if(!all.length)h+='<div class="empty">'+(Object.keys(st.graded).length?'틀린 문항이 없습니다.':'아직 채점한 날이 없습니다. Day 1 부터 풀고 채점하면 틀린 문항이 여기 모입니다.')+'</div>';
+  let h=(c?'<h1>코스 '+c+' 오답 모아보기</h1><p class="lead">코스 '+c+'('+esc(COURSES[c-1].theme)+')에서 채점 때 틀린 문항만 모았습니다.':'<h1>오답 노트</h1><p class="lead">모든 코스에서 채점 때 틀린 문항을 다시 풉니다.')+' 고르면 바로 정답·해설·어려운 단어가 나오고, 맞힌 문항은 다음에 들어올 때 아래 \'다시 풀어 맞힌 문항\'으로 내려갑니다. 틀리면 \'다시\'를 눌러 또 풀 수 있습니다.</p>';
+  if(!all.length)h+='<div class="empty">'+(Object.keys(st.graded).some(k=>!c||k.split('-')[0]==c)?'틀린 문항이 없습니다.':c?'이 코스에서 아직 채점한 날이 없습니다.':'아직 채점한 날이 없습니다. 코스 1 Day 1 부터 풀고 채점하면 틀린 문항이 여기 모입니다.')+'</div>';
   else{
     h+=open.length?open.map(q=>qHTML(q,'wrong')).join(''):'<div class="empty">남은 오답이 없습니다.</div>';
-    if(fixed.length)h+='<div class="part" style="margin-top:18px"><h2>다시 풀어 맞힌 문항 '+fixed.length+'개</h2><p class="src">'+fixed.map(q=>q.id).join(' · ')+'</p><div class="row"><button class="btn" id="againAll">모두 다시 풀기</button></div></div>';
+    if(fixed.length)h+='<div class="part" style="margin-top:18px"><h2>다시 풀어 맞힌 문항 '+fixed.length+'개</h2><p class="src">'+fixed.map(q=>'코스'+q.c+' D'+q.day+'-'+q.no).join(' · ')+'</p><div class="row"><button class="btn" id="againAll">모두 다시 풀기</button></div></div>';
   }
+  h+=copyBar(all);
   $('#v-wrong').innerHTML=h;
   open.forEach(q=>bindRetry(q.id));
-  if($('#againAll'))$('#againAll').onclick=()=>{fixed.forEach(q=>delete st.retry[q.id]);save();renderWrong();tabs()};
+  if($('#againAll'))$('#againAll').onclick=()=>{fixed.forEach(q=>delete st.retry[q.id]);save();renderWrong(c);tabs()};
 }
+// ───────── 메모: 문항마다 자동 저장. 맨 아래 버튼으로 메모 있는 문항을 한꺼번에 복사 ─────────
+function copyBar(list){
+  const ids=list.map(q=>q.id).join(',');
+  return '<div class="copybar"><button class="btn" data-copy="'+ids+'">메모 있는 문항 복사</button><span class="msg"></span></div>';
+}
+function qText(q){
+  const shown=st.graded[gk(q.c,q.day)]||st.retry[q.id]!==undefined;
+  let t='[코스 '+q.c+' · Day '+q.day+' · '+q.no+'번] '+DAYS[q.day-1].title+'\n'+q.o.map((o,i)=>L[i]+'. '+o).join('\n');
+  if(shown)t+='\n정답 '+L[q.a]+' ('+q.type+') '+q.why+'\n고친 문장: '+q.fix+(q.words&&q.words.length?'\n어려운 단어: '+q.words.map(w=>w[0]+' '+w[1]+' '+w[2]).join(' / '):'');
+  return t+'\n메모: '+st.memo[q.id];
+}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){}
+  const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();
+  let ok=false;try{ok=document.execCommand('copy')}catch(e){}a.remove();return ok;
+}
+document.addEventListener('click',async e=>{
+  const mb=e.target.closest('.mbtn');
+  if(mb){const ta=mb.closest('.q').querySelector('textarea.memo');ta.hidden=!ta.hidden;if(!ta.hidden)ta.focus();return}
+  const cb=e.target.closest('[data-copy]');
+  if(cb){const qs=cb.dataset.copy.split(',').filter(id=>QS[id]&&st.memo[id]).map(id=>QS[id]);
+    const msg=cb.nextElementSibling;
+    if(!qs.length){msg.textContent='메모를 단 문항이 없습니다.';return}
+    msg.textContent=(await copyText(qs.map(qText).join('\n\n')))?qs.length+'문항을 복사했습니다.':'복사하지 못했습니다.';}
+});
+document.addEventListener('input',e=>{
+  const ta=e.target.closest('textarea.memo');if(!ta)return;
+  const id=ta.dataset.id,v=ta.value.trim();if(v)st.memo[id]=ta.value;else delete st.memo[id];save();
+  const b=ta.closest('.q').querySelector('.mbtn');b.classList.toggle('has',!!v);b.textContent='메모'+(v?' ✎':'');
+});
 // 오답 문항 하나를 다시 그리고 고르기·'다시' 버튼을 붙인다
 function redrawRetry(id){document.getElementById('Q'+id).outerHTML=qHTML(QS[id],'wrong');bindRetry(id);tabs()}
 function bindRetry(id){
@@ -279,7 +401,7 @@ function bindRetry(id){
 let timer=null,left=0;
 const fmt=s=>String(Math.floor(Math.abs(s)/60)).padStart(2,'0')+':'+String(Math.abs(s)%60).padStart(2,'0');
 function paintTimeBtn(){
-  const lim=view==='day'&&!st.graded[day]&&LIMIT[day];
+  const lim=view==='day'&&!st.graded[gk(course,day)]&&LIMIT[day];
   $('#timeBtn').hidden=!lim;$('#clock').hidden=!timer;
   if(lim&&!timer)$('#timeBtn').textContent='시간 재기 '+fmt(lim);
 }
@@ -290,8 +412,12 @@ $('#timeBtn').onclick=()=>{
   timer=setInterval(()=>{left--;c.textContent=left>=0?fmt(left):'시간 끝 +'+fmt(left);c.classList.toggle('low',left<=60)},1000);
 };
 
-let start='guide';try{start=sessionStorage.getItem(KEY+'-tab')||'guide'}catch(e){}
-if(start[0]==='d'&&DAYS[+start.slice(1)-1])openDay(+start.slice(1));else show(start==='wrong'?'wrong':'guide');
+let start='';try{start=sessionStorage.getItem(KEY+'-tab')||''}catch(e){}
+let m;
+if((m=/^d(\d+)-(\d)$/.exec(start))&&COURSES[m[1]-1]&&DAYS[m[2]-1])openDay(+m[1],+m[2]);
+else if(start==='wrong')show('wrong');
+else if((m=/^w(\d+)$/.exec(start))&&COURSES[m[1]-1]){course=+m[1];show('cwrong')}
+else{if((m=/^g(\d+)$/.exec(start))&&COURSES[m[1]-1])course=+m[1];show('guide')}
 
 // 쿠팡 파트너스 (온라인 + http 일 때만, 최하단). 위젯은 document.write 라 srcdoc iframe 안에서 돌린다.
 function loadCoupangAd(){

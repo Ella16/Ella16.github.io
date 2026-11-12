@@ -77,9 +77,9 @@ main{padding-bottom:48px}
   <div class="cards">
     <a class="card study" href="study.html">
       <div class="glyph" aria-hidden="true">学</div>
-      <h2>공부<span class="zh">病句 七天</span></h2>
-      <p>틀린 문장 고르기(病句) 7일 과정. 하루에 오류 유형 하나를 규칙 표로 익히고 5문항씩 풉니다. 7일째에는 실전처럼 10문항을 12분 안에 풉니다. 채점하면 틀린 이유와 고친 문장이 나오고, 틀린 문항은 오답 노트에 모입니다.</p>
-      <div class="state" id="studyState">Day 1 시작</div>
+      <h2>공부<span class="zh">病句 七十天</span></h2>
+      <p>틀린 문장 고르기(病句) 70일 과정. 7일 코스 10개, 코스마다 하루에 오류 유형 하나를 규칙 표로 익히고 10문항씩 풉니다. 7일째에는 실전처럼 10문항을 12분 안에 풀고, 끝나면 다음 코스가 시작됩니다. 채점하면 틀린 이유, 고친 문장, 어려운 단어가 나오고, 틀린 문항은 오답 노트에 모입니다.</p>
+      <div class="state" id="studyState">코스 1 Day 1 시작</div>
     </a>
     <a class="card exam" href="exam.html">
       <div class="glyph" aria-hidden="true">考</div>
@@ -98,13 +98,15 @@ main{padding-bottom:48px}
 
 <script>
 const $=s=>document.querySelector(s);
-// 진행 상황: 공부는 hsk6-bingju-v1, 모의고사는 hsk6-mock-v1 (각 페이지가 저장한 값)
+// 진행 상황: 공부는 hsk6-bingju-v2, 모의고사는 hsk6-mock-v1 (각 페이지가 저장한 값)
 function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
-const sb=read('hsk6-bingju-v1');
+const sb=read('hsk6-bingju-v2');
 if(sb){
-  const days=Object.keys(sb.graded||{}).map(Number).sort((a,b)=>a-b);
-  const next=[1,2,3,4,5,6,7].find(n=>!days.includes(n));
-  $('#studyState').textContent=days.length?(days.length+'일 채점함 · '+(next?'Day '+next+' 이어서':'7일 모두 마침')):(Object.keys(sb.ans||{}).length?'Day 1 이어서':'Day 1 시작');
+  // graded 키는 '코스-일차'. 지금 코스 = Day 7 을 아직 채점하지 않은 첫 코스
+  const g=sb.graded||{},n=Object.keys(g).length;
+  let c=1;while(c<=10&&g[c+'-7'])c++;
+  const d=[1,2,3,4,5,6,7].find(x=>!g[c+'-'+x]);
+  $('#studyState').textContent=c>10?'70일 모두 마침 · 오답 노트':n?n+'일 채점함 · 코스 '+c+' Day '+d+' 이어서':(Object.keys(sb.ans||{}).length?'코스 1 Day 1 이어서':'코스 1 Day 1 시작');
 }
 const ex=read('hsk6-mock-v1');
 if(ex){
