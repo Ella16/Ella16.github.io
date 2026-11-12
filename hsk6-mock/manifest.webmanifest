@@ -1,7 +1,7 @@
 {
-  "name": "HSK 6급 모의고사",
-  "short_name": "HSK6 모의",
-  "description": "HSK 6급 모의고사(축소판) — 듣기 MP3, 자동 채점, 단어 해설지",
+  "name": "HSK 6급 공부·모의고사",
+  "short_name": "HSK6",
+  "description": "HSK 6급 틀린 문장 고르기 7일 과정과 모의고사(축소판) — 듣기 MP3, 자동 채점, 단어 해설지",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

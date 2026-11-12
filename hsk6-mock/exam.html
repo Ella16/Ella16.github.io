@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HSK 6급 모의고사</title>
+<meta name="description" content="HSK 6급 모의고사(축소판). 듣기 15·독해 25·쓰기 1문항, 듣기 MP3·자동 채점·해설지.">
+<meta name="theme-color" content="#0E6B58">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 시험지 한 장: 위에 고정된 수험 막대(구역·남은 시간), 가운데 문제지, 아래 OMR 답안지 */
+:root{
+  --paper:#EEF1EE; --sheet:#FFFFFF; --ink:#1B2422; --muted:#5D6A66; --line:#D6DDD9;
+  --jade:#0E6B58; --jade-soft:#E0EEE9; --ok:#157A3D; --ok-soft:#E3F3E8; --ng:#B42318; --ng-soft:#FBE7E5; --warn:#A15C07;
+  --zh:"Noto Serif SC","Songti SC","SimSun",serif;
+  --ui:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#101513; --sheet:#182020; --ink:#E4EBE8; --muted:#97A6A1; --line:#2B3634;
+  --jade:#56C2A6; --jade-soft:#163830; --ok:#5BD58A; --ok-soft:#14301F; --ng:#F2847A; --ng-soft:#3A1916; --warn:#F0B35A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#101513; --sheet:#182020; --ink:#E4EBE8; --muted:#97A6A1; --line:#2B3634;
+  --jade:#56C2A6; --jade-soft:#163830; --ok:#5BD58A; --ok-soft:#14301F; --ng:#F2847A; --ng-soft:#3A1916; --warn:#F0B35A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0}
+img{max-width:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--sheet);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:10px}
+.brand{font-family:var(--zh);font-weight:700;font-size:18px;letter-spacing:.02em;margin-right:auto}
+.brand small{font-family:var(--ui);font-weight:500;font-size:12px;color:var(--muted);margin-left:6px}
+.clock{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;padding:4px 10px;border:1px solid var(--line);border-radius:6px}
+.clock.low{color:var(--ng);border-color:var(--ng)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{font:inherit;font-size:14px;border:0;background:none;color:var(--muted);padding:8px 12px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--jade);font-weight:600}
+nav.tabs .zh{font-family:var(--zh);margin-right:4px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+main{padding-block:24px 64px}
+.intro{display:grid;gap:6px;margin-bottom:20px}
+.intro h1{font-family:var(--zh);font-size:26px;margin:0;text-wrap:balance}
+.intro p{margin:0;color:var(--muted);max-width:65ch}
+.part{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:18px}
+.part>h2{font-family:var(--zh);font-size:19px;margin:0 0 4px}
+.part>.how{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.group{border-top:1px dashed var(--line);padding-top:16px;margin-top:16px;display:grid;gap:14px}
+.group:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.passage{font-family:var(--zh);font-size:16.5px;line-height:1.95;background:var(--paper);border-radius:8px;padding:14px 16px;max-width:70ch}
+.passage p{margin:0 0 .6em;text-indent:2em}.passage p:last-child{margin:0}
+.blank{display:inline-block;min-width:2.6em;border-bottom:1.5px solid var(--ink);text-align:center;text-indent:0;font-family:var(--mono);font-size:13px;color:var(--jade)}
+.audio{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+.btn:hover{border-color:var(--jade)}
+.btn.primary{background:var(--jade);border-color:var(--jade);color:var(--sheet);font-weight:600}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.audio .note{font-size:12.5px;color:var(--muted)}
+.q{display:grid;gap:8px}
+.qhead{display:flex;gap:10px;align-items:baseline}
+.qn{font-family:var(--mono);font-size:13px;color:var(--jade);min-width:2.2em}
+.qt{font-family:var(--zh);font-size:16px}
+.opts{display:grid;gap:6px;padding-left:2.2em}
+.opts.cols{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:7px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;min-width:0}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .l{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--muted);display:grid;place-items:center;font-family:var(--mono);font-size:12px}
+.opt .t{font-family:var(--zh);font-size:15.5px;min-width:0}
+.opt:has(input:checked){border-color:var(--jade);background:var(--jade-soft)}
+.opt:has(input:checked) .l{background:var(--jade);border-color:var(--jade);color:var(--sheet)}
+.opt:has(input:focus-visible){outline:2px solid var(--jade);outline-offset:1px}
+.graded .opt{cursor:default}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .l{background:var(--ok);border-color:var(--ok);color:var(--sheet)}
+.opt.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.opt.wrong .l{background:var(--ng);border-color:var(--ng);color:var(--sheet)}
+.ex{margin-left:2.2em;font-size:13.5px;padding:8px 12px;border-radius:8px;background:var(--paper);color:var(--ink)}
+.ex b{color:var(--jade)}
+details.script{margin-top:2px}
+details.script summary{cursor:pointer;color:var(--jade);font-size:13.5px}
+details.script .passage{margin-top:8px}
+.spk{font-family:var(--ui);font-size:12px;color:var(--muted);margin-right:4px}
+/* 답안지 */
+.sheet h2{font-size:15px;margin:0 0 10px;font-family:var(--ui)}
+.omr{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 14px}
+.omr a{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--ink);font-family:var(--mono);font-size:12px;padding:3px 4px;border-radius:4px}
+.omr a:hover{background:var(--paper)}
+.omr .n{width:2em;text-align:right;color:var(--muted)}
+.omr i{width:16px;height:16px;border-radius:50%;border:1px solid var(--line);font-style:normal;font-size:9px;display:grid;place-items:center;color:var(--muted)}
+.omr i.on{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+.omr a.ok .n{color:var(--ok);font-weight:600}.omr a.ng .n{color:var(--ng);font-weight:600}
+.submitrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.submitrow .msg{font-size:13.5px;color:var(--muted)}
+/* 쓰기 */
+.wstate{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+textarea{width:100%;min-height:260px;font-family:var(--zh);font-size:16px;line-height:1.9;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);resize:vertical}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.count.good{color:var(--ok)}
+.lock{padding:18px;border:1px dashed var(--line);border-radius:8px;color:var(--muted);text-align:center}
+/* 결과 */
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.score{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--sheet)}
+.score .k{font-size:12.5px;color:var(--muted);letter-spacing:.03em}
+.score .v{font-family:var(--mono);font-size:28px;font-variant-numeric:tabular-nums}
+.score .v small{font-size:14px;color:var(--muted)}
+.verdict{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600}
+.verdict.pass{background:var(--ok-soft);color:var(--ok)}.verdict.fail{background:var(--ng-soft);color:var(--ng)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.rubric{display:grid;gap:8px}
+.rubric label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.muted{color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.player{display:grid;gap:12px}
+.player audio{width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:6px;padding:4px 9px;cursor:pointer;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--jade)}
+.chip span{font-family:var(--mono);color:var(--muted);margin-left:6px;font-size:12px}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.bar .btn{padding:5px 12px;font-size:13.5px}
+.runbtn{font-weight:600}
+.runbtn.go{background:var(--jade);border-color:var(--jade);color:var(--sheet)}
+.clock.stopped{color:var(--muted);border-style:dashed}
+body.cover #v-listen,body.cover #v-read,body.cover #v-write{filter:blur(7px);pointer-events:none;user-select:none;opacity:.55}
+.coverbox{position:sticky;top:120px;z-index:4;margin:0 auto 18px;max-width:420px;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:22px;text-align:center;display:grid;gap:10px;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.coverbox h2{margin:0;font-family:var(--zh);font-size:20px}
+.coverbox p{margin:0;color:var(--muted);font-size:14px}
+.adzone{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:grid;justify-items:center;gap:6px}
+.ad-frame{border:0;max-width:100%;display:block}
+.ad-disc{font-size:11.5px;color:var(--muted);margin:0;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <a class="brand" href="./" style="color:inherit;text-decoration:none">汉语水平考试 六级<small>모의고사 축소판</small></a>
+      <button class="btn runbtn go" id="runBtn">시험 시작</button>
+      <div class="clock" id="clock" title="권장 시간 75분">75:00</div>
+      <a class="btn" href="answers.html">해설지</a>
+      <a class="btn" href="./">처음</a>
+      <button class="btn" id="dlBtn" hidden><span id="dlLabel">앱 설치</span></button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-v="listen" aria-selected="true"><span class="zh">听力</span>듣기</button>
+      <button role="tab" data-v="read" aria-selected="false"><span class="zh">阅读</span>독해</button>
+      <button role="tab" data-v="write" aria-selected="false"><span class="zh">书写</span>쓰기</button>
+      <button role="tab" data-v="result" aria-selected="false"><span class="zh">成绩</span>채점</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="intro">
+    <h1>HSK 6급 모의고사</h1>
+    <p>실제 시험(듣기 50·독해 50·쓰기 1, 약 140분)과 같은 구성으로 문항 수만 줄였습니다. 듣기 15문항, 독해 25문항, 쓰기 1문항이고 권장 시간은 75분입니다. 듣기는 아래 플레이어로 바로 듣거나 MP3 로 내려받아 휴대폰으로 들어도 됩니다. 답은 이 브라우저에 저장되며, 채점 탭에서 제출하면 해설과 듣기 대본이 열립니다.</p>
+  </div>
+  <div class="coverbox" id="cover" hidden><h2 id="coverT">시험 시작</h2><p id="coverP">시작을 누르면 75분 시계가 흐르고 문제가 보입니다. 중지하면 시계와 듣기가 함께 멈춥니다.</p><button class="btn primary" id="coverBtn">시험 시작</button></div>
+  <section id="v-listen"></section>
+  <section id="v-read" hidden></section>
+  <section id="v-write" hidden></section>
+  <section id="v-result" hidden></section>
+  <div id="adFooter" class="adzone" hidden>
+    <div id="adSlot"></div>
+    <p class="ad-disc">쿠팡 파트너스 활동의 일환으로, 이를 통해 일정액의 수수료를 제공받을 수 있습니다.</p>
+  </div>
+</main>
+
+<script src="data.js"></script>
+<script src="audio/chapters.js"></script>
+<script>
+const LETTERS='ABCDE';
+const allQs=[];PARTS.forEach(p=>p.groups.forEach(g=>g.qs.forEach(q=>{q.part=p;q.group=g;allQs.push(q)})));
+
+// ───────── 저장 ─────────
+const KEY='hsk6-mock-v1';
+let st={ans:{},el:0,run:null,graded:false,essay:'',wphase:'idle',wstart:null,rub:[]};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)st=Object.assign(st,s)}catch(e){}
+if(st.start&&st.el===0&&!st.run){st.el=Math.min(Date.now()-st.start,75*60000);delete st.start}
+if(st.wstart>1e12)st.wstart=st.el;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ───────── 렌더 ─────────
+function blanks(t){return esc(t).replace(/\[(\d+)\]/g,(m,n)=>'<span class="blank">'+n+'</span>')}
+function optsHtml(q,list,cols){
+  return '<div class="opts'+(cols?' cols':'')+'" role="radiogroup" aria-label="'+q.id+'번">'+list.map((o,i)=>
+   '<label class="opt" data-i="'+i+'"><input type="radio" name="q'+q.id+'" id="q'+q.id+'-'+i+'" value="'+i+'"'+(st.ans[q.id]===i?' checked':'')+'><span class="l">'+LETTERS[i]+'</span><span class="t">'+esc(o)+'</span></label>').join('')+'</div>';
+}
+function scriptHtml(a){return '<div class="passage">'+a.map(([v,t])=>'<p><span class="spk">'+(a.length>1?(v===F?'女':'男'):'')+'</span>'+esc(t)+'</p>').join('')+'</div>'}
+function renderPart(p,pi){
+  let h='<div class="part" id="part-'+p.key+'"><h2>'+p.title+'</h2><p class="how">'+p.how+'</p>';
+  p.groups.forEach((g,gi)=>{
+    const gid=p.key+'-'+gi;
+    h+='<div class="group" data-g="'+gid+'">';
+    if(g.audio){
+      h+='<details class="script" hidden><summary>듣기 대본</summary>'+scriptHtml(g.audio)+'</details>';
+    }
+    if(g.passage){h+='<div class="passage">'+g.passage.map(t=>'<p>'+blanks(t)+'</p>').join('')+'</div>'}
+    if(g.shared){h+='<div class="passage" style="text-indent:0">'+g.shared.map((s,i)=>'<div><b style="font-family:var(--mono);font-size:13px;margin-right:8px">'+LETTERS[i]+'</b>'+esc(s)+'</div>').join('')+'</div>'}
+    g.qs.forEach(q=>{
+      const list=g.shared?LETTERS.split(''):q.opts;
+      const long=!g.shared&&q.opts.some(o=>o.length>14);
+      h+='<div class="q" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+q.id+'</span><span class="qt">'+(q.q?blanks(q.q):(g.shared?'빈칸 '+q.id:''))+'</span></div>'+
+        (g.shared?optsHtml(q,g.shared.map((_,i)=>LETTERS[i]),true).replace(/<span class="t">[A-E]<\/span>/g,''):optsHtml(q,q.opts,!long))+
+        '<div class="ex" hidden><b>정답 '+LETTERS[q.a]+'</b> · '+q.ex+'</div></div>';
+    });
+    h+='</div>';
+  });
+  return h+'</div>';
+}
+function sheetHtml(){
+  return '<div class="part sheet"><h2>답안지</h2><div class="omr" id="omr">'+allQs.map(q=>{
+    const n=q.group.shared?5:4;let b='';for(let i=0;i<n;i++)b+='<i data-q="'+q.id+'" data-i="'+i+'"'+(st.ans[q.id]===i?' class="on"':'')+'>'+LETTERS[i]+'</i>';
+    return '<a href="#Q'+q.id+'" data-q="'+q.id+'" data-v="'+q.part.sec+'"><span class="n">'+q.id+'</span>'+b+'</a>'}).join('')+'</div>'+
+   '<div class="submitrow"><button class="btn primary" id="submit">제출하고 채점</button><span class="msg" id="smsg"></span></div></div>';
+}
+const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+const playerHtml='<div class="part player"><h2>听力 음원</h2><p class="how" style="margin:0">실제 시험처럼 한 파일을 처음부터 끝까지 한 번 틀고 문제를 풉니다. 문항마다 답 고를 시간 12초가 들어 있습니다. 총 '+fmt(AUDIO.total)+'.</p>'+
+ '<audio id="aud" controls preload="metadata" src="audio/hsk6-listening.mp3"></audio>'+
+ '<div><a class="btn primary" href="audio/hsk6-listening.mp3" download="HSK6-모의고사-듣기.mp3">MP3 내려받기 ('+(AUDIO.bytes/1e6).toFixed(1)+'MB)</a></div>'+
+ '<div class="chips" aria-label="구간으로 이동">'+AUDIO.chapters.filter(c=>c.label!=='끝').map(c=>'<button class="chip" data-t="'+c.t+'">'+c.label+'<span>'+fmt(c.t)+'</span></button>').join('')+'</div></div>';
+$('#v-listen').innerHTML=playerHtml+PARTS.filter(p=>p.sec==='listen').map(renderPart).join('')+'<div class="submitrow"><button class="btn" data-go="read">독해로 넘어가기 →</button></div>';
+$('#v-read').innerHTML=PARTS.filter(p=>p.sec==='read').map(renderPart).join('')+'<div class="submitrow"><button class="btn" data-go="write">쓰기로 넘어가기 →</button></div>';
+$('#v-write').innerHTML='<div class="part"><h2>书写 · 缩写</h2><p class="how">41번. 아래 글을 10분 동안 읽으면 글이 사라집니다. 그다음 35분 안에 400자 안팎으로 줄여 쓰고 제목을 붙이세요. 원문을 베끼지 말고, 자기 의견을 넣지 않습니다.</p><div id="wbox"></div></div>';
+$('#v-result').innerHTML='<div id="rbox"></div>'+sheetHtml();
+
+// 탭
+function show(v){setTimeout(()=>typeof paintRun==='function'&&paintRun());document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));['listen','read','write','result'].forEach(k=>$('#v-'+k).hidden=k!==v);try{sessionStorage.setItem(KEY+'-tab',v)}catch(e){}}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{show(b.dataset.v);scrollTo(0,0)});
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){show(g.dataset.go);scrollTo(0,0)}
+  const a=e.target.closest('#omr a');if(a){e.preventDefault();show(a.dataset.v);const t=document.getElementById('Q'+a.dataset.q);t&&t.scrollIntoView({block:'center'})}});
+
+// 답 고르기
+document.addEventListener('change',e=>{
+  const m=e.target.name&&e.target.name.match(/^q(\d+)$/);if(!m||st.graded)return;
+  const id=+m[1];st.ans[id]=+e.target.value;save();
+  document.querySelectorAll('#omr i[data-q="'+id+'"]').forEach(i=>i.classList.toggle('on',+i.dataset.i===st.ans[id]));
+  updMsg();
+});
+function updMsg(){const n=Object.keys(st.ans).length;$('#smsg').textContent=st.graded?'채점 완료. 다시 풀려면 아래 "처음부터"를 누르세요.':(n+' / '+allQs.length+' 문항 답함')}
+
+// 시계
+// 시험 시계: 시작·중지. 흐른 시간은 st.el(멈춘 동안 쌓인 것) + 지금 흐르는 구간.
+const E=()=>st.el+(st.run?Date.now()-st.run:0);
+const mmss=t=>{const a=Math.abs(t);return (t<0?'+':'')+String(Math.floor(a/60)).padStart(2,'0')+':'+String(a%60).padStart(2,'0')};
+function startExam(){if(st.graded||st.run)return;st.run=Date.now();save();paintRun()}
+function stopExam(){if(!st.run)return;st.el=E();st.run=null;save();stopAll();paintRun()}
+function paintRun(){
+  const b=$('#runBtn'),started=st.el>0||st.run;
+  b.hidden=st.graded;
+  b.textContent=st.run?'중지':started?'이어서':'시험 시작';
+  b.classList.toggle('go',!st.run);
+  const covered=!st.graded&&!st.run;
+  document.body.classList.toggle('cover',covered);
+  $('#cover').hidden=!covered||$('#v-result').hidden===false;
+  $('#coverT').textContent=started?'중지됨':'시험 시작';
+  $('#coverP').textContent=started?'시계와 듣기가 멈춰 있습니다. 이어서 누르면 멈춘 곳부터 다시 흐릅니다. 남은 시간 '+mmss(75*60-Math.floor(E()/1000))+'.':'시작을 누르면 75분 시계가 흐르고 문제가 보입니다. 중지하면 시계와 듣기가 함께 멈춥니다.';
+  $('#coverBtn').textContent=started?'이어서':'시험 시작';
+  tick();
+}
+$('#runBtn').onclick=()=>st.run?stopExam():startExam();
+$('#coverBtn').onclick=startExam;
+function tick(){
+  const left=75*60-Math.floor(E()/1000);
+  const c=$('#clock');
+  if(st.graded){c.textContent='제출됨';c.classList.remove('low','stopped');return}
+  c.textContent=mmss(left);
+  c.classList.toggle('low',left<300);c.classList.toggle('stopped',!st.run);
+  c.title=left<0?'권장 시간 75분을 넘었습니다':st.run?'남은 시간 (권장 75분)':'멈춰 있음';
+}
+setInterval(tick,1000);tick();
+
+// ───────── 듣기 음원 ─────────
+const aud=$('#aud');
+aud.addEventListener('play',()=>{if(!st.run)startExam()});
+document.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){aud.currentTime=+c.dataset.t;aud.play().catch(()=>{})}});
+function stopAll(){aud.pause()}
+
+// ───────── 쓰기 ─────────
+let wTimer=null;
+function hz(s){return (s.match(/[^\s]/g)||[]).length}
+function renderWrite(){
+  const box=$('#wbox');clearInterval(wTimer);
+  if(st.wphase==='idle'){
+    box.innerHTML='<div class="lock">원문은 아직 가려져 있습니다.<br><br><button class="btn primary" id="wgo">원문 읽기 시작 (10분)</button></div>';
+    $('#wgo').onclick=()=>{startExam();st.wphase='read';st.wstart=E();save();renderWrite()};return;
+  }
+  if(st.wphase==='read'&&!st.graded){
+    box.innerHTML='<div class="wstate"><span class="clock" id="wclock">10:00</span><span class="muted">다 읽으면 넘어가세요. 시간이 되면 글이 자동으로 사라집니다.</span><button class="btn" id="wdone">다 읽었어요, 쓰기 시작</button></div><div class="passage" style="margin-top:12px">'+STORY.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div>';
+    const go=()=>{st.wphase='write';st.wstart=E();save();renderWrite()};
+    $('#wdone').onclick=go;
+    const up=()=>{const l=600-Math.floor((E()-st.wstart)/1000);if(l<=0)return go();$('#wclock').textContent=mmss(l)};
+    up();wTimer=setInterval(up,1000);return;
+  }
+  const done=st.graded;
+  box.innerHTML='<div class="wstate"><span class="clock" id="wclock">35:00</span><span class="count" id="wcount"></span></div>'+
+   '<p class="muted" style="margin:8px 0">첫 줄에 제목을 쓰세요. 원문은 채점 뒤에 다시 볼 수 있습니다.</p>'+
+   '<textarea id="essay" placeholder="题目&#10;&#10;二十年前……" '+(done?'readonly':'')+'>'+esc(st.essay)+'</textarea>';
+  const ta=$('#essay'),cnt=()=>{const n=hz(ta.value);const c=$('#wcount');c.textContent=n+'자 (권장 400자 안팎)';c.classList.toggle('good',n>=350&&n<=450)};
+  ta.oninput=()=>{st.essay=ta.value;save();cnt()};cnt();
+  if(!done){const up=()=>{const l=35*60-Math.floor((E()-st.wstart)/1000);const c=$('#wclock');c.textContent=mmss(l);c.classList.toggle('low',l<180)};up();wTimer=setInterval(up,1000)}
+  else $('#wclock').textContent='제출됨';
+}
+renderWrite();
+
+// ───────── 채점 ─────────
+let armed=false;
+$('#submit').onclick=()=>{
+  if(st.graded)return;
+  const left=allQs.length-Object.keys(st.ans).length;
+  if(!armed){armed=true;$('#submit').textContent='한 번 더 눌러 제출';$('#smsg').textContent=(left?'아직 '+left+'문항이 비어 있습니다. ':'')+'제출하면 답을 바꿀 수 없습니다.';setTimeout(()=>{if(!st.graded){armed=false;$('#submit').textContent='제출하고 채점';updMsg()}},5000);return}
+  stopExam();st.graded=true;save();stopAll();applyGrade();paintRun();
+};
+function applyGrade(){
+  document.body.classList.add('graded');
+  allQs.forEach(q=>{
+    const el=document.getElementById('Q'+q.id),mine=st.ans[q.id];
+    el.querySelectorAll('input').forEach(i=>i.disabled=true);
+    el.querySelectorAll('.opt').forEach(o=>{const i=+o.dataset.i;if(i===q.a)o.classList.add('right');else if(i===mine)o.classList.add('wrong')});
+    el.querySelector('.ex').hidden=false;
+    const a=document.querySelector('#omr a[data-q="'+q.id+'"]');a.classList.add(mine===q.a?'ok':'ng');
+  });
+  document.querySelectorAll('details.script').forEach(d=>d.hidden=false);
+  $('#submit').hidden=true;
+  const r=document.createElement('button');r.className='btn';r.textContent='처음부터 다시 풀기';r.id='reset';$('#submit').after(r);
+  let armed2=false;r.onclick=()=>{if(!armed2){armed2=true;r.textContent='한 번 더 누르면 답이 모두 지워집니다';return}try{localStorage.removeItem(KEY)}catch(e){}location.reload()};
+  renderWrite();renderResult();updMsg();tick();
+}
+function renderResult(){
+  const box=$('#rbox');
+  if(!st.graded){box.innerHTML='<div class="part"><h2>채점</h2><p class="how" style="margin:0">아래 답안지에서 빈 문항을 확인하고 제출하세요. 번호를 누르면 그 문제로 갑니다.</p></div>';return}
+  const sec=s=>{const qs=allQs.filter(q=>q.part.sec===s);const ok=qs.filter(q=>st.ans[q.id]===q.a).length;return{ok,n:qs.length,score:Math.round(ok/qs.length*100)}};
+  const L=sec('listen'),R=sec('read');
+  const W=st.rub.filter(Boolean).length*20;
+  const total=L.score+R.score+W;
+  const mins=st.el?Math.round(st.el/60000):null;
+  const rows=PARTS.map(p=>{const qs=allQs.filter(q=>q.part===p),ok=qs.filter(q=>st.ans[q.id]===q.a);const wr=qs.filter(q=>st.ans[q.id]!==q.a).map(q=>'<a href="#Q'+q.id+'" data-jump="'+q.id+'" data-v="'+p.sec+'">'+q.id+'</a>');
+    return '<tr><td>'+(p.sec==='listen'?'듣기':'독해')+' '+p.title+'</td><td class="num">'+ok.length+' / '+qs.length+'</td><td>'+(wr.join(', ')||'<span class="muted">없음</span>')+'</td></tr>'}).join('');
+  box.innerHTML='<div class="part"><h2>成绩 · 성적</h2><p class="how">영역마다 100점으로 환산했습니다. 실제 HSK 6급은 300점 만점에 180점이면 합격입니다. 쓰기는 아래 체크 항목으로 직접 매기세요.'+(mins?' 걸린 시간 '+mins+'분.':'')+'</p>'+
+   '<div class="scores"><div class="score"><div class="k">听力 듣기</div><div class="v">'+L.score+'<small> / 100</small></div><div class="muted">'+L.ok+' / '+L.n+' 정답</div></div>'+
+   '<div class="score"><div class="k">阅读 독해</div><div class="v">'+R.score+'<small> / 100</small></div><div class="muted">'+R.ok+' / '+R.n+' 정답</div></div>'+
+   '<div class="score"><div class="k">书写 쓰기 (자가 채점)</div><div class="v">'+W+'<small> / 100</small></div><div class="muted">체크 항목당 20점</div></div>'+
+   '<div class="score"><div class="k">총점</div><div class="v">'+total+'<small> / 300</small></div><span class="verdict '+(total>=180?'pass':'fail')+'">'+(total>=180?'합격선 이상':'합격선 180점 미만')+'</span></div></div>'+
+   '<div class="tbl"><table><thead><tr><th>부분</th><th>정답</th><th>틀린 문항</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+   '<div class="part"><h2>书写 · 자가 채점</h2><p class="how">내 글과 모범 답안을 비교하고 맞는 항목에 체크하세요.</p><div class="rubric">'+RUBRIC.map((t,i)=>'<label><input type="checkbox" id="rub'+i+'" data-r="'+i+'"'+(st.rub[i]?' checked':'')+'> '+t+'</label>').join('')+'</div>'+
+   '<details class="script" style="margin-top:14px"><summary>내 글 ('+hz(st.essay)+'자)</summary><div class="passage">'+(st.essay?esc(st.essay).split('\n').filter(Boolean).map(t=>'<p>'+t+'</p>').join(''):'<p class="muted">쓴 글이 없습니다.</p>')+'</div></details>'+
+   '<details class="script"><summary>모범 답안 ('+hz(MODEL.join(''))+'자)</summary><div class="passage"><p style="text-align:center;text-indent:0;font-weight:700">'+MODEL[0]+'</p>'+MODEL.slice(1).map(t=>'<p>'+t+'</p>').join('')+'</div></details>'+
+   '<details class="script"><summary>원문 ('+hz(STORY.join(''))+'자)</summary><div class="passage">'+STORY.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div></details></div>';
+  box.querySelectorAll('[data-r]').forEach(c=>c.onchange=()=>{st.rub[+c.dataset.r]=c.checked;save();renderResult()});
+  box.querySelectorAll('[data-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();show(a.dataset.v);document.getElementById('Q'+a.dataset.jump).scrollIntoView({block:'center'})});
+}
+renderResult();updMsg();
+if(st.graded)applyGrade();
+try{const t=sessionStorage.getItem(KEY+'-tab');if(t)show(t)}catch(e){}
+
+// 쿠팡 파트너스 (온라인 + http 일 때만, 최하단). 위젯은 document.write 라 srcdoc iframe 안에서 돌린다.
+function loadCoupangAd(){
+  const foot=$('#adFooter'),slot=$('#adSlot');
+  if(location.protocol.indexOf('http')!==0)return;
+  if(!navigator.onLine){foot.hidden=true;return}
+  foot.hidden=false;if(slot.dataset.loaded)return;slot.dataset.loaded='1';
+  const W=320,H=140;
+  const doc='<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden}</style></head><body>'
+    +'<script src="https://ads-partners.coupang.com/g.js"><\/script>'
+    +'<script>new PartnersCoupang.G({"id":1008876,"template":"carousel","trackingCode":"AF3789214","width":"'+W+'","height":"'+H+'","tsource":""});<\/script></body></html>';
+  const f=document.createElement('iframe');f.className='ad-frame';f.title='쿠팡 파트너스 광고';f.setAttribute('scrolling','no');f.loading='lazy';f.width=W;f.height=H;f.srcdoc=doc;slot.appendChild(f);
+}
+loadCoupangAd();
+addEventListener('online',loadCoupangAd);addEventListener('offline',()=>{$('#adFooter').hidden=true});
+
+// 앱 설치·업데이트 (bible-memory 와 같은 방식)
+let deferredPrompt=null,swWaiting=null;
+const dlBtn=$('#dlBtn');
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+// 설치 여부는 지금 앱 창으로 열렸는지로만 본다. 저장해 둔 표시는 앱을 지워도 남아서 버튼이 '최신'에 갇힌다.
+const installed=isStandalone;
+try{localStorage.removeItem('hsk6_installed')}catch(e){}
+function updateDlBtn(){
+  if(location.protocol.indexOf('http')!==0){dlBtn.hidden=true;return}
+  dlBtn.hidden=false;
+  if(!installed()&&!swWaiting){$('#dlLabel').textContent='앱 설치';dlBtn.dataset.mode='install';dlBtn.disabled=false;return}
+  $('#dlLabel').textContent=swWaiting?'업데이트':'최신';dlBtn.dataset.mode='update';dlBtn.disabled=!swWaiting;
+}
+dlBtn.onclick=async()=>{
+  if(dlBtn.dataset.mode==='install'&&deferredPrompt){
+    deferredPrompt.prompt();
+    try{await deferredPrompt.userChoice}catch(e){}
+    deferredPrompt=null;updateDlBtn();
+  }else if(dlBtn.dataset.mode==='install'){
+    alert('브라우저 메뉴에서 "홈 화면에 추가"를 누르면 앱처럼 설치돼요. (아이폰 사파리는 공유 버튼 → 홈 화면에 추가)');
+  }else{if(swWaiting){try{swWaiting.postMessage({type:'SKIP_WAITING'});return}catch(e){}}location.reload()}
+};
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;updateDlBtn()});
+addEventListener('appinstalled',()=>{deferredPrompt=null;updateDlBtn()});
+updateDlBtn();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
+  let reloaded=false;const had=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had||reloaded)return;reloaded=true;location.reload()});
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    const arm=w=>{if(w&&navigator.serviceWorker.controller){swWaiting=w;updateDlBtn()}};
+    arm(reg.waiting);
+    reg.addEventListener('updatefound',()=>{const w=reg.installing;if(w)w.addEventListener('statechange',()=>{if(w.state==='installed')arm(w)})});
+    reg.update();setInterval(()=>reg.update(),60000);
+  }).catch(()=>{});
+}
+paintRun();
+</script>
+</body>
+</html>

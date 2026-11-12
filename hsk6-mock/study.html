@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>病句 7일 정복</title>
+<meta name="description" content="HSK 6급 틀린 문장 고르기(病句) 7일 프로그램. 하루에 오류 유형 하나, 연습 30문항과 실전 10문항, 바로 채점하고 고친 문장까지.">
+<meta name="theme-color" content="#0E6B58">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --paper:#EEF1EE; --sheet:#FFFFFF; --ink:#1B2422; --muted:#5D6A66; --line:#D6DDD9;
+  --jade:#0E6B58; --jade-soft:#E0EEE9; --ok:#157A3D; --ok-soft:#E3F3E8; --ng:#B42318; --ng-soft:#FBE7E5;
+  --zh:"Noto Serif SC","Songti SC","SimSun",serif;
+  --ui:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#101513; --sheet:#182020; --ink:#E4EBE8; --muted:#97A6A1; --line:#2B3634;
+  --jade:#56C2A6; --jade-soft:#163830; --ok:#5BD58A; --ok-soft:#14301F; --ng:#F2847A; --ng-soft:#3A1916; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#101513; --sheet:#182020; --ink:#E4EBE8; --muted:#97A6A1; --line:#2B3634;
+  --jade:#56C2A6; --jade-soft:#163830; --ok:#5BD58A; --ok-soft:#14301F; --ng:#F2847A; --ng-soft:#3A1916; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--sheet);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:10px}
+.brand{font-family:var(--zh);font-weight:700;font-size:18px;letter-spacing:.02em;margin-right:auto;color:var(--ink);text-decoration:none}
+.brand small{font-family:var(--ui);font-weight:500;font-size:12px;color:var(--muted);margin-left:6px}
+.clock{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px;padding:4px 10px;border:1px solid var(--line);border-radius:6px}
+.clock.low{color:var(--ng);border-color:var(--ng)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{font:inherit;font-size:14px;border:0;background:none;color:var(--muted);padding:8px 11px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--jade);font-weight:600}
+nav.tabs .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-left:5px;vertical-align:middle}
+nav.tabs .cnt{font-family:var(--mono);font-size:11.5px;color:var(--ng);margin-left:4px}
+button:focus-visible,a:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+main{padding-block:24px 64px}
+h1{font-family:var(--zh);font-size:26px;margin:0 0 6px;text-wrap:balance}
+.lead{margin:0 0 18px;color:var(--muted);max-width:65ch}
+.part{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:18px}
+.part>h2{font-size:17px;margin:0 0 8px}
+.part p{margin:0 0 10px;max-width:68ch}.part p:last-child{margin-bottom:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13.5px;color:var(--muted);margin:0 0 14px}
+.meta b{color:var(--ink);font-weight:600}
+.tbl{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;white-space:nowrap}
+td .zh,.zh{font-family:var(--zh)}
+tr.go{cursor:pointer}tr.go:hover td{background:var(--paper)}
+.st{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.st.done{color:var(--ok)}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--jade)}
+.btn.primary{background:var(--jade);border-color:var(--jade);color:var(--sheet);font-weight:600}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.bar .btn{padding:5px 12px;font-size:13.5px}
+.q{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:16px 16px 14px;margin-bottom:12px;display:grid;gap:8px}
+.qhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.qn{font-family:var(--mono);font-size:13px;color:var(--jade);font-weight:500}
+.qhead .from{font-size:12px;color:var(--muted)}
+.opts{display:grid;gap:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;position:relative}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .l{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--muted);display:grid;place-items:center;font-family:var(--mono);font-size:12px;margin-top:2px}
+.opt .t{font-family:var(--zh);font-size:16px;line-height:1.75;min-width:0}
+.opt:has(input:checked){border-color:var(--jade);background:var(--jade-soft)}
+.opt:has(input:checked) .l{background:var(--jade);border-color:var(--jade);color:var(--sheet)}
+.opt:has(input:focus-visible){outline:2px solid var(--jade);outline-offset:1px}
+.graded .opt{cursor:default}
+.graded .opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.graded .opt.right .l{background:var(--ok);border-color:var(--ok);color:var(--sheet)}
+.graded .opt.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.graded .opt.wrong .l{background:var(--ng);border-color:var(--ng);color:var(--sheet)}
+.graded .opt:has(input:checked):not(.wrong):not(.right){border-color:var(--line);background:none}
+.ex{font-size:14px;padding:10px 12px;border-radius:8px;background:var(--paper);display:grid;gap:4px}
+.ex .k{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
+.tag{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--jade-soft);color:var(--jade)}
+.res{font-size:12.5px;font-weight:600}.res.ok{color:var(--ok)}.res.ng{color:var(--ng)}
+.fix{font-family:var(--zh);font-size:15.5px}
+.fix::before{content:"고친 문장  ";font-family:var(--ui);font-size:12px;color:var(--muted)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.row .msg{font-size:13.5px;color:var(--muted)}
+.score{font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums}
+.score small{font-size:13px;color:var(--muted)}
+.prev{border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.prev .ids{font-family:var(--mono);font-size:13px;color:var(--ng)}
+.empty{padding:28px 18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}
+.src{font-size:13px;color:var(--muted)}.src a{color:var(--jade)}
+.adzone{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:grid;justify-items:center;gap:6px}
+.ad-frame{border:0;max-width:100%;display:block}
+.ad-disc{font-size:11.5px;color:var(--muted);margin:0;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <a class="brand" href="./">病句 七天<small>틀린 문장 고르기</small></a>
+      <button class="btn" id="timeBtn" hidden>시간 재기</button>
+      <div class="clock" id="clock" hidden>00:00</div>
+      <a class="btn" href="./">← 처음</a>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="v-guide"></section>
+  <section id="v-day" hidden></section>
+  <section id="v-wrong" hidden></section>
+  <div id="adFooter" class="adzone" hidden>
+    <div id="adSlot"></div>
+    <p class="ad-disc">쿠팡 파트너스 활동의 일환으로, 이를 통해 일정액의 수수료를 제공받을 수 있습니다.</p>
+  </div>
+</main>
+
+<script src="bingju-data.js"></script>
+<script>
+const L='ABCD';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// 권장 시간(초). Day 1~3 은 제한 없음
+const LIMIT={4:450,5:450,6:300,7:720};
+const QS={};DAYS.forEach(d=>d.qs.forEach(q=>{q.day=d.n;QS[q.id]=q}));
+
+// ───────── 저장: ans 문항별 고른 답, graded 채점한 날, retry 오답 다시 풀기에서 고른 답 ─────────
+const KEY='hsk6-bingju-v1';
+let st={ans:{},graded:{},retry:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)st=Object.assign(st,s)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const wrongOf=d=>st.graded[d.n]?d.qs.filter(q=>st.ans[q.id]!==q.a):[];
+// 오답 노트에 남은 문항: 채점에서 틀렸고, 다시 풀어 아직 못 맞힌 것
+const openWrong=()=>DAYS.flatMap(wrongOf).filter(q=>st.retry[q.id]!==q.a);
+
+let view='guide',day=1;
+function tabs(){
+  const t=[['guide','안내']].concat(DAYS.map(d=>['d'+d.n,'Day '+d.n])).concat([['wrong','오답 노트']]);
+  const n=openWrong().length;
+  $('#tabs').innerHTML=t.map(([k,lab])=>{
+    const sel=k==='guide'?view==='guide':k==='wrong'?view==='wrong':(view==='day'&&'d'+day===k);
+    const d=k[0]==='d'&&DAYS[+k.slice(1)-1];
+    const mark=d&&st.graded[d.n]?'<span class="dot" title="채점함"></span>':k==='wrong'&&n?'<span class="cnt">'+n+'</span>':'';
+    return '<button role="tab" data-k="'+k+'" aria-selected="'+sel+'">'+lab+mark+'</button>'}).join('');
+  $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;k[0]==='d'?openDay(+k.slice(1)):show(k)});
+}
+function show(v){
+  view=v;stopTimer();
+  ['guide','day','wrong'].forEach(k=>$('#v-'+k).hidden=k!==v);
+  if(v==='guide')renderGuide();if(v==='wrong')renderWrong();
+  tabs();paintTimeBtn();scrollTo(0,0);
+  try{sessionStorage.setItem(KEY+'-tab',v==='day'?'d'+day:v)}catch(e){}
+}
+function openDay(n){day=n;renderDay();show('day')}
+
+// ───────── 안내 ─────────
+function renderGuide(){
+  const sched=DAYS.map(d=>{
+    const w=wrongOf(d).length,g=st.graded[d.n];
+    const s=g?'<span class="st done">'+(d.qs.length-w)+'/'+d.qs.length+' 맞음</span>':'<span class="st">'+Object.keys(st.ans).filter(id=>QS[id].day===d.n).length+'/'+d.qs.length+'</span>';
+    return '<tr class="go" data-d="'+d.n+'"><td><b>Day '+d.n+'</b></td><td>'+esc(d.full)+'</td><td>'+esc(d.todo)+'</td><td>'+esc(d.time)+'</td><td>'+s+'</td></tr>'}).join('');
+  $('#v-guide').innerHTML=
+  '<h1>HSK 6급 틀린 문장 고르기(病句) 7일 정복</h1>'+
+  '<p class="lead">하루에 오류 유형 하나를 익히고, 7일째에 실전 10문항으로 마무리합니다. 문항마다 네 문장 중 어법상 틀린 문장 1개를 고릅니다. 채점하면 정답, 틀린 이유, 고친 문장이 열리고, 틀린 문항은 오답 노트에 모입니다. 답은 이 브라우저에 저장됩니다.</p>'+
+  '<div class="part"><h2>7일 일정</h2><p class="src">줄을 누르면 그날로 갑니다. 마지막 칸은 채점 결과(채점 전에는 고른 문항 수)입니다.</p>'+
+  '<div class="tbl"><table><thead><tr><th>일차</th><th>오류 유형</th><th>할 일</th><th>권장 시간</th><th>진행</th></tr></thead><tbody>'+sched+'</tbody></table></div>'+
+  '<div class="row"><button class="btn primary" id="startBtn"></button></div></div>'+
+  '<div class="part"><h2>풀이 순서 (매일 같음)</h2>'+
+  '<p>① 각 보기의 주어·술어·목적어만 뽑아 연결해 봅니다. ② 그래도 안 보이면 수식어·관련사·숫자 표현을 확인합니다.</p>'+
+  '<p class="src">권장 시간은 이 프로그램이 정한 기준입니다. 실제 시험은 독해 50문항을 50분에 풀어야 합니다. 중의성(歧义, 두 가지 뜻으로 읽히는 문장), 성어·어휘 뜻 오용, 문장부호 오류는 7일 과정에 넣지 않았습니다.</p></div>'+
+  '<div class="part"><h2>시험 버전 확인</h2>'+
+  '<p>HSK 3.0 6급 필기에는 틀린 문장 고르기가 없습니다. 이 유형은 HSK 2.0 6급 독해 1부분 51~60번(10문항)에 있으므로, 이 과정은 HSK 2.0 6급 기준입니다. 응시할 시험이 3.0으로 접수됐다면 이 과정은 필요 없습니다. 접수 화면에서 버전을 먼저 확인하세요.</p>'+
+  '<div class="tbl"><table><thead><tr>'+VERSIONS[0].map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+
+  VERSIONS.slice(1).map(r=>'<tr>'+r.map((c,i)=>'<td>'+(i===0?'<b>'+esc(c)+'</b>':esc(c))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'+
+  '<p class="src" style="margin-top:10px">출처: <a href="https://pandarin.net/wp-content/uploads/2025/12/HSK6%E7%BA%A7%E8%80%83%E8%AF%95%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A0%B7%E9%A2%98.pdf" target="_blank" rel="noopener">新版 HSK 6급 考试结构与样题</a> · <a href="https://www.digmandarin.com/wp-content/uploads/2022/05/H61004.pdf" target="_blank" rel="noopener">HSK 2.0 6급 기출 H61004</a> · <a href="https://studycli.org/zh-CN/hsk/hsk-levels-guide/" target="_blank" rel="noopener">HSK 等级与过渡情况</a></p></div>';
+  const next=DAYS.find(d=>!st.graded[d.n]);
+  const sb=$('#startBtn');sb.textContent=next?(Object.keys(st.ans).length?'이어서 하기 · Day '+next.n:'Day 1 시작'):'오답 노트 보기';
+  sb.onclick=()=>next?openDay(next.n):show('wrong');
+  $('#v-guide').querySelectorAll('tr.go').forEach(r=>r.onclick=()=>openDay(+r.dataset.d));
+}
+
+// ───────── 문항 하나 ─────────
+function qHTML(q,mode){
+  // mode: 'day' 그날 풀기, 'wrong' 오답 다시 풀기
+  const pick=mode==='wrong'?st.retry[q.id]:st.ans[q.id];
+  const done=mode==='wrong'?pick!==undefined:!!st.graded[q.day];
+  const name=mode+'-'+q.id;
+  const opts=q.o.map((t,i)=>{
+    const cls=done?(i===q.a?' right':i===pick?' wrong':''):'';
+    return '<label class="opt'+cls+'"><input type="radio" name="'+name+'" value="'+i+'"'+(pick===i?' checked':'')+(done?' disabled':'')+'><span class="l">'+L[i]+'</span><span class="t">'+esc(t)+'</span></label>'}).join('');
+  let ex='';
+  if(done){
+    const ok=pick===q.a;
+    ex='<div class="ex"><div class="k"><span class="res '+(ok?'ok':'ng')+'">'+(pick===undefined?'안 고름':ok?'맞음':'틀림')+'</span><span>정답 <b>'+L[q.a]+'</b></span><span class="tag">'+esc(q.type)+'</span></div>'+
+       '<div>'+esc(q.why)+'</div><div class="fix">'+esc(q.fix)+'</div></div>';
+  }
+  return '<div class="q'+(done?' graded':'')+'" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+(q.day===7?q.id+'번':q.id)+'</span>'+(mode==='wrong'?'<span class="from">Day '+q.day+' · '+esc(DAYS[q.day-1].title)+'</span>':'')+'</div><div class="opts">'+opts+'</div>'+ex+'</div>';
+}
+
+// ───────── 하루 ─────────
+function renderDay(){
+  const d=DAYS[day-1],g=!!st.graded[d.n];
+  const prevWrong=DAYS.filter(x=>x.n<d.n).flatMap(wrongOf).filter(q=>st.retry[q.id]!==q.a);
+  const answered=d.qs.filter(q=>st.ans[q.id]!==undefined).length;
+  let h='<h1>Day '+d.n+' · '+esc(d.title)+'</h1>'+
+  '<div class="meta"><span>할 일 <b>'+esc(d.todo)+'</b></span><span>권장 시간 <b>'+esc(d.time)+'</b></span></div>';
+  if(d.intro)h+='<p class="lead">'+esc(d.intro)+'</p>';
+  if(d.n>1)h+=prevWrong.length?'<div class="prev"><span>앞 날 틀린 문항</span><span class="ids">'+prevWrong.map(q=>q.id).join(' · ')+'</span><button class="btn" id="toWrong">오답 노트에서 다시 풀기</button></div>'
+    :(DAYS.some(x=>x.n<d.n&&st.graded[x.n])?'<div class="prev"><span>앞 날 틀린 문항이 남아 있지 않습니다.</span></div>':'');
+  h+='<div class="part"><h2>규칙 표</h2><div class="tbl"><table><thead><tr><th>오류 형태</th><th>찾는 방법</th></tr></thead><tbody>'+
+    d.rules.map(r=>'<tr><td><b>'+esc(r[0])+'</b></td><td>'+esc(r[1])+'</td></tr>').join('')+'</tbody></table></div></div>';
+  h+=d.qs.map(q=>qHTML(q,'day')).join('');
+  if(g){
+    const ok=d.qs.length-wrongOf(d).length;
+    h+='<div class="part"><div class="row"><span class="score">'+ok+'<small> / '+d.qs.length+' 맞음</small></span>'+
+      (d.n<7?'<button class="btn primary" id="nextBtn">Day '+(d.n+1)+' 로</button>':'<button class="btn primary" id="nextBtn">오답 노트 보기</button>')+
+      '<button class="btn" id="resetBtn">이 날 다시 풀기</button></div></div>';
+  }else{
+    h+='<div class="part"><div class="row"><button class="btn primary" id="gradeBtn">채점</button><span class="msg" id="gmsg">'+answered+' / '+d.qs.length+' 문항 고름</span></div></div>';
+  }
+  const box=$('#v-day');box.innerHTML=h;
+  box.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{const id=r.name.slice(4);st.ans[id]=+r.value;save();
+    const n=d.qs.filter(q=>st.ans[q.id]!==undefined).length;$('#gmsg').textContent=n+' / '+d.qs.length+' 문항 고름';armed=false;$('#gradeBtn').textContent='채점'});
+  let armed=false;
+  if($('#gradeBtn'))$('#gradeBtn').onclick=()=>{
+    const left=d.qs.filter(q=>st.ans[q.id]===undefined).length;
+    if(left&&!armed){armed=true;$('#gradeBtn').textContent=left+'문항을 안 골랐습니다. 그래도 채점';return}
+    st.graded[d.n]=Date.now();save();stopTimer();renderDay();tabs();paintTimeBtn();
+    const first=wrongOf(d)[0];document.getElementById('Q'+(first?first.id:d.qs[0].id)).scrollIntoView({block:'center'});
+  };
+  if($('#nextBtn'))$('#nextBtn').onclick=()=>d.n<7?openDay(d.n+1):show('wrong');
+  let armed2=false;
+  if($('#resetBtn'))$('#resetBtn').onclick=e=>{
+    if(!armed2){armed2=true;e.target.textContent='한 번 더 누르면 이 날 답이 지워집니다';return}
+    d.qs.forEach(q=>{delete st.ans[q.id];delete st.retry[q.id]});delete st.graded[d.n];save();renderDay();tabs();paintTimeBtn();scrollTo(0,0);
+  };
+  if($('#toWrong'))$('#toWrong').onclick=()=>show('wrong');
+}
+
+// ───────── 오답 노트 ─────────
+function renderWrong(){
+  const all=DAYS.flatMap(wrongOf);
+  const open=all.filter(q=>st.retry[q.id]!==q.a),fixed=all.filter(q=>st.retry[q.id]===q.a);
+  let h='<h1>오답 노트</h1><p class="lead">채점에서 틀린 문항을 다시 풉니다. 고르면 바로 정답과 해설이 나오고, 맞힌 문항은 다음에 들어올 때 아래 \'다시 풀어 맞힌 문항\'으로 내려갑니다. 틀리면 \'다시\'를 눌러 또 풀 수 있습니다.</p>';
+  if(!all.length)h+='<div class="empty">'+(Object.keys(st.graded).length?'틀린 문항이 없습니다.':'아직 채점한 날이 없습니다. Day 1 부터 풀고 채점하면 틀린 문항이 여기 모입니다.')+'</div>';
+  else{
+    h+=open.length?open.map(q=>qHTML(q,'wrong')).join(''):'<div class="empty">남은 오답이 없습니다.</div>';
+    if(fixed.length)h+='<div class="part" style="margin-top:18px"><h2>다시 풀어 맞힌 문항 '+fixed.length+'개</h2><p class="src">'+fixed.map(q=>q.id).join(' · ')+'</p><div class="row"><button class="btn" id="againAll">모두 다시 풀기</button></div></div>';
+  }
+  $('#v-wrong').innerHTML=h;
+  open.forEach(q=>bindRetry(q.id));
+  if($('#againAll'))$('#againAll').onclick=()=>{fixed.forEach(q=>delete st.retry[q.id]);save();renderWrong();tabs()};
+}
+// 오답 문항 하나를 다시 그리고 고르기·'다시' 버튼을 붙인다
+function redrawRetry(id){document.getElementById('Q'+id).outerHTML=qHTML(QS[id],'wrong');bindRetry(id);tabs()}
+function bindRetry(id){
+  const q=QS[id],el=document.getElementById('Q'+id);
+  el.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{st.retry[id]=+r.value;save();redrawRetry(id)});
+  if(st.retry[id]===undefined||st.retry[id]===q.a)return;
+  const b=document.createElement('button');b.className='btn';b.textContent='다시';b.style.justifySelf='start';
+  b.onclick=()=>{delete st.retry[id];save();redrawRetry(id)};
+  el.appendChild(b);
+}
+
+// ───────── 권장 시간 재기 (Day 4~7, 화면에 남은 시간만 보이고 문제를 막지는 않는다) ─────────
+let timer=null,left=0;
+const fmt=s=>String(Math.floor(Math.abs(s)/60)).padStart(2,'0')+':'+String(Math.abs(s)%60).padStart(2,'0');
+function paintTimeBtn(){
+  const lim=view==='day'&&!st.graded[day]&&LIMIT[day];
+  $('#timeBtn').hidden=!lim;$('#clock').hidden=!timer;
+  if(lim&&!timer)$('#timeBtn').textContent='시간 재기 '+fmt(lim);
+}
+function stopTimer(){if(timer){clearInterval(timer);timer=null}$('#clock').hidden=true;$('#clock').classList.remove('low');$('#timeBtn').textContent='시간 재기'}
+$('#timeBtn').onclick=()=>{
+  if(timer){stopTimer();paintTimeBtn();return}
+  left=LIMIT[day];const c=$('#clock');c.hidden=false;c.textContent=fmt(left);$('#timeBtn').textContent='멈춤';
+  timer=setInterval(()=>{left--;c.textContent=left>=0?fmt(left):'시간 끝 +'+fmt(left);c.classList.toggle('low',left<=60)},1000);
+};
+
+let start='guide';try{start=sessionStorage.getItem(KEY+'-tab')||'guide'}catch(e){}
+if(start[0]==='d'&&DAYS[+start.slice(1)-1])openDay(+start.slice(1));else show(start==='wrong'?'wrong':'guide');
+
+// 쿠팡 파트너스 (온라인 + http 일 때만, 최하단). 위젯은 document.write 라 srcdoc iframe 안에서 돌린다.
+function loadCoupangAd(){
+  const foot=$('#adFooter'),slot=$('#adSlot');
+  if(location.protocol.indexOf('http')!==0)return;
+  if(!navigator.onLine){foot.hidden=true;return}
+  foot.hidden=false;if(slot.dataset.loaded)return;slot.dataset.loaded='1';
+  const W=320,H=140;
+  const doc='<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden}</style></head><body>'
+    +'<script src="https://ads-partners.coupang.com/g.js"><\/script>'
+    +'<script>new PartnersCoupang.G({"id":1008876,"template":"carousel","trackingCode":"AF3789214","width":"'+W+'","height":"'+H+'","tsource":""});<\/script></body></html>';
+  const f=document.createElement('iframe');f.className='ad-frame';f.title='쿠팡 파트너스 광고';f.setAttribute('scrolling','no');f.loading='lazy';f.width=W;f.height=H;f.srcdoc=doc;slot.appendChild(f);
+}
+loadCoupangAd();
+addEventListener('online',loadCoupangAd);addEventListener('offline',()=>{$('#adFooter').hidden=true});
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

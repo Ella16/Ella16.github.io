@@ -1,6 +1,6 @@
 // 고칠 때마다 CACHE 버전을 올린다. 그래야 설치한 앱에 '업데이트' 버튼이 켜진다.
-const CACHE = 'hsk6-v3';
-const ASSETS = ['./', './index.html', './answers.html', './data.js', './vocab.js', './audio/chapters.js',
+const CACHE = 'hsk6-v4';
+const ASSETS = ['./', './index.html', './exam.html', './study.html', './bingju-data.js', './answers.html', './data.js', './vocab.js', './audio/chapters.js',
   './audio/hsk6-listening.mp3', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
