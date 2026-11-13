@@ -84,11 +84,11 @@ main{padding-bottom:48px}
     <a class="card exam" href="exam.html">
       <div class="glyph" aria-hidden="true">考</div>
       <h2>모의고사<span class="zh">模拟考试</span></h2>
-      <p>실제 시험과 같은 구성으로 문항 수만 줄인 축소판입니다. 듣기 15·독해 25·쓰기 1문항, 권장 75분. 시간을 재며 풀고 자동 채점하며, 문항마다 단어(병음·뜻·급수)를 붙인 해설지가 있습니다. 듣기는 바로 듣거나 MP3로 내려받습니다.</p>
+      <p>신HSK(3.0) 6급과 같은 구성으로 문항 수를 절반으로 줄인 모의고사입니다. 듣기 20·독해 20·쓰기 2문항, 권장 80분. 시간을 재며 풀고 자동 채점하며, 문항마다 단어(병음·뜻·급수)를 붙인 해설지가 있습니다. 듣기는 바로 듣거나 MP3로 내려받습니다.</p>
       <div class="state" id="examState">시험지 열기</div>
     </a>
   </div>
-  <div class="extra"><a href="answers.html">모의고사 해설지</a><a href="audio/hsk6-listening.mp3" download="HSK6-모의고사-듣기.mp3">듣기 MP3</a></div>
+  <div class="extra"><a href="answers.html">모의고사 해설지</a></div>
 
   <div id="adFooter" class="adzone" hidden>
     <div id="adSlot"></div>
@@ -96,6 +96,7 @@ main{padding-bottom:48px}
   </div>
 </main>
 
+<script src="exams/list.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 // 진행 상황: 공부는 hsk6-bingju-v2, 모의고사는 hsk6-mock-v1 (각 페이지가 저장한 값)
@@ -108,11 +109,10 @@ if(sb){
   const d=[1,2,3,4,5,6,7].find(x=>!g[c+'-'+x]);
   $('#studyState').textContent=c>10?'70일 모두 마침 · 오답 노트':n?n+'일 채점함 · 코스 '+c+' Day '+d+' 이어서':(Object.keys(sb.ans||{}).length?'코스 1 Day 1 이어서':'코스 1 Day 1 시작');
 }
-const ex=read('hsk6-mock-v1');
-if(ex){
-  const n=Object.keys(ex.ans||{}).length;
-  $('#examState').textContent=ex.graded?'제출함 · 결과 보기':n?n+'문항 답함 · 이어서 풀기':'시험지 열기';
-}
+// 모의고사: 회차마다 hsk6-exam-NN. 제출한 회차 수와 지금 회차
+{const L=window.EXAM_LIST||[];const done=L.filter(x=>{const e=read('hsk6-exam-'+String(x.n).padStart(2,'0'));return e&&e.graded}).length;
+ const cur=+(localStorage.getItem('hsk6-exam-n')||0);
+ $('#examState').textContent=L.length+'회 중 '+done+'회 제출'+(cur?' · '+cur+'회 이어서':' · 1회 시작');}
 
 // 쿠팡 파트너스 (온라인 + http 일 때만, 최하단). 위젯은 document.write 라 srcdoc iframe 안에서 돌린다.
 function loadCoupangAd(){

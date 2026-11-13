@@ -111,6 +111,9 @@ body[data-lv="x"] .w:not([data-lv="x"]){display:none}
 /* 광고 */
 .adzone{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:grid;justify-items:center;gap:6px}
 .ad-frame{border:0;max-width:100%;display:block}
+.exlist{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.exn{font-size:13.5px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink);background:var(--sheet)}
+.exn.cur{border-color:var(--ink);font-weight:600}
 .ad-disc{font-size:11.5px;color:var(--muted);margin:0;text-align:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -120,17 +123,18 @@ body[data-lv="x"] .w:not([data-lv="x"]){display:none}
   <div class="wrap">
     <div class="bar">
       <a class="brand" href="./">汉语水平考试 六级<small>해설지</small></a>
-      <a class="btn" href="exam.html">← 시험지</a><a class="btn" href="./" title="홈 (공부·모의고사 고르는 화면)" aria-label="홈">🏠</a>
+      <a class="btn" href="exam.html" id="examLink">← 시험지</a><a class="btn" href="./" title="홈 (공부·모의고사 고르는 화면)" aria-label="홈">🏠</a>
     </div>
     <nav class="jump" aria-label="부분으로 이동">
       <a href="#key">정답표</a><a href="#part-L1">听力 一</a><a href="#part-L2">听力 二</a><a href="#part-L3">听力 三</a>
-      <a href="#part-R1">阅读 一</a><a href="#part-R2">阅读 二</a><a href="#part-R3">阅读 三</a><a href="#part-R4">阅读 四</a><a href="#write">书写</a>
+      <a href="#part-R1">阅读 一</a><a href="#part-R2">阅读 二</a><a href="#part-R3">阅读 三</a><a href="#write">书写</a>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
-  <h1>HSK 6급 모의고사 해설지</h1>
+  <h1 id="ansTitle">HSK 6급 모의고사 해설지</h1>
+  <div class="exlist" id="exList"></div>
   <p class="lead">문항마다 정답 근거가 되는 문장을 지문에 노랗게 칠해 두었습니다. 문항 묶음 아래 단어표에는 HSK 5·6급 단어와 급수 밖 단어를 병음·뜻과 함께 모았습니다. 같은 브라우저에서 시험을 제출했다면 내 답도 함께 보입니다.</p>
 
   <div class="card" id="key">
@@ -161,13 +165,20 @@ body[data-lv="x"] .w:not([data-lv="x"]){display:none}
   </div>
 </main>
 
-<script src="data.js"></script>
-<script src="vocab.js"></script>
+<script src="exams/list.js"></script>
 <script>
+var EXN=(function(){const ok=n=>EXAM_LIST.some(x=>x.n===n);const q=parseInt(new URLSearchParams(location.search).get('n'));let n=ok(q)?q:+(localStorage.getItem('hsk6-exam-n')||0);if(!ok(n))n=EXAM_LIST[0].n;return n})();
+var EXNN=String(EXN).padStart(2,'0');
+document.write('<script src="exams/e'+EXNN+'.js"><\/script>');
+</script>
+<script>
+document.getElementById('ansTitle').textContent='HSK 6급 모의고사 '+EXN+'회 해설지';
+document.getElementById('examLink').href='exam.html?n='+EXN;
+document.title='HSK 6급 모의고사 '+EXN+'회 해설지';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const L='ABCDE';
-let mine={};try{const s=JSON.parse(localStorage.getItem('hsk6-mock-v1')||'null');if(s&&s.graded)mine=s.ans||{}}catch(e){}
+const L='ABCDEF';
+let mine={};try{const s=JSON.parse(localStorage.getItem('hsk6-exam-'+EXNN)||'null');if(s&&s.graded)mine=s.ans||{}}catch(e){}
 const hasMine=Object.keys(mine).length>0;
 
 // 해설의 "…" 안 중국어를 지문에서 찾아 칠한다
@@ -204,6 +215,7 @@ PARTS.forEach(p=>{
     if(g.passage){
       html+='<div class="passage"><span class="tag">지문</span>'+g.passage.map(t=>{
         let h=markText(t,phr);
+        if(!g.shared)h=h.replace(/\[(\d+)\]/g,(m,n)=>{const q=g.qs.find(x=>x.id==n);return q&&!q.q?'<span class="blank">'+n+'</span> <span class="fill">'+esc(q.opts[q.a])+'</span>':m});
         if(g.shared)h=h.replace(/\[(\d+)\]/g,(m,n)=>{const q=g.qs.find(x=>x.id==n);return '<span class="blank">'+n+'</span> <span class="fill">'+L[q.a]+' '+esc(g.shared[q.a])+'</span>'});
         return '<p>'+h+'</p>'}).join('')+'</div>';
     }
@@ -213,8 +225,7 @@ PARTS.forEach(p=>{
       keyCells+='<a href="#Q'+q.id+'" class="'+(hasMine?(right?'ok':'ng'):'')+'"><span>'+q.id+'</span><b>'+L[q.a]+'</b></a>';
       const list=g.shared?null:q.opts;
       let qt=q.q?esc(q.q):'';
-      if(p.key==='R2'){const parts=q.opts[q.a].split(/\s+|　/).filter(Boolean);qt=esc(q.q).replace(/\[(\d)\]/g,(m,n)=>'<span class="fill">'+esc(parts[n-1]||'')+'</span>')}
-      if(p.key==='R1')qt='틀린 문장 고르기';
+      if(!q.q&&g.passage)qt='빈칸 '+q.id;
       if(g.shared)qt='빈칸 '+q.id;
       html+='<div class="q" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+q.id+'</span><span class="qt">'+qt+'</span>'+
         (hasMine?'<span class="mineis '+(right?'ok':'ng')+'">'+(my==null?'안 풂':right?'맞음':'내 답 '+L[my])+'</span>':'')+'</div>';
@@ -225,15 +236,16 @@ PARTS.forEach(p=>{
   });
   html+='</div>';
 });
-// 쓰기
-html+='<h2 class="sec-title" id="write">书写 · 쓰기</h2><div class="card"><h2>41 缩写</h2><p class="how">원문 '+STORY.join('').replace(/\s/g,'').length+'자를 '+MODEL.slice(1).join('').replace(/\s/g,'').length+'자로 줄인 모범 답안입니다. 사건 순서(접시 사건 → 요리사 → 가게 인수 → 분점 → 춘절 방문)를 그대로 따르고, 대화는 간접 화법으로 바꿨습니다.</p>'+
- '<div class="two"><div><h3>원문</h3><div class="passage">'+STORY.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div></div>'+
- '<div><h3>모범 답안</h3><div class="passage"><p style="text-align:center;font-weight:700">'+esc(MODEL[0])+'</p>'+MODEL.slice(1).map(t=>'<p>'+esc(t)+'</p>').join('')+'</div></div></div>'+vocabHtml('41')+'</div>';
+// 쓰기 두 문제: 문제·모범 답안·단어
+html+='<h2 class="sec-title" id="write">书写 · 쓰기</h2>'+WRITE.map(w=>'<div class="card"><h2>'+w.id+' '+w.kind+'</h2><div class="passage"><span class="tag">문제</span><p>'+esc(w.prompt)+'</p></div>'+
+ '<div class="passage"><span class="tag">모범 답안 '+w.model.slice(1).join('').replace(/\s/g,'').length+'자</span><p style="text-align:center;font-weight:700">'+esc(w.model[0])+'</p>'+w.model.slice(1).map(t=>'<p>'+esc(t)+'</p>').join('')+'</div>'+
+ '<p class="how">자가 채점 기준: '+w.rubric.map(esc).join(' · ')+'</p>'+vocabHtml(String(w.id))+'</div>').join('');
 $('#body').innerHTML=html;
 $('#keygrid').innerHTML=keyCells;
-if(hasMine){const ok=Object.entries(mine).filter(([id,a])=>{for(const p of PARTS)for(const g of p.groups)for(const q of g.qs)if(q.id==id)return q.a===a;return false}).length;$('#minenote').textContent='이 브라우저에서 제출한 답 기준: 40문항 중 '+ok+'개 맞음. 빨간 칸이 틀린 문항입니다.'}
+if(hasMine){const ok=Object.entries(mine).filter(([id,a])=>{for(const p of PARTS)for(const g of p.groups)for(const q of g.qs)if(q.id==id)return q.a===a;return false}).length;$('#minenote').textContent='이 브라우저에서 제출한 답 기준: 객관식 40문항 중 '+ok+'개 맞음. 빨간 칸이 틀린 문항입니다.'}
 else $('#minenote').textContent='시험지에서 제출하면 여기에 내 답과 틀린 문항이 표시됩니다.';
 const all=Object.values(VOCAB).flat();const c=k=>all.filter(r=>lvKey(r[3])===k).length;
+$('#exList').innerHTML=EXAM_LIST.map(x=>'<a class="exn'+(x.n===EXN?' cur':'')+'" href="answers.html?n='+x.n+'">'+x.n+'회</a>').join('');
 $('#vstat').textContent='전체 '+all.length+'개 · 6급 '+c('6')+' · 5급 '+c('5')+' · 급수 밖 '+c('x')+' · 4급 '+c('4')+'. 급수는 HSK 2.0(6급 체계) 단어표 기준입니다.';
 
 document.querySelectorAll('.filters [data-lv]').forEach(b=>b.onclick=()=>{

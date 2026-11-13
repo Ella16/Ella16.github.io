@@ -137,6 +137,11 @@ body.cover #v-listen,body.cover #v-read,body.cover #v-write{filter:blur(7px);poi
 .coverbox p{margin:0;color:var(--muted);font-size:14px}
 .adzone{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:grid;justify-items:center;gap:6px}
 .ad-frame{border:0;max-width:100%;display:block}
+.exlist{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.exn{font-size:13.5px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--ink);background:var(--sheet)}
+.exn.cur{border-color:var(--ink);font-weight:600}
+.exn .ok{color:#157A3D;font-size:12px;font-weight:700;margin-left:3px}
+textarea.essay{width:100%;min-height:220px;font-size:16px;line-height:1.8;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink)}
 .ad-disc{font-size:11.5px;color:var(--muted);margin:0;text-align:center}
 </style>
 </head>
@@ -145,10 +150,10 @@ body.cover #v-listen,body.cover #v-read,body.cover #v-write{filter:blur(7px);poi
 <header class="top">
   <div class="wrap">
     <div class="bar">
-      <a class="brand" href="./" style="color:inherit;text-decoration:none">汉语水平考试 六级<small>모의고사 축소판</small></a>
+      <a class="brand" href="./" style="color:inherit;text-decoration:none">汉语水平考试 六级<small id="exName">모의고사</small></a>
       <button class="btn runbtn go" id="runBtn">시험 시작</button>
-      <div class="clock" id="clock" title="권장 시간 75분">75:00</div>
-      <a class="btn" href="answers.html">해설지</a>
+      <div class="clock" id="clock" title="권장 시간 80분">80:00</div>
+      <a class="btn" href="answers.html" id="ansLink">해설지</a>
       <a class="btn" href="./" title="홈 (공부·모의고사 고르는 화면)" aria-label="홈">🏠</a>
       <button class="btn" id="dlBtn" hidden><span id="dlLabel">앱 설치</span></button>
     </div>
@@ -163,10 +168,11 @@ body.cover #v-listen,body.cover #v-read,body.cover #v-write{filter:blur(7px);poi
 
 <main class="wrap">
   <div class="intro">
-    <h1>HSK 6급 모의고사</h1>
-    <p>실제 시험(듣기 50·독해 50·쓰기 1, 약 140분)과 같은 구성으로 문항 수만 줄였습니다. 듣기 15문항, 독해 25문항, 쓰기 1문항이고 권장 시간은 75분입니다. 듣기는 아래 플레이어로 바로 듣거나 MP3 로 내려받아 휴대폰으로 들어도 됩니다. 답은 이 브라우저에 저장되며, 채점 탭에서 제출하면 해설과 듣기 대본이 열립니다.</p>
+    <h1 id="exTitle">HSK 6급 모의고사</h1>
+    <div class="exlist" id="exList"></div>
+    <p>신HSK(3.0) 6급 필기(듣기 40·독해 40·쓰기 2, 약 125분)와 같은 구성으로 문항 수만 절반으로 줄였습니다. 듣기 20문항, 독해 20문항, 쓰기 2문항이고 권장 시간은 80분입니다. 듣기는 아래 플레이어로 바로 듣거나 MP3 로 내려받아 휴대폰으로 들어도 됩니다. 답은 회차마다 이 브라우저에 따로 저장되며, 채점 탭에서 제출하면 해설과 듣기 대본이 열립니다.</p>
   </div>
-  <div class="coverbox" id="cover" hidden><h2 id="coverT">시험 시작</h2><p id="coverP">시작을 누르면 75분 시계가 흐르고 문제가 보입니다. 중지하면 시계와 듣기가 함께 멈춥니다.</p><button class="btn primary" id="coverBtn">시험 시작</button></div>
+  <div class="coverbox" id="cover" hidden><h2 id="coverT">시험 시작</h2><p id="coverP">시작을 누르면 80분 시계가 흐르고 문제가 보입니다. 중지하면 시계와 듣기가 함께 멈춥니다.</p><button class="btn primary" id="coverBtn">시험 시작</button></div>
   <section id="v-listen"></section>
   <section id="v-read" hidden></section>
   <section id="v-write" hidden></section>
@@ -177,18 +183,25 @@ body.cover #v-listen,body.cover #v-read,body.cover #v-write{filter:blur(7px);poi
   </div>
 </main>
 
-<script src="data.js"></script>
-<script src="audio/chapters.js"></script>
+<script src="exams/list.js"></script>
 <script>
-const LETTERS='ABCDE';
+// 회차: 주소의 ?n= → 마지막에 연 회차 → 첫 회차. 문항은 exams/eNN.js (tools/make_exam.py 가 만든다)
+var EXN=(function(){const ok=n=>EXAM_LIST.some(x=>x.n===n);const q=parseInt(new URLSearchParams(location.search).get('n'));let n=ok(q)?q:+(localStorage.getItem('hsk6-exam-n')||0);if(!ok(n))n=EXAM_LIST[0].n;try{localStorage.setItem('hsk6-exam-n',n)}catch(e){}return n})();
+var EXNN=String(EXN).padStart(2,'0');
+document.write('<script src="exams/e'+EXNN+'.js"><\/script>');
+</script>
+<script>
+const LETTERS='ABCDEF',TOT=80;
+document.getElementById('exName').textContent='모의고사 '+EXN+'회';
+document.getElementById('exTitle').textContent='HSK 6급 모의고사 '+EXN+'회';
+document.getElementById('ansLink').href='answers.html?n='+EXN;
+document.title='HSK 6급 모의고사 '+EXN+'회';
 const allQs=[];PARTS.forEach(p=>p.groups.forEach(g=>g.qs.forEach(q=>{q.part=p;q.group=g;allQs.push(q)})));
 
 // ───────── 저장 ─────────
-const KEY='hsk6-mock-v1';
-let st={ans:{},el:0,run:null,graded:false,essay:'',wphase:'idle',wstart:null,rub:[]};
+const KEY='hsk6-exam-'+EXNN;
+let st={ans:{},el:0,run:null,graded:false,essays:{},rub:[]};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)st=Object.assign(st,s)}catch(e){}
-if(st.start&&st.el===0&&!st.run){st.el=Math.min(Date.now()-st.start,75*60000);delete st.start}
-if(st.wstart>1e12)st.wstart=st.el;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -213,8 +226,8 @@ function renderPart(p,pi){
     g.qs.forEach(q=>{
       const list=g.shared?LETTERS.split(''):q.opts;
       const long=!g.shared&&q.opts.some(o=>o.length>14);
-      h+='<div class="q" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+q.id+'</span><span class="qt">'+(q.q?blanks(q.q):(g.shared?'빈칸 '+q.id:''))+'</span></div>'+
-        (g.shared?optsHtml(q,g.shared.map((_,i)=>LETTERS[i]),true).replace(/<span class="t">[A-E]<\/span>/g,''):optsHtml(q,q.opts,!long))+
+      h+='<div class="q" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+q.id+'</span><span class="qt">'+(q.q?blanks(q.q):(g.passage?'빈칸 '+q.id:''))+'</span></div>'+
+        (g.shared?optsHtml(q,g.shared.map((_,i)=>LETTERS[i]),true).replace(/<span class="t">[A-F]<\/span>/g,''):optsHtml(q,q.opts,!long))+
         '<div class="ex" hidden><b>정답 '+LETTERS[q.a]+'</b> · '+q.ex+'</div></div>';
     });
     h+='</div>';
@@ -223,18 +236,18 @@ function renderPart(p,pi){
 }
 function sheetHtml(){
   return '<div class="part sheet"><h2>답안지</h2><div class="omr" id="omr">'+allQs.map(q=>{
-    const n=q.group.shared?5:4;let b='';for(let i=0;i<n;i++)b+='<i data-q="'+q.id+'" data-i="'+i+'"'+(st.ans[q.id]===i?' class="on"':'')+'>'+LETTERS[i]+'</i>';
+    const n=q.group.shared?q.group.shared.length:4;let b='';for(let i=0;i<n;i++)b+='<i data-q="'+q.id+'" data-i="'+i+'"'+(st.ans[q.id]===i?' class="on"':'')+'>'+LETTERS[i]+'</i>';
     return '<a href="#Q'+q.id+'" data-q="'+q.id+'" data-v="'+q.part.sec+'"><span class="n">'+q.id+'</span>'+b+'</a>'}).join('')+'</div>'+
    '<div class="submitrow"><button class="btn primary" id="submit">제출하고 채점</button><span class="msg" id="smsg"></span></div></div>';
 }
 const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
 const playerHtml='<div class="part player"><h2>听力 음원</h2><p class="how" style="margin:0">실제 시험처럼 한 파일을 처음부터 끝까지 한 번 틀고 문제를 풉니다. 문항마다 답 고를 시간 12초가 들어 있습니다. 총 '+fmt(AUDIO.total)+'.</p>'+
- '<audio id="aud" controls preload="metadata" src="audio/hsk6-listening.mp3"></audio>'+
- '<div><a class="btn primary" href="audio/hsk6-listening.mp3" download="HSK6-모의고사-듣기.mp3">MP3 내려받기 ('+(AUDIO.bytes/1e6).toFixed(1)+'MB)</a></div>'+
+ '<audio id="aud" controls preload="metadata" src="audio/e'+EXNN+'.mp3"></audio>'+
+ '<div><a class="btn primary" href="audio/e'+EXNN+'.mp3" download="HSK6-모의고사'+EXN+'회-듣기.mp3">MP3 내려받기 ('+(AUDIO.bytes/1e6).toFixed(1)+'MB)</a></div>'+
  '<div class="chips" aria-label="구간으로 이동">'+AUDIO.chapters.filter(c=>c.label!=='끝').map(c=>'<button class="chip" data-t="'+c.t+'">'+c.label+'<span>'+fmt(c.t)+'</span></button>').join('')+'</div></div>';
 $('#v-listen').innerHTML=playerHtml+PARTS.filter(p=>p.sec==='listen').map(renderPart).join('')+'<div class="submitrow"><button class="btn" data-go="read">독해로 넘어가기 →</button></div>';
 $('#v-read').innerHTML=PARTS.filter(p=>p.sec==='read').map(renderPart).join('')+'<div class="submitrow"><button class="btn" data-go="write">쓰기로 넘어가기 →</button></div>';
-$('#v-write').innerHTML='<div class="part"><h2>书写 · 缩写</h2><p class="how">41번. 아래 글을 10분 동안 읽으면 글이 사라집니다. 그다음 35분 안에 400자 안팎으로 줄여 쓰고 제목을 붙이세요. 원문을 베끼지 말고, 자기 의견을 넣지 않습니다.</p><div id="wbox"></div></div>';
+$('#v-write').innerHTML=WRITE.map(w=>'<div class="part"><h2>'+(w.id===41?'第一部分 · ':'第二部分 · ')+w.kind+'</h2><p class="how">'+w.id+'번. '+(w.id===41?'안내문·통지·편지 같은 실용문을 씁니다.':'주제에 대한 내 생각을 근거를 들어 씁니다.')+' '+w.min+'자 이상.</p><div class="passage" style="text-indent:0">'+esc(w.prompt)+'</div><div class="wstate" style="margin-top:12px"><span class="count" id="wcount'+w.id+'"></span></div><textarea class="essay" id="essay'+w.id+'" data-w="'+w.id+'" placeholder="여기에 쓰세요"></textarea></div>').join('');
 $('#v-result').innerHTML='<div id="rbox"></div>'+sheetHtml();
 
 // 탭
@@ -267,19 +280,19 @@ function paintRun(){
   document.body.classList.toggle('cover',covered);
   $('#cover').hidden=!covered||$('#v-result').hidden===false;
   $('#coverT').textContent=started?'중지됨':'시험 시작';
-  $('#coverP').textContent=started?'시계와 듣기가 멈춰 있습니다. 이어서 누르면 멈춘 곳부터 다시 흐릅니다. 남은 시간 '+mmss(75*60-Math.floor(E()/1000))+'.':'시작을 누르면 75분 시계가 흐르고 문제가 보입니다. 중지하면 시계와 듣기가 함께 멈춥니다.';
+  $('#coverP').textContent=started?'시계와 듣기가 멈춰 있습니다. 이어서 누르면 멈춘 곳부터 다시 흐릅니다. 남은 시간 '+mmss(TOT*60-Math.floor(E()/1000))+'.':'시작을 누르면 '+TOT+'분 시계가 흐르고 문제가 보입니다. 중지하면 시계와 듣기가 함께 멈춥니다.';
   $('#coverBtn').textContent=started?'이어서':'시험 시작';
   tick();
 }
 $('#runBtn').onclick=()=>st.run?stopExam():startExam();
 $('#coverBtn').onclick=startExam;
 function tick(){
-  const left=75*60-Math.floor(E()/1000);
+  const left=TOT*60-Math.floor(E()/1000);
   const c=$('#clock');
   if(st.graded){c.textContent='제출됨';c.classList.remove('low','stopped');return}
   c.textContent=mmss(left);
   c.classList.toggle('low',left<300);c.classList.toggle('stopped',!st.run);
-  c.title=left<0?'권장 시간 75분을 넘었습니다':st.run?'남은 시간 (권장 75분)':'멈춰 있음';
+  c.title=left<0?'권장 시간 '+TOT+'분을 넘었습니다':st.run?'남은 시간 (권장 '+TOT+'분)':'멈춰 있음';
 }
 setInterval(tick,1000);tick();
 
@@ -289,30 +302,15 @@ aud.addEventListener('play',()=>{if(!st.run)startExam()});
 document.addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){aud.currentTime=+c.dataset.t;aud.play().catch(()=>{})}});
 function stopAll(){aud.pause()}
 
-// ───────── 쓰기 ─────────
-let wTimer=null;
-function hz(s){return (s.match(/[^\s]/g)||[]).length}
+// ───────── 쓰기 (두 문제, 시계는 시험 전체 80분 하나) ─────────
+function hz(s){return (String(s||'').match(/[^\s]/g)||[]).length}
 function renderWrite(){
-  const box=$('#wbox');clearInterval(wTimer);
-  if(st.wphase==='idle'){
-    box.innerHTML='<div class="lock">원문은 아직 가려져 있습니다.<br><br><button class="btn primary" id="wgo">원문 읽기 시작 (10분)</button></div>';
-    $('#wgo').onclick=()=>{startExam();st.wphase='read';st.wstart=E();save();renderWrite()};return;
-  }
-  if(st.wphase==='read'&&!st.graded){
-    box.innerHTML='<div class="wstate"><span class="clock" id="wclock">10:00</span><span class="muted">다 읽으면 넘어가세요. 시간이 되면 글이 자동으로 사라집니다.</span><button class="btn" id="wdone">다 읽었어요, 쓰기 시작</button></div><div class="passage" style="margin-top:12px">'+STORY.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div>';
-    const go=()=>{st.wphase='write';st.wstart=E();save();renderWrite()};
-    $('#wdone').onclick=go;
-    const up=()=>{const l=600-Math.floor((E()-st.wstart)/1000);if(l<=0)return go();$('#wclock').textContent=mmss(l)};
-    up();wTimer=setInterval(up,1000);return;
-  }
-  const done=st.graded;
-  box.innerHTML='<div class="wstate"><span class="clock" id="wclock">35:00</span><span class="count" id="wcount"></span></div>'+
-   '<p class="muted" style="margin:8px 0">첫 줄에 제목을 쓰세요. 원문은 채점 뒤에 다시 볼 수 있습니다.</p>'+
-   '<textarea id="essay" placeholder="题目&#10;&#10;二十年前……" '+(done?'readonly':'')+'>'+esc(st.essay)+'</textarea>';
-  const ta=$('#essay'),cnt=()=>{const n=hz(ta.value);const c=$('#wcount');c.textContent=n+'자 (권장 400자 안팎)';c.classList.toggle('good',n>=350&&n<=450)};
-  ta.oninput=()=>{st.essay=ta.value;save();cnt()};cnt();
-  if(!done){const up=()=>{const l=35*60-Math.floor((E()-st.wstart)/1000);const c=$('#wclock');c.textContent=mmss(l);c.classList.toggle('low',l<180)};up();wTimer=setInterval(up,1000)}
-  else $('#wclock').textContent='제출됨';
+  WRITE.forEach(w=>{
+    const ta=$('#essay'+w.id),c=$('#wcount'+w.id);
+    ta.value=st.essays[w.id]||'';ta.readOnly=!!st.graded;
+    const cnt=()=>{const n=hz(ta.value);c.textContent=n+'자 (최소 '+w.min+'자)';c.classList.toggle('good',n>=w.min)};
+    ta.oninput=()=>{if(!st.run&&!st.graded)startExam();st.essays[w.id]=ta.value;save();cnt()};cnt();
+  });
 }
 renderWrite();
 
@@ -344,7 +342,7 @@ function renderResult(){
   if(!st.graded){box.innerHTML='<div class="part"><h2>채점</h2><p class="how" style="margin:0">아래 답안지에서 빈 문항을 확인하고 제출하세요. 번호를 누르면 그 문제로 갑니다.</p></div>';return}
   const sec=s=>{const qs=allQs.filter(q=>q.part.sec===s);const ok=qs.filter(q=>st.ans[q.id]===q.a).length;return{ok,n:qs.length,score:Math.round(ok/qs.length*100)}};
   const L=sec('listen'),R=sec('read');
-  const W=st.rub.filter(Boolean).length*20;
+  const W=st.rub.filter(Boolean).length*10;
   const total=L.score+R.score+W;
   const mins=st.el?Math.round(st.el/60000):null;
   const rows=PARTS.map(p=>{const qs=allQs.filter(q=>q.part===p),ok=qs.filter(q=>st.ans[q.id]===q.a);const wr=qs.filter(q=>st.ans[q.id]!==q.a).map(q=>'<a href="#Q'+q.id+'" data-jump="'+q.id+'" data-v="'+p.sec+'">'+q.id+'</a>');
@@ -352,18 +350,20 @@ function renderResult(){
   box.innerHTML='<div class="part"><h2>成绩 · 성적</h2><p class="how">영역마다 100점으로 환산했습니다. 실제 HSK 6급은 300점 만점에 180점이면 합격입니다. 쓰기는 아래 체크 항목으로 직접 매기세요.'+(mins?' 걸린 시간 '+mins+'분.':'')+'</p>'+
    '<div class="scores"><div class="score"><div class="k">听力 듣기</div><div class="v">'+L.score+'<small> / 100</small></div><div class="muted">'+L.ok+' / '+L.n+' 정답</div></div>'+
    '<div class="score"><div class="k">阅读 독해</div><div class="v">'+R.score+'<small> / 100</small></div><div class="muted">'+R.ok+' / '+R.n+' 정답</div></div>'+
-   '<div class="score"><div class="k">书写 쓰기 (자가 채점)</div><div class="v">'+W+'<small> / 100</small></div><div class="muted">체크 항목당 20점</div></div>'+
+   '<div class="score"><div class="k">书写 쓰기 (자가 채점)</div><div class="v">'+W+'<small> / 100</small></div><div class="muted">체크 항목당 10점</div></div>'+
    '<div class="score"><div class="k">총점</div><div class="v">'+total+'<small> / 300</small></div><span class="verdict '+(total>=180?'pass':'fail')+'">'+(total>=180?'합격선 이상':'합격선 180점 미만')+'</span></div></div>'+
    '<div class="tbl"><table><thead><tr><th>부분</th><th>정답</th><th>틀린 문항</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
-   '<div class="part"><h2>书写 · 자가 채점</h2><p class="how">내 글과 모범 답안을 비교하고 맞는 항목에 체크하세요.</p><div class="rubric">'+RUBRIC.map((t,i)=>'<label><input type="checkbox" id="rub'+i+'" data-r="'+i+'"'+(st.rub[i]?' checked':'')+'> '+t+'</label>').join('')+'</div>'+
-   '<details class="script" style="margin-top:14px"><summary>내 글 ('+hz(st.essay)+'자)</summary><div class="passage">'+(st.essay?esc(st.essay).split('\n').filter(Boolean).map(t=>'<p>'+t+'</p>').join(''):'<p class="muted">쓴 글이 없습니다.</p>')+'</div></details>'+
-   '<details class="script"><summary>모범 답안 ('+hz(MODEL.join(''))+'자)</summary><div class="passage"><p style="text-align:center;text-indent:0;font-weight:700">'+MODEL[0]+'</p>'+MODEL.slice(1).map(t=>'<p>'+t+'</p>').join('')+'</div></details>'+
-   '<details class="script"><summary>원문 ('+hz(STORY.join(''))+'자)</summary><div class="passage">'+STORY.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div></details></div>';
+   WRITE.map((w,wi)=>'<div class="part"><h2>书写 '+w.id+' · '+w.kind+' 자가 채점</h2><p class="how">내 글과 모범 답안을 비교하고 맞는 항목에 체크하세요.</p><div class="rubric">'+w.rubric.map((t,i)=>{const k=wi*5+i;return '<label><input type="checkbox" data-r="'+k+'"'+(st.rub[k]?' checked':'')+'> '+t+'</label>'}).join('')+'</div>'+
+   '<details class="script" style="margin-top:14px"><summary>내 글 ('+hz(st.essays[w.id])+'자)</summary><div class="passage">'+(st.essays[w.id]?esc(st.essays[w.id]).split('\n').filter(Boolean).map(t=>'<p>'+t+'</p>').join(''):'<p class="muted">쓴 글이 없습니다.</p>')+'</div></details>'+
+   '<details class="script"><summary>모범 답안 ('+hz(w.model.slice(1).join(''))+'자)</summary><div class="passage"><p style="text-align:center;text-indent:0;font-weight:700">'+esc(w.model[0])+'</p>'+w.model.slice(1).map(t=>'<p>'+esc(t)+'</p>').join('')+'</div></details></div>').join('');
   box.querySelectorAll('[data-r]').forEach(c=>c.onchange=()=>{st.rub[+c.dataset.r]=c.checked;save();renderResult()});
   box.querySelectorAll('[data-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();show(a.dataset.v);document.getElementById('Q'+a.dataset.jump).scrollIntoView({block:'center'})});
 }
 renderResult();updMsg();
 if(st.graded)applyGrade();
+// 회차 고르기: 제출한 회차에 초록 ✓
+$('#exList').innerHTML=EXAM_LIST.map(x=>{let g=false;try{g=!!(JSON.parse(localStorage.getItem('hsk6-exam-'+String(x.n).padStart(2,'0'))||'{}').graded)}catch(e){}
+  return '<a class="exn'+(x.n===EXN?' cur':'')+'" href="exam.html?n='+x.n+'" title="'+esc(x.theme)+'">'+x.n+'회'+(g?'<span class="ok">✓</span>':'')+'</a>'}).join('');
 try{const t=sessionStorage.getItem(KEY+'-tab');if(t)show(t)}catch(e){}
 
 // 쿠팡 파트너스 (온라인 + http 일 때만, 최하단). 위젯은 document.write 라 srcdoc iframe 안에서 돌린다.
