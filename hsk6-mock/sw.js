@@ -1,5 +1,5 @@
 // 고칠 때마다 CACHE 버전을 올린다. 새 판은 받자마자 바로 자리를 넘겨받는다(기다리지 않는다).
-const CACHE = 'hsk6-v15';
+const CACHE = 'hsk6-v16';
 const ASSETS = ['./', './index.html', './exam.html', './study.html', './answers.html', './bingju-data.js', './bingju-c01.js', './bingju-c02.js', './bingju-c03.js', './bingju-c04.js', './bingju-c05.js', './bingju-c06.js', './bingju-c07.js', './bingju-c08.js', './bingju-c09.js', './bingju-c10.js',
   './exams/list.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];  // 모의고사 회차·음원은 처음 열 때 저장된다
 self.addEventListener('install', e => {
