@@ -327,6 +327,7 @@ function renderDay(){
   let h='<h1>코스 '+c+' · Day '+d.n+' · '+esc(d.title)+'</h1>'+
   '<div class="meta"><span>주제 <b>'+esc(COURSES[c-1].theme)+'</b></span><span>할 일 <b>'+esc(d.todo)+'</b></span><span>권장 시간 <b>'+esc(d.time)+'</b></span></div>';
   if(d.intro)h+='<p class="lead">'+esc(d.intro)+'</p>';
+  if(!g)h+='<div class="row" style="margin:-4px 0 14px"><button class="btn primary" data-grade="1">채점</button><span class="msg">채점하면 정답·해설과 보기마다 해석·단어가 나옵니다.</span></div>';
   if(d.n>1)h+=prevWrong.length?'<div class="prev"><span>이 코스 앞 날 틀린 문항</span><span class="ids">'+prevWrong.map(q=>'D'+q.day+'-'+q.no).join(' · ')+'</span><button class="btn" id="toWrong">코스 오답 모아보기에서 다시 풀기</button></div>'
     :(DAYS.some(x=>x.n<d.n&&st.graded[gk(c,x.n)])?'<div class="prev"><span>이 코스 앞 날 틀린 문항이 남아 있지 않습니다.</span></div>':'');
   h+='<div class="part"><h2>규칙 표</h2><div class="tbl"><table><thead><tr><th>오류 형태</th><th>찾는 방법</th></tr></thead><tbody>'+
@@ -345,7 +346,8 @@ function renderDay(){
   const box=$('#v-day');box.innerHTML=h;
   let armed=false;
   box.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{const id=r.name.slice(4);st.ans[id]=+r.value;save();
-    const n=qs.filter(q=>st.ans[q.id]!==undefined).length;$('#gmsg').textContent=n+' / '+qs.length+' 문항 고름';armed=false;$('#gradeBtn').textContent='채점'});
+    const n=qs.filter(q=>st.ans[q.id]!==undefined).length;$('#gmsg').textContent=n+' / '+qs.length+' 문항 고름';armed=false;$('#gradeBtn').textContent='채점';box.querySelectorAll('[data-grade]').forEach(b=>b.textContent='채점')});
+  box.querySelectorAll('[data-grade]').forEach(b=>b.onclick=()=>{$('#gradeBtn').click();if($('#gradeBtn')&&b.isConnected)b.textContent=$('#gradeBtn').textContent});
   if($('#gradeBtn'))$('#gradeBtn').onclick=()=>{
     const left=qs.filter(q=>st.ans[q.id]===undefined).length;
     if(left&&!armed){armed=true;$('#gradeBtn').textContent=left+'문항을 안 골랐습니다. 그래도 채점';return}
@@ -473,7 +475,12 @@ function loadCoupangAd(){
 }
 loadCoupangAd();
 addEventListener('online',loadCoupangAd);addEventListener('offline',()=>{$('#adFooter').hidden=true});
-if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
+  // 예전 판이 이 화면을 띄웠으면, 새 판이 자리를 넘겨받는 순간 한 번 새로 고쳐 새 문항·화면을 보인다
+  const had=!!navigator.serviceWorker.controller;let done=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!done){done=true;location.reload()}});
+  navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{});
+}
 </script>
 </body>
 </html>
