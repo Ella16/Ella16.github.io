@@ -327,7 +327,8 @@ function renderDay(){
   let h='<h1>코스 '+c+' · Day '+d.n+' · '+esc(d.title)+'</h1>'+
   '<div class="meta"><span>주제 <b>'+esc(COURSES[c-1].theme)+'</b></span><span>할 일 <b>'+esc(d.todo)+'</b></span><span>권장 시간 <b>'+esc(d.time)+'</b></span></div>';
   if(d.intro)h+='<p class="lead">'+esc(d.intro)+'</p>';
-  if(!g)h+='<div class="row" style="margin:-4px 0 14px"><button class="btn primary" data-grade="1">채점</button><span class="msg">채점하면 정답·해설과 보기마다 해석·단어가 나옵니다.</span></div>';
+  h+=g?'<div class="row" style="margin:-4px 0 14px"><button class="btn" data-ungrade="1">채점 취소</button><span class="msg">고른 답은 그대로 두고 채점 전으로 돌아갑니다.</span></div>'
+    :'<div class="row" style="margin:-4px 0 14px"><button class="btn primary" data-grade="1">채점</button><span class="msg">채점하면 정답·해설과 보기마다 해석·단어가 나옵니다.</span></div>';
   if(d.n>1)h+=prevWrong.length?'<div class="prev"><span>이 코스 앞 날 틀린 문항</span><span class="ids">'+prevWrong.map(q=>'D'+q.day+'-'+q.no).join(' · ')+'</span><button class="btn" id="toWrong">코스 오답 모아보기에서 다시 풀기</button></div>'
     :(DAYS.some(x=>x.n<d.n&&st.graded[gk(c,x.n)])?'<div class="prev"><span>이 코스 앞 날 틀린 문항이 남아 있지 않습니다.</span></div>':'');
   h+='<div class="part"><h2>규칙 표</h2><div class="tbl"><table><thead><tr><th>오류 형태</th><th>찾는 방법</th></tr></thead><tbody>'+
@@ -337,7 +338,7 @@ function renderDay(){
     const ok=qs.length-wrongOf(c,d.n).length;
     const nextLab=d.n<7?'Day '+(d.n+1)+' 로':c<NC?'코스 '+(c+1)+' 시작 · '+esc(COURSES[c].theme):'오답 노트 보기';
     h+='<div class="part"><div class="row"><span class="score">'+ok+'<small> / '+qs.length+' 맞음</small></span>'+
-      '<button class="btn primary" id="nextBtn">'+nextLab+'</button><button class="btn" id="resetBtn">이 날 다시 풀기</button></div>'+
+      '<button class="btn primary" id="nextBtn">'+nextLab+'</button><button class="btn" data-ungrade="1">채점 취소</button><button class="btn" id="resetBtn">이 날 다시 풀기</button></div>'+
       (d.n===7&&c<NC?'<p class="src" style="margin-top:10px">코스 '+c+'을 마쳤습니다. 다음 코스는 주제가 바뀌고 문장이 조금 더 어려워집니다.</p>':'')+'</div>';
   }else{
     h+='<div class="part"><div class="row"><button class="btn primary" id="gradeBtn">채점</button><span class="msg" id="gmsg">'+answered+' / '+qs.length+' 문항 고름</span></div></div>';
@@ -354,6 +355,8 @@ function renderDay(){
     st.graded[gk(c,d.n)]=Date.now();save();stopTimer();renderDay();tabs();paintTimeBtn();
     const first=wrongOf(c,d.n)[0];document.getElementById('Q'+(first?first.id:qs[0].id)).scrollIntoView({block:'center'});
   };
+  // 채점 취소: 고른 답은 남기고 채점 기록만 지운다(다시 고쳐 풀고 채점할 수 있다)
+  box.querySelectorAll('[data-ungrade]').forEach(b=>b.onclick=()=>{const low=!!b.closest('.part');delete st.graded[gk(c,d.n)];save();renderDay();tabs();paintTimeBtn();if(low)document.getElementById('Q'+qs[0].id).scrollIntoView({block:'start'})});
   if($('#nextBtn'))$('#nextBtn').onclick=()=>d.n<7?openDay(c,d.n+1):c<NC?openDay(c+1,1):show('wrong');
   let armed2=false;
   if($('#resetBtn'))$('#resetBtn').onclick=e=>{
