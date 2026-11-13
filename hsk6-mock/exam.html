@@ -170,7 +170,7 @@ textarea.essay{width:100%;min-height:220px;font-size:16px;line-height:1.8;paddin
   <div class="intro">
     <h1 id="exTitle">HSK 6급 모의고사</h1>
     <div class="exlist" id="exList"></div>
-    <p>신HSK(3.0) 6급 필기(듣기 40·독해 40·쓰기 2, 약 125분)와 같은 구성으로 문항 수만 절반으로 줄였습니다. 듣기 20문항, 독해 20문항, 쓰기 2문항이고 권장 시간은 80분입니다. 듣기는 아래 플레이어로 바로 듣거나 MP3 로 내려받아 휴대폰으로 들어도 됩니다. 답은 회차마다 이 브라우저에 따로 저장되며, 채점 탭에서 제출하면 해설과 듣기 대본이 열립니다.</p>
+    <p>신HSK(3.0) 6급 필기(듣기 40·독해 40·쓰기 2, 약 125분)와 같은 구성으로 문항 수를 절반 정도로 줄였습니다. 듣기 20문항, 독해 24문항(마지막 41–44번은 실제 시험 길이의 긴 글), 쓰기 2문항이고 권장 시간은 90분입니다. 듣기는 아래 플레이어로 바로 듣거나 MP3 로 내려받아 휴대폰으로 들어도 됩니다. 답은 회차마다 이 브라우저에 따로 저장되며, 채점 탭에서 제출하면 해설과 듣기 대본이 열립니다.</p>
   </div>
   <div class="coverbox" id="cover" hidden><h2 id="coverT">시험 시작</h2><p id="coverP">시작을 누르면 80분 시계가 흐르고 문제가 보입니다. 중지하면 시계와 듣기가 함께 멈춥니다.</p><button class="btn primary" id="coverBtn">시험 시작</button></div>
   <section id="v-listen"></section>
@@ -191,7 +191,7 @@ var EXNN=String(EXN).padStart(2,'0');
 document.write('<script src="exams/e'+EXNN+'.js"><\/script>');
 </script>
 <script>
-const LETTERS='ABCDEF',TOT=80;
+const LETTERS='ABCDEF',TOT=90;
 document.getElementById('exName').textContent='모의고사 '+EXN+'회';
 document.getElementById('exTitle').textContent='HSK 6급 모의고사 '+EXN+'회';
 document.getElementById('ansLink').href='answers.html?n='+EXN;
@@ -202,6 +202,8 @@ const allQs=[];PARTS.forEach(p=>p.groups.forEach(g=>g.qs.forEach(q=>{q.part=p;q.
 const KEY='hsk6-exam-'+EXNN;
 let st={ans:{},el:0,run:null,graded:false,essays:{},rub:[]};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)st=Object.assign(st,s)}catch(e){}
+// 긴 글(41–44번)이 들어오기 전에 쓴 글은 41·42 번에 저장돼 있다 → 45·46 으로 옮긴다
+if(st.essays&&(st.essays[41]||st.essays[42])&&!st.essays[45]&&!st.essays[46]){st.essays={45:st.essays[41]||'',46:st.essays[42]||''}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -247,7 +249,7 @@ const playerHtml='<div class="part player"><h2>听力 음원</h2><p class="how" 
  '<div class="chips" aria-label="구간으로 이동">'+AUDIO.chapters.filter(c=>c.label!=='끝').map(c=>'<button class="chip" data-t="'+c.t+'">'+c.label+'<span>'+fmt(c.t)+'</span></button>').join('')+'</div></div>';
 $('#v-listen').innerHTML=playerHtml+PARTS.filter(p=>p.sec==='listen').map(renderPart).join('')+'<div class="submitrow"><button class="btn" data-go="read">독해로 넘어가기 →</button></div>';
 $('#v-read').innerHTML=PARTS.filter(p=>p.sec==='read').map(renderPart).join('')+'<div class="submitrow"><button class="btn" data-go="write">쓰기로 넘어가기 →</button></div>';
-$('#v-write').innerHTML=WRITE.map(w=>'<div class="part"><h2>'+(w.id===41?'第一部分 · ':'第二部分 · ')+w.kind+'</h2><p class="how">'+w.id+'번. '+(w.id===41?'안내문·통지·편지 같은 실용문을 씁니다.':'주제에 대한 내 생각을 근거를 들어 씁니다.')+' '+w.min+'자 이상.</p><div class="passage" style="text-indent:0">'+esc(w.prompt)+'</div><div class="wstate" style="margin-top:12px"><span class="count" id="wcount'+w.id+'"></span></div><textarea class="essay" id="essay'+w.id+'" data-w="'+w.id+'" placeholder="여기에 쓰세요"></textarea></div>').join('');
+$('#v-write').innerHTML=WRITE.map((w,wi)=>'<div class="part"><h2>'+(wi===0?'第一部分 · ':'第二部分 · ')+w.kind+'</h2><p class="how">'+w.id+'번. '+(wi===0?'안내문·통지·편지 같은 실용문을 씁니다.':'주제에 대한 내 생각을 근거를 들어 씁니다.')+' '+w.min+'자 이상.</p><div class="passage" style="text-indent:0">'+esc(w.prompt)+'</div><div class="wstate" style="margin-top:12px"><span class="count" id="wcount'+w.id+'"></span></div><textarea class="essay" id="essay'+w.id+'" data-w="'+w.id+'" placeholder="여기에 쓰세요"></textarea></div>').join('');
 $('#v-result').innerHTML='<div id="rbox"></div>'+sheetHtml();
 
 // 탭

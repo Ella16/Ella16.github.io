@@ -242,7 +242,7 @@ html+='<h2 class="sec-title" id="write">书写 · 쓰기</h2>'+WRITE.map(w=>'<di
  '<p class="how">자가 채점 기준: '+w.rubric.map(esc).join(' · ')+'</p>'+vocabHtml(String(w.id))+'</div>').join('');
 $('#body').innerHTML=html;
 $('#keygrid').innerHTML=keyCells;
-if(hasMine){const ok=Object.entries(mine).filter(([id,a])=>{for(const p of PARTS)for(const g of p.groups)for(const q of g.qs)if(q.id==id)return q.a===a;return false}).length;$('#minenote').textContent='이 브라우저에서 제출한 답 기준: 객관식 40문항 중 '+ok+'개 맞음. 빨간 칸이 틀린 문항입니다.'}
+if(hasMine){const ok=Object.entries(mine).filter(([id,a])=>{for(const p of PARTS)for(const g of p.groups)for(const q of g.qs)if(q.id==id)return q.a===a;return false}).length;$('#minenote').textContent='이 브라우저에서 제출한 답 기준: 객관식 '+Object.keys(PARTS.reduce((m,p)=>(p.groups.forEach(g=>g.qs.forEach(q=>m[q.id]=1)),m),{})).length+'문항 중 '+ok+'개 맞음. 빨간 칸이 틀린 문항입니다.'}
 else $('#minenote').textContent='시험지에서 제출하면 여기에 내 답과 틀린 문항이 표시됩니다.';
 const all=Object.values(VOCAB).flat();const c=k=>all.filter(r=>lvKey(r[3])===k).length;
 $('#exList').innerHTML=EXAM_LIST.map(x=>'<a class="exn'+(x.n===EXN?' cur':'')+'" href="answers.html?n='+x.n+'">'+x.n+'회</a>').join('');
