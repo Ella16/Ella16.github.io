@@ -104,6 +104,17 @@ tr.go{cursor:pointer}tr.go:hover td{background:var(--paper)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .tabs select{font:inherit;font-size:13.5px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);margin-right:4px}
 td.nw{white-space:nowrap}
+.say{flex:none;align-self:flex-start;margin-left:auto;width:30px;height:30px;padding:0;border-radius:50%;border:1px solid var(--line);background:var(--sheet);color:var(--jade);cursor:pointer;display:grid;place-items:center}
+.say::before{content:"";width:0;height:0;border-style:solid;border-width:6px 0 6px 10px;border-color:transparent transparent transparent currentColor;margin-left:3px}
+.say.on{background:var(--jade);color:#fff;border-color:var(--jade)}
+.say.on::before{width:9px;height:9px;border:0;background:currentColor;margin-left:0}
+.no-tts .say{display:none}
+.opt .gl{display:block;margin-top:6px;font-family:var(--ui)}
+.opt .gl .ko{display:block;font-size:14px;line-height:1.55;color:var(--ink)}
+.opt .gl .ow{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:6px}
+.opt .gl .w{font-size:12.5px;line-height:1.4;padding:2px 8px;border-radius:6px;background:var(--paper);color:var(--muted)}
+.opt .gl .w b{font-family:var(--zh);font-size:14px;color:var(--ink);font-weight:600}
+.opt .gl .w i{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--jade)}
 .cgo{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
 .btn.sm{padding:4px 12px;font-size:13px}
 .ok.big{font-size:16px}
@@ -292,13 +303,15 @@ function qHTML(q,mode){
   const name=mode+'-'+q.id;
   const opts=q.o.map((t,i)=>{
     const cls=done?(i===q.a?' right':i===pick?' wrong':''):'';
-    return '<label class="opt'+cls+'"><input type="radio" name="'+name+'" value="'+i+'"'+(pick===i?' checked':'')+(done?' disabled':'')+'><span class="l">'+L[i]+'</span><span class="t">'+esc(t)+'</span></label>'}).join('');
+    // 채점 뒤: 보기마다 한국어 해석과 그 문장의 어려운 단어
+    const gl=done&&q.tr?'<span class="gl"><span class="ko">'+esc(q.tr[i])+'</span>'+(q.ow&&q.ow[i]&&q.ow[i].length?'<span class="ow">'+q.ow[i].map(w=>'<span class="w"><b>'+esc(w[0])+'</b> <i>'+esc(w[1])+'</i> '+esc(w[2])+'</span>').join('')+'</span>':'')+'</span>':'';
+    return '<label class="opt'+cls+'"><input type="radio" name="'+name+'" value="'+i+'"'+(pick===i?' checked':'')+(done?' disabled':'')+'><span class="l">'+L[i]+'</span><span class="t">'+esc(t)+gl+'</span><button type="button" class="say" data-say="'+esc(t)+'" aria-label="읽기" title="읽기"></button></label>'}).join('');
   let ex='';
   if(done){
     const ok=pick===q.a;
     ex='<div class="ex"><div class="k"><span class="res '+(ok?'ok':'ng')+'">'+(pick===undefined?'안 고름':ok?'맞음':'틀림')+'</span><span>정답 <b>'+L[q.a]+'</b></span><span class="tag">'+esc(q.type)+'</span></div>'+
        '<div>'+esc(q.why)+'</div><div class="fix">'+esc(q.fix)+'</div>'+
-       (q.words&&q.words.length?'<div class="words"><div class="wh">어려운 단어</div><dl>'+q.words.map(w=>'<div><dt>'+esc(w[0])+'</dt><dd><span class="py">'+esc(w[1])+'</span> '+esc(w[2])+'</dd></div>').join('')+'</dl></div>':'')+'</div>';
+       (!q.ow&&q.words&&q.words.length?'<div class="words"><div class="wh">어려운 단어</div><dl>'+q.words.map(w=>'<div><dt>'+esc(w[0])+'</dt><dd><span class="py">'+esc(w[1])+'</span> '+esc(w[2])+'</dd></div>').join('')+'</dl></div>':'')+'</div>';
   }
   const memo=st.memo[q.id]||'';
   return '<div class="q'+(done?' graded':'')+'" id="Q'+q.id+'"><div class="qhead"><span class="qn">'+(q.day===7?(50+q.no)+'번':q.no+'번')+'</span>'+(mode==='wrong'?'<span class="from">코스 '+q.c+' · Day '+q.day+' · '+esc(DAYS[q.day-1].title)+'</span>':'')+
@@ -370,8 +383,8 @@ function copyBar(list){
 }
 function qText(q){
   const shown=st.graded[gk(q.c,q.day)]||st.retry[q.id]!==undefined;
-  let t='[코스 '+q.c+' · Day '+q.day+' · '+q.no+'번] '+DAYS[q.day-1].title+'\n'+q.o.map((o,i)=>L[i]+'. '+o).join('\n');
-  if(shown)t+='\n정답 '+L[q.a]+' ('+q.type+') '+q.why+'\n고친 문장: '+q.fix+(q.words&&q.words.length?'\n어려운 단어: '+q.words.map(w=>w[0]+' '+w[1]+' '+w[2]).join(' / '):'');
+  let t='[코스 '+q.c+' · Day '+q.day+' · '+q.no+'번] '+DAYS[q.day-1].title+'\n'+q.o.map((o,i)=>L[i]+'. '+o+(shown&&q.tr?'\n   '+q.tr[i]+(q.ow&&q.ow[i]?'\n   '+q.ow[i].map(w=>w.join(' ')).join(' / '):''):'')).join('\n');
+  if(shown)t+='\n정답 '+L[q.a]+' ('+q.type+') '+q.why+'\n고친 문장: '+q.fix+(!q.ow&&q.words&&q.words.length?'\n어려운 단어: '+q.words.map(w=>w[0]+' '+w[1]+' '+w[2]).join(' / '):'');
   return t+'\n메모: '+st.memo[q.id];
 }
 async function copyText(t){
@@ -379,6 +392,26 @@ async function copyText(t){
   const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();
   let ok=false;try{ok=document.execCommand('copy')}catch(e){}a.remove();return ok;
 }
+// ───────── 문장 읽기: 브라우저에 들어 있는 중국어 음성(Web Speech API). 중국어 음성이 없는 기기는 버튼을 숨긴다 ─────────
+const TTS={ok:'speechSynthesis' in window,v:null,btn:null};
+function pickVoice(){
+  const vs=speechSynthesis.getVoices();
+  TTS.v=vs.find(v=>/^zh[-_](CN|Hans)/i.test(v.lang))||vs.find(v=>/^(zh|cmn)/i.test(v.lang))||null;
+  document.documentElement.classList.toggle('no-tts',vs.length>0&&!TTS.v);
+}
+if(TTS.ok){pickVoice();speechSynthesis.addEventListener('voiceschanged',pickVoice)}else document.documentElement.classList.add('no-tts');
+function say(text,btn){
+  const again=TTS.btn===btn&&speechSynthesis.speaking;
+  speechSynthesis.cancel();document.querySelectorAll('.say.on').forEach(b=>b.classList.remove('on'));TTS.btn=null;
+  if(again)return;
+  const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';if(TTS.v)u.voice=TTS.v;u.rate=0.9;
+  u.onend=u.onerror=()=>{btn.classList.remove('on');if(TTS.btn===btn)TTS.btn=null};
+  btn.classList.add('on');TTS.btn=btn;speechSynthesis.speak(u);
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.say');if(!b)return;
+  e.preventDefault();e.stopPropagation();if(TTS.ok)say(b.dataset.say,b);
+},true);
 document.addEventListener('click',async e=>{
   const mb=e.target.closest('.mbtn');
   if(mb){const ta=mb.closest('.q').querySelector('textarea.memo');ta.hidden=!ta.hidden;if(!ta.hidden)ta.focus();return}
