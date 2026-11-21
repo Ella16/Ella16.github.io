@@ -145,6 +145,11 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .pvcard.vcard .pv-body{padding-left:0}
 .pvcard.vcard .vchk{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);flex:none;
   display:grid;place-items:center;color:transparent;font-size:12px}
+.vcopy{flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:8px;
+  color:var(--muted);background:transparent;border:0;padding:0}
+.vcopy svg{width:17px;height:17px}
+.vcopy:active{background:var(--surface-2)}
+.flash .vcopy{position:absolute;top:10px;right:10px;width:34px;height:34px}
 .pvcard.vcard.done .vchk{background:var(--good);border-color:var(--good);color:#fff}
 .pvcard.vcard.done .pv-ref{color:var(--muted)}
 .pvcard.vcard .pv-mk{margin-top:9px;font-size:11.5px;font-weight:800;color:var(--bad);
@@ -630,6 +635,33 @@ function scopePool(scope){
   return collVerses();
 }
 function vTitle(v){ return (v.sub&&v.sub.length)?v.sub[v.sub.length-1]:v.ref; }
+// 구절 한 개 복사 — "장절 · 제목", 본문, (대역을 켜 두었으면) 대역 본문 차례로 붙여 넣어진다.
+const COPY_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg>';
+function verseCopyText(v){
+  const head=v.ref+((v.sub&&v.sub.length)?' · '+vTitle(v):'');
+  return [head,T(v),T2(v)].filter(Boolean).join('\n');
+}
+async function copyVerse(v){
+  const text=verseCopyText(v);
+  let ok=false;
+  try{ await navigator.clipboard.writeText(text); ok=true; }catch(e){
+    // 클립보드 권한이 없는 브라우저(오래된 사파리, http 등)는 옛 방식으로
+    const ta=el('textarea'); ta.value=text; ta.setAttribute('readonly','');
+    ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try{ ok=document.execCommand('copy'); }catch(e2){}
+    ta.remove();
+  }
+  toast(ok?v.ref+' 복사했어요':'복사하지 못했어요');
+}
+function copyBtn(v){
+  const b=el('button','vcopy',COPY_ICO);
+  b.title='이 구절 복사'; b.setAttribute('aria-label','이 구절 복사');
+  // 카드를 누르면 펼치기/정답 보기가 되므로, 복사 버튼 누름은 카드까지 올라가지 않게 막는다
+  ['pointerdown','pointerup'].forEach(t=>b.addEventListener(t,e=>e.stopPropagation()));
+  b.onclick=e=>{ e.stopPropagation(); copyVerse(v); };
+  return b;
+}
 
 // ---------- 내가 틀린 어절 표시 ----------
 // 채점 결과에서 누른 어절을 구절별로 저장해 두고, 본문을 보여줄 때 형광펜처럼 칠한다.
@@ -996,6 +1028,8 @@ function fillCard(card,v,ctx){
     card.appendChild(body);
   }
   card.classList.toggle('open',seeT||seeX);
+  // 구절이 보일 때만 복사 버튼을 둔다(가려 둔 답을 몰래 꺼내 가는 버튼이 되지 않게)
+  if(seeX){ const h=card.querySelector('.pv-h'); h.insertBefore(copyBtn(v),h.querySelector('.vchk')); }
   card.querySelector('.vchk').onclick=e=>{
     e.stopPropagation(); toggleLearn(v.id);
     card.classList.toggle('done',learned.has(v.id));
@@ -1176,6 +1210,7 @@ function renderMemorize(root){
     `<div class="fhead"><div class="fref${showRef?'':' hide'}">${showRef?esc(v.ref):'장절 ?'}</div>`+
     `<div class="fpath${showTitle?'':' hide'}">${showTitle?titleHtml:'제목 ?'}</div></div>`+
     `<div class="ftext"><div class="ftmain">${verseHtml}</div>${par}</div>`;
+  if(showVerseFull) card.appendChild(copyBtn(v));
   let _sx=0,_sy=0,_st=0;
   card.addEventListener('pointerdown',e=>{_sx=e.clientX;_sy=e.clientY;_st=Date.now();});
   card.addEventListener('pointerup',e=>{
