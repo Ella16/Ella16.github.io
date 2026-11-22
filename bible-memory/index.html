@@ -961,7 +961,8 @@ function renderBrowse(root){
   const allOpen=paths.length>0 && paths.every(pp=>state.openNodes.has(pp));
   const tAll=el('button','tool-ico',TICON(allOpen?EXP_IN:EXP_OUT));
   tAll.title=allOpen?'분류 모두 접기':'분류 모두 펼치기';
-  tAll.onclick=()=>{ state.openNodes=allOpen?new Set():new Set(paths); render(); };
+  // 펼치기 버튼으로 펼치면 카드는 보기 설정과 상관없이 '모두'(장절·제목·구절)로, 접으면 보기 설정대로 돌아간다
+  tAll.onclick=()=>{ state.openNodes=allOpen?new Set():new Set(paths); setVOpen(nodeVerses(tree),!allOpen); render(); };
   const tTest=el('button','tool-ico go',TICON(PENCIL));
   tTest.title='이 범위 테스트 시작';
   tTest.onclick=()=>openTestSetup(Array.isArray(state.brScope)?state.brScope.slice():'__all');
@@ -1097,6 +1098,7 @@ function renderNode(node,parent,depth){
   if(hasKids) head.querySelector('.acc-exp').onclick=e=>{ e.stopPropagation();
     const paths=subtreePaths(node,[]); const allOpen=paths.every(p=>state.openNodes.has(p));
     if(allOpen) paths.forEach(p=>state.openNodes.delete(p)); else paths.forEach(p=>state.openNodes.add(p));
+    setVOpen(nodeVerses(node),!allOpen);   // 도구줄 펼치기 버튼과 같은 규칙
     renderKeep(head);
   };
   head.querySelector('.acc-go').onclick=e=>{ e.stopPropagation(); openScopeActions(node); };
@@ -1133,6 +1135,8 @@ function closeSheet(){$('#sheetBack').classList.remove('show');}
 $('#sheetBack').addEventListener('click',e=>{if(e.target===$('#sheetBack'))closeSheet();});
 
 // 이 노드와 하위 노드에 든 구절 전부
+// 구절 여러 장을 한꺼번에 '모두 보기'로 펴거나(on) 보기 설정대로 되돌린다(off)
+function setVOpen(verses,on){ verses.forEach(v=>on?state.vOpen.add(v.id):state.vOpen.delete(v.id)); }
 function nodeVerses(node,acc){ acc=acc||[]; acc.push(...node.verses); node.children.forEach(c=>nodeVerses(c,acc)); return acc; }
 function openScopeActions(node){
   const {t,d}=nodeStats(node);
