@@ -515,7 +515,7 @@ let learned = LS.l;
 let marks = LS.marks;
 let curColl = COLLS.find(c=>c.name===LS.coll) ? LS.coll : COLLS[0].name;
 let tab = 'memorize';
-const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, brScope:'__all', brMode:'topic', brBook:null, brChap:null, show:{ref:true,title:true,text:true}, vOpen:new Set(), mzPick:'topic', mzBook:null, pgMode:'topic', mzScope:null, mzList:[], mzIdx:0, mzHint:0, mzShow:{ref:true,title:false,text:false}, mzHintKind:'', unlearnedOnly:localStorage.bm_unlearned==='1' };
+const state = { openGroups:new Set(), openNodes:new Set(), lastBrowseColl:null, brScope:'__all', brMode:'topic', brBook:null, brChap:null, show:{ref:true,title:true,text:true}, vOpen:new Set(), vAll:new Set(), mzPick:'topic', mzBook:null, pgMode:'topic', mzScope:null, mzList:[], mzIdx:0, mzHint:0, mzShow:{ref:true,title:false,text:false}, mzHintKind:'', unlearnedOnly:localStorage.bm_unlearned==='1' };
 // 도구줄 아이콘은 기기마다 모양이 달라지지 않게 이모지 대신 선 아이콘으로 그린다
 const TICON=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const BOX='<rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/>';
@@ -928,7 +928,7 @@ function renderBrowse(root){
   const verses=collVerses();
   root.appendChild(collectionBar());
   // 과정이 바뀌면 범위·펼침 상태를 처음으로
-  if(state.lastBrowseColl!==curColl){ state.openNodes=new Set(); state.brScope='__all'; state.lastBrowseColl=curColl; }
+  if(state.lastBrowseColl!==curColl){ state.openNodes=new Set(); state.vAll=new Set(); state.brScope='__all'; state.lastBrowseColl=curColl; }
 
   // 범위 칩 — 암송 탭과 같은 자리, 같은 모양
   const cats=[...buildTree(verses).keys()];
@@ -936,13 +936,13 @@ function renderBrowse(root){
   const pwrap=el('div','pill-wrap');
   const prow=el('div','pill-row');
   const allChip=el('button','chip'+(state.brScope==='__all'?' on':''),'전체 '+verses.length);
-  allChip.onclick=()=>{ state.brScope='__all'; state.openNodes=new Set(); render(); };
+  allChip.onclick=()=>{ state.brScope='__all'; state.openNodes=new Set(); state.vAll=new Set(); render(); };
   prow.appendChild(allChip);
   cats.forEach(c=>{
     const cn=verses.filter(v=>(v.sub[0]||'전체')===c).length;
     const ch=el('button','chip'+((scopeArr&&scopeArr[0]===c)?' on':''),esc(c)+' '+cn);
     // 한 분류만 골랐을 땐 접힌 채로 두면 볼 게 없으므로 바로 펼쳐 준다
-    ch.onclick=()=>{ state.brScope=[c]; state.openNodes=new Set(allNodePaths(buildNTree(verses.filter(v=>scopeMatch(v,[c]))),[])); render(); };
+    ch.onclick=()=>{ state.brScope=[c]; state.vAll=new Set(); state.openNodes=new Set(allNodePaths(buildNTree(verses.filter(v=>scopeMatch(v,[c]))),[])); render(); };
     prow.appendChild(ch);
   });
   pwrap.appendChild(prow);
@@ -1001,13 +1001,13 @@ function showSegOf(w,onChange,refLabel){
   seg.appendChild(ab);
   return seg;
 }
-function showSeg(){ return showSegOf(state.show,()=>{ state.vOpen=new Set(); render(); },'장절'); }
+function showSeg(){ return showSegOf(state.show,()=>{ state.vOpen=new Set(); state.vAll=new Set(); render(); },'장절'); }
 function showSep(){ return el('span','tool-sep'); }
 // 장절·제목·구절 중 무엇을 보여줄지는 '보기' 칩 세 개가 정한다(기본 셋 다 켜짐).
 // 가려 둔 게 있는 카드는 눌러서 그 한 장만 확인할 수 있고, state.vOpen이 그 목록이다.
 function verseHidden(){ const w=state.show; return !(w.ref&&w.title&&w.text); }
 function fillCard(card,v,ctx){
-  const w=state.show, open=state.vOpen.has(v.id);   // open=이 한 장은 다 보여 준다
+  const w=state.show, open=state.vOpen.has(v.id)||state.vAll.has(v.id);   // open=이 한 장은 다 보여 준다
   const seeR=w.ref||open, seeX=w.text||open;
   // 주제별에서는 바로 위 머리글이 곧 이 카드의 제목이라 두 번 적지 않는다.
   // 제목을 꺼 둔 동안엔 머리글도 없으므로, 이 카드만 확인할 때 여기에 보여 준다.
@@ -1045,7 +1045,8 @@ function renderVerseRow(v,parent,indentDepth,ctx){
   if(verseHidden()){
     card.classList.add('peek');
     card.onclick=()=>{
-      state.vOpen.has(v.id)?state.vOpen.delete(v.id):state.vOpen.add(v.id);
+      if(state.vAll.has(v.id)){ state.vAll.delete(v.id); state.vOpen.delete(v.id); }
+      else state.vOpen.has(v.id)?state.vOpen.delete(v.id):state.vOpen.add(v.id);
       fillCard(card,v,ctx); saveUI();
     };
   }
@@ -1094,7 +1095,7 @@ function renderNode(node,parent,depth){
   head.style.paddingLeft=(15+depth*16)+'px';
   head.dataset.path=node.path;
   head.querySelector('.ac')._node=node;
-  head.onclick=()=>{ isOpen?state.openNodes.delete(node.path):state.openNodes.add(node.path); renderKeep(head); };
+  head.onclick=()=>{ if(isOpen){ state.openNodes.delete(node.path); setVOpen(nodeVerses(node),false); } else state.openNodes.add(node.path); renderKeep(head); };
   if(hasKids) head.querySelector('.acc-exp').onclick=e=>{ e.stopPropagation();
     const paths=subtreePaths(node,[]); const allOpen=paths.every(p=>state.openNodes.has(p));
     if(allOpen) paths.forEach(p=>state.openNodes.delete(p)); else paths.forEach(p=>state.openNodes.add(p));
@@ -1136,7 +1137,9 @@ $('#sheetBack').addEventListener('click',e=>{if(e.target===$('#sheetBack'))close
 
 // 이 노드와 하위 노드에 든 구절 전부
 // 구절 여러 장을 한꺼번에 '모두 보기'로 펴거나(on) 보기 설정대로 되돌린다(off)
-function setVOpen(verses,on){ verses.forEach(v=>on?state.vOpen.add(v.id):state.vOpen.delete(v.id)); }
+// 펼치기 버튼으로 편 구절은 state.vAll 에 따로 둔다. 한 장씩 누른 것(vOpen)과 섞지 않아야
+// 분류 이름을 눌러 여닫는 동작(드롭다운)이 예전 그대로 보기 설정을 따른다.
+function setVOpen(verses,on){ verses.forEach(v=>on?state.vAll.add(v.id):state.vAll.delete(v.id)); }
 function nodeVerses(node,acc){ acc=acc||[]; acc.push(...node.verses); node.children.forEach(c=>nodeVerses(c,acc)); return acc; }
 function openScopeActions(node){
   const {t,d}=nodeStats(node);
@@ -1287,7 +1290,7 @@ let uiRestoring=false, uiY=0, uiTimer=0;
 function snapshot(){
   return {
     tab, coll:curColl, y:uiY,
-    browse:{mode:state.brMode,scope:state.brScope,book:state.brBook,chap:state.brChap,open:[...state.openNodes],show:state.show,vopen:[...state.vOpen]},
+    browse:{mode:state.brMode,scope:state.brScope,book:state.brBook,chap:state.brChap,open:[...state.openNodes],show:state.show,vopen:[...state.vOpen],vall:[...state.vAll]},
     mz:{pick:state.mzPick,book:state.mzBook,scope:state.mzScope,idx:state.mzIdx,show:state.mzShow,hint:state.mzHintKind,shuffled:!!state.mzShuffled,ids:(state.mzList||[]).map(v=>v.id)},
     test:{started:TState.started,idx:TState.idx}
   };
@@ -1323,7 +1326,7 @@ function applyUI(u,withTest){
   state.openNodes=new Set(b.open||[]);
   const w=b.show||{};
   state.show={ref:w.ref!==false,title:w.title!==false,text:w.text!==false};
-  state.vOpen=new Set(b.vopen||[]);
+  state.vOpen=new Set(b.vopen||[]); state.vAll=new Set(b.vall||[]);
   state.lastBrowseColl=curColl;   // 되살린 펼침 상태를 renderBrowse가 초기화하지 않게
   const m=u.mz||{};
   state.mzPick=(m.pick==='bible'?'bible':'topic'); state.mzBook=m.book||null;
