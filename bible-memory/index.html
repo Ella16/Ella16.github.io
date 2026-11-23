@@ -1138,7 +1138,8 @@ function renderNode(node,parent,depth){
   head.onclick=()=>{ if(isOpen){ state.openNodes.delete(node.path); setVOpen(nodeVerses(node),false); } else state.openNodes.add(node.path); renderKeep(head); };
   if(hasKids) head.querySelector('.acc-exp').onclick=e=>{ e.stopPropagation();
     const paths=subtreePaths(node,[]); const allOpen=paths.every(p=>state.openNodes.has(p));
-    if(allOpen) paths.forEach(p=>state.openNodes.delete(p)); else paths.forEach(p=>state.openNodes.add(p));
+    // 접을 땐 이 분류(드롭다운)는 열어 둔 채 아래 단계만 닫는다(2026-11-23 사용자 요청)
+    if(allOpen) paths.forEach(p=>{ if(p!==node.path) state.openNodes.delete(p); }); else paths.forEach(p=>state.openNodes.add(p));
     setVOpen(nodeVerses(node),!allOpen);   // 도구줄 펼치기 버튼과 같은 규칙
     renderKeep(head);
   };
