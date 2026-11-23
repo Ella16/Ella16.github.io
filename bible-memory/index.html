@@ -579,7 +579,7 @@ function collectionBar(){
 function render(keepY){
   const navTab = tab==='test' ? 'browse' : tab;   // 테스트는 둘러보기에서 들어온 화면
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===navTab));
-  const v=$('#viewInner'); v.innerHTML='';
+  const v=$('#viewInner'); v.innerHTML=''; v.style.paddingBottom='';   // renderAnchored 가 붙인 빈 자리는 다시 그릴 때 뗀다
   if(tab==='browse') renderBrowse(v);
   else if(tab==='memorize') renderMemorize(v);
   else if(tab==='test') renderTest(v);
@@ -1007,21 +1007,30 @@ function showSegOf(w,onChange,refLabel){
   return seg;
 }
 function showSeg(){ return showSegOf(state.show,()=>{ state.vOpen=new Set(); state.vAll=new Set(); renderAnchored(); },'장절'); }
-// 보기를 바꾸면 카드 높이가 달라진다. 맨 위로 보내지 않고, 도구줄 바로 아래 보이던 분류 머리글(없으면 카드)이
-// 다시 그린 뒤에도 같은 높이에 오도록 스크롤을 맞춘다.
+// 보기를 바꾸면 카드 높이가 달라진다. 맨 위로 보내지 않고, 화면 가운데에서 보고 있던 카드(또는 분류 머리글)가
+// 다시 그린 뒤에도 같은 높이에 오도록 스크롤을 맞춘다. 맨 위에 걸친 것을 기준으로 하면 줄일 때
+// 가운데 보던 카드가 위로 쓸려 올라가 사라져, 맨 위로 튄 것처럼 보였다(2026-11-23).
 function renderAnchored(){
-  const bar=document.querySelector('#viewInner .browse-tools.stick');
-  const line=bar?bar.getBoundingClientRect().bottom:0;
   const keyOf=e=>e.dataset.path!=null?'p:'+e.dataset.path:(e.dataset.vid?'v:'+e.dataset.vid:null);
   const items=[...document.querySelectorAll('#viewInner .acc-head[data-path], #viewInner .pvcard[data-vid]')];
-  // 도구줄 아래 처음 걸치는 것. 머리글이 화면 안에 있으면 그걸 우선한다.
-  const vis=items.filter(e=>e.getBoundingClientRect().bottom>line+4);
-  const anchor=vis.find(e=>e.classList.contains('acc-head')&&e.getBoundingClientRect().top<window.innerHeight*0.5)||vis[0];
+  const mid=window.innerHeight/2;
+  const anchor=items.find(e=>{const r=e.getBoundingClientRect();return r.top<=mid&&r.bottom>=mid})
+            ||items.find(e=>e.getBoundingClientRect().top>mid)
+            ||[...items].reverse().find(e=>e.getBoundingClientRect().bottom<mid);
   if(!anchor||window.scrollY<5){ render(true); return; }
-  const key=keyOf(anchor), top=anchor.getBoundingClientRect().top;
+  // 기준 카드의 머리가 도구줄 밑에 가려 있었으면, 다시 그린 뒤엔 머리가 보이게 도구줄 바로 아래에 둔다
+  const bar=document.querySelector('#viewInner .browse-tools.stick');
+  const barB=bar?bar.getBoundingClientRect().bottom:0;
+  const key=keyOf(anchor), top=Math.max(anchor.getBoundingClientRect().top,barB+6);
   render(true);
   const again=[...document.querySelectorAll('#viewInner .acc-head[data-path], #viewInner .pvcard[data-vid]')].find(e=>keyOf(e)===key);
-  if(again) window.scrollBy(0,again.getBoundingClientRect().top-top);
+  if(again){
+    // 목록 끝 근처에서 줄이면 페이지가 짧아져 그만큼 내릴 수가 없다 → 아래에 빈 자리를 붙여 보던 카드를 제자리에 둔다
+    const want=window.scrollY+again.getBoundingClientRect().top-top;
+    const maxY=document.documentElement.scrollHeight-window.innerHeight;
+    if(want>maxY) $('#viewInner').style.paddingBottom=Math.ceil(want-maxY)+'px';
+    window.scrollTo(0,want);
+  }
   uiY=window.scrollY|0; if(navSnapLast) navSnapLast.y=uiY; saveUI();
 }
 function showSep(){ return el('span','tool-sep'); }
