@@ -214,6 +214,12 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden;overflow-x:clip}   /* clip:
 /* 둘러보기 도구줄은 목록을 내려도 머리글 바로 아래 붙어 있다 — 보기를 바꾸러 맨 위로 올라가지 않게 */
 .browse-tools.stick{position:sticky;top:var(--hdrH,64px);z-index:15;background:var(--bg);
   margin:0 -14px 10px;padding:7px 14px;border-bottom:1px solid transparent}
+.browse-tools .tool-grow{flex:1}
+/* 보기 버튼을 화면 아래(탭 바로 위) 오른쪽에도 둔다 — 한 손으로 잡은 엄지가 닿는 자리 */
+.float-seg{position:fixed;z-index:25;right:max(14px,calc((100vw - 640px)/2 + 14px));bottom:calc(var(--navH,70px) + 10px);
+  background:var(--bg);border-radius:10px;box-shadow:0 4px 14px -4px rgba(0,0,0,.3)}
+.float-seg[hidden]{display:none}
+.float-seg .ord-seg button{padding:7px 10px}
 .browse-tools.stick.stuck{border-bottom-color:var(--line);box-shadow:0 4px 10px -8px rgba(0,0,0,.25)}
 .tool-btn{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--muted);box-shadow:var(--shadow)}
 .tool-btn.on{color:var(--brand-ink);background:var(--brand);border-color:transparent}
@@ -488,6 +494,7 @@ nav.tabs button.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 
 
 <div class="sheet-back" id="sheetBack"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="float-seg" id="floatSeg" hidden></div>
 
 <script src="data.js"></script>
 <script>
@@ -588,6 +595,7 @@ function render(keepY){
   saveUI();
   navTrack();
   syncSticky();
+  paintFloatSeg();
 }
 
 // ---------- BROWSE (nested accordion) ----------
@@ -847,7 +855,7 @@ function renderBible(root){
   if(state.unlearnedOnly) list=list.filter(v=>!learned.has(v.id));
   root.appendChild(el('div','section-title',`${esc(scopeLabel(scope))} · ${list.length}구절`));
   const btools=el('div','browse-tools stick');
-  btools.appendChild(showSeg());
+  btools.append(el('span','tool-grow'),showSeg());
   root.appendChild(btools);
   list.forEach(v=>renderVerseRow(v,root,0,true));
 }
@@ -971,7 +979,7 @@ function renderBrowse(root){
   const tTest=el('button','tool-ico go',TICON(PENCIL));
   tTest.title='이 범위 테스트 시작';
   tTest.onclick=()=>openTestSetup(Array.isArray(state.brScope)?state.brScope.slice():'__all');
-  tools.append(showSeg(),showSep(),unlearnedToggle(true),tAll,tTest);
+  tools.append(unlearnedToggle(true),tAll,tTest,el('span','tool-grow'),showSeg());   // 보기는 오른쪽 — 엄지가 닿는 쪽
   root.appendChild(tools);
 
   // 칩으로 한 분류를 골라 놓았으면 그 이름을 머리글로 또 보여줄 필요가 없다 → 그 단계는 건너뛰고
@@ -2039,7 +2047,17 @@ function toast(msg){
 }
 
 // 도구줄이 머리글 바로 아래 붙도록 머리글 높이를 CSS 에 알려 주고, 붙어 있을 땐 밑줄을 그린다
+// 둘러보기일 때만 화면 아래쪽 보기 버튼을 띄운다. 위 도구줄 것과 같은 설정을 바꾼다.
+function paintFloatSeg(){
+  const f=$('#floatSeg'); if(!f) return;
+  f.innerHTML='';
+  const on=tab==='browse';
+  f.hidden=!on;
+  $('#viewInner').style.marginBottom=on?'52px':'';   // 맨 아래 카드가 떠 있는 버튼에 가리지 않게
+  if(on) f.appendChild(showSeg());
+}
 function syncSticky(){
+  const nv=document.querySelector('nav.tabs'); if(nv) document.documentElement.style.setProperty('--navH',nv.offsetHeight+'px');
   const h=document.querySelector('header'); if(h) document.documentElement.style.setProperty('--hdrH',h.offsetHeight+'px');
   const bar=document.querySelector('#viewInner .browse-tools.stick');
   if(bar&&h) bar.classList.toggle('stuck',bar.getBoundingClientRect().top<=h.offsetHeight+1&&window.scrollY>0);
