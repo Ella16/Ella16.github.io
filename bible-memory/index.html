@@ -105,7 +105,7 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
 .stat-block .ic{font-size:15px}
 
 /* main */
-main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
+main{flex:1;padding:14px 14px 96px;overflow-x:hidden;overflow-x:clip}   /* clip: 도구줄 sticky 가 동작하게(hidden 은 sticky 를 막는다) */
 .hidden{display:none!important}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
@@ -211,6 +211,10 @@ main{flex:1;padding:14px 14px 96px;overflow-x:hidden}
 .browse-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:0 0 10px}
 /* 설정은 한 줄에 들어가야 해서 여기 세그먼트만 더 좁게 */
 .browse-tools .ord-seg button{padding:4px 6px}
+/* 둘러보기 도구줄은 목록을 내려도 머리글 바로 아래 붙어 있다 — 보기를 바꾸러 맨 위로 올라가지 않게 */
+.browse-tools.stick{position:sticky;top:var(--hdrH,64px);z-index:15;background:var(--bg);
+  margin:0 -14px 10px;padding:7px 14px;border-bottom:1px solid transparent}
+.browse-tools.stick.stuck{border-bottom-color:var(--line);box-shadow:0 4px 10px -8px rgba(0,0,0,.25)}
 .tool-btn{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--muted);box-shadow:var(--shadow)}
 .tool-btn.on{color:var(--brand-ink);background:var(--brand);border-color:transparent}
 /* 도구 아이콘 — 테두리·그림자 없이 글리프만. 켜지면 브랜드색 알약이 된다 */
@@ -583,6 +587,7 @@ function render(keepY){
   if(!keepY){ window.scrollTo(0,0); uiY=0; }
   saveUI();
   navTrack();
+  syncSticky();
 }
 
 // ---------- BROWSE (nested accordion) ----------
@@ -841,7 +846,7 @@ function renderBible(root){
     .sort((x,y)=>x.chap-y.chap||firstVerseNo(x)-firstVerseNo(y));
   if(state.unlearnedOnly) list=list.filter(v=>!learned.has(v.id));
   root.appendChild(el('div','section-title',`${esc(scopeLabel(scope))} · ${list.length}구절`));
-  const btools=el('div','browse-tools');
+  const btools=el('div','browse-tools stick');
   btools.appendChild(showSeg());
   root.appendChild(btools);
   list.forEach(v=>renderVerseRow(v,root,0,true));
@@ -955,7 +960,7 @@ function renderBrowse(root){
   const tree=buildNTree(shown);
 
   // 무엇을 보여줄지가 앞, 누르는 것들(안 외운 것만·펼치기·테스트)이 뒤
-  const tools=el('div','browse-tools');
+  const tools=el('div','browse-tools stick');
   // 하나로 합친 트리 토글 — 다 펼쳐져 있으면 접고, 아니면 편다
   const paths=allNodePaths(tree,[]);
   const allOpen=paths.length>0 && paths.every(pp=>state.openNodes.has(pp));
@@ -1001,7 +1006,24 @@ function showSegOf(w,onChange,refLabel){
   seg.appendChild(ab);
   return seg;
 }
-function showSeg(){ return showSegOf(state.show,()=>{ state.vOpen=new Set(); state.vAll=new Set(); render(); },'장절'); }
+function showSeg(){ return showSegOf(state.show,()=>{ state.vOpen=new Set(); state.vAll=new Set(); renderAnchored(); },'장절'); }
+// 보기를 바꾸면 카드 높이가 달라진다. 맨 위로 보내지 않고, 도구줄 바로 아래 보이던 분류 머리글(없으면 카드)이
+// 다시 그린 뒤에도 같은 높이에 오도록 스크롤을 맞춘다.
+function renderAnchored(){
+  const bar=document.querySelector('#viewInner .browse-tools.stick');
+  const line=bar?bar.getBoundingClientRect().bottom:0;
+  const keyOf=e=>e.dataset.path!=null?'p:'+e.dataset.path:(e.dataset.vid?'v:'+e.dataset.vid:null);
+  const items=[...document.querySelectorAll('#viewInner .acc-head[data-path], #viewInner .pvcard[data-vid]')];
+  // 도구줄 아래 처음 걸치는 것. 머리글이 화면 안에 있으면 그걸 우선한다.
+  const vis=items.filter(e=>e.getBoundingClientRect().bottom>line+4);
+  const anchor=vis.find(e=>e.classList.contains('acc-head')&&e.getBoundingClientRect().top<window.innerHeight*0.5)||vis[0];
+  if(!anchor||window.scrollY<5){ render(true); return; }
+  const key=keyOf(anchor), top=anchor.getBoundingClientRect().top;
+  render(true);
+  const again=[...document.querySelectorAll('#viewInner .acc-head[data-path], #viewInner .pvcard[data-vid]')].find(e=>keyOf(e)===key);
+  if(again) window.scrollBy(0,again.getBoundingClientRect().top-top);
+  uiY=window.scrollY|0; if(navSnapLast) navSnapLast.y=uiY; saveUI();
+}
 function showSep(){ return el('span','tool-sep'); }
 // 장절·제목·구절 중 무엇을 보여줄지는 '보기' 칩 세 개가 정한다(기본 셋 다 켜짐).
 // 가려 둔 게 있는 카드는 눌러서 그 한 장만 확인할 수 있고, state.vOpen이 그 목록이다.
@@ -1039,6 +1061,7 @@ function fillCard(card,v,ctx){
 }
 function renderVerseRow(v,parent,indentDepth,ctx){
   const card=el('div','pvcard vcard'+(ctx?' ctx':'')+(learned.has(v.id)?' done':''));
+  card.dataset.vid=v.id;
   if(indentDepth) card.style.marginLeft=(10+Math.min(indentDepth,3)*8)+'px';
   fillCard(card,v,ctx);
   // 목록이 길어 통째로 다시 그리면 화면이 맨 위로 튄다 → 한 장 확인은 그 자리에서 처리
@@ -2006,6 +2029,14 @@ function toast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),1900);
 }
 
+// 도구줄이 머리글 바로 아래 붙도록 머리글 높이를 CSS 에 알려 주고, 붙어 있을 땐 밑줄을 그린다
+function syncSticky(){
+  const h=document.querySelector('header'); if(h) document.documentElement.style.setProperty('--hdrH',h.offsetHeight+'px');
+  const bar=document.querySelector('#viewInner .browse-tools.stick');
+  if(bar&&h) bar.classList.toggle('stuck',bar.getBoundingClientRect().top<=h.offsetHeight+1&&window.scrollY>0);
+}
+window.addEventListener('scroll',syncSticky,{passive:true});
+window.addEventListener('resize',syncSticky);
 // 열 때 마지막으로 보던 화면 그대로
 (function initView(){ if(!restoreUI()) render(); })();
 // ---------- 쿠팡 파트너스 광고 (온라인 + http일 때만, 최하단) ----------
